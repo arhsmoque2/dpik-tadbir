@@ -61,7 +61,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
   - `chat_sessions`: `id`, `user_id`, `title`, `provider`, `model`, `total_tokens`, timestamps.
   - `chat_messages`: `id`, `chat_session_id`, `role`, `content`, `tool_calls` (JSON), `tool_results` (JSON), `tokens`, timestamps.
 
-### Deferred Schema Models (Preserved for Phase 2 Resumption per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))
+### Deferred Schema Models (Preserved for Phase 2 Resumption per [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))
 - `projects`, `epics`, `tickets`, `departments`, `positions`, `position_assignments`.
 
 ---
@@ -72,7 +72,7 @@ To maintain strict alignment with local Malaysian engineering consultancy and in
 
 1. **"Tugas" (Domain Umbrella Concept)**:
    - User-facing positioning and navigation category term. Signals purpose-built engineering consultancy workflows.
-   - *Guardrail*: Never used as an internal schema table or Eloquent model name ([`OPP-001`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/OPPORTUNITIES.md)).
+   - *Guardrail*: Never used as an internal schema table or Eloquent model name ([`OPP-001`](OPPORTUNITIES.md)).
 2. **Action / Aksi (`actions` / `personal_tasks`)**:
    - Lightweight, fast operational tasks (e.g. email reply, site coordination, statutory document query submission).
 3. **Deliverable (`deliverables` - Phase 2)**:
@@ -95,7 +95,7 @@ To maintain strict alignment with local Malaysian engineering consultancy and in
 ---
 
 ## [ARCH-05] Security, Registration Whitelist & Sovereign Data Boundaries
-1. **Email Whitelist Registration Gate**: Account registration validates against `allowed_registration_emails` via `RegistrationWhitelistMiddleware` ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). Unauthorized emails are rejected with 403 Forbidden.
+1. **Email Whitelist Registration Gate**: Account registration validates against `allowed_registration_emails` via `RegistrationWhitelistMiddleware` ([`ADR-013`](adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). Unauthorized emails are rejected with 403 Forbidden.
 2. **Zero Raw Email Duplication**: No raw email text or attachments are copied to the database.
 3. **OS Keyring Authentication**: Microsoft Graph API tokens are managed securely in the Windows Credential Store / encrypted storage per executive.
 4. **Sovereign Executive Privacy**: `PersonalNote`, `PersonalTask`, `ChatSession`, and `AiActionReceipt` are strictly user-isolated (`PersonalNotePolicy`, `PersonalTaskPolicy`).

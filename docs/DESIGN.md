@@ -1,7 +1,7 @@
 # DPIK Tadbir: System Design Specification
 
 ## [DESIGN-01] Component Breakdown & Subsystem Architecture
-DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into decoupled subsystems, supporting whitelisted multi-executive access ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)) while keeping employee ticketing deferred ([`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)):
+DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into decoupled subsystems, supporting whitelisted multi-executive access ([`ADR-013`](adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)) while keeping employee ticketing deferred ([`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)):
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -79,22 +79,22 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 | **Executive Presets** | `executive_presets` table | Relational Eloquent Model | User-scoped (`user_id` nullable for system seeds; owned by `auth()->id()`) |
 | **Personal Notes/Tasks**| `personal_notes`, `personal_tasks` | User-scoped Relational Tables | Scoped strictly to `auth()->id()` via `PersonalNotePolicy`, `PersonalTaskPolicy` |
 | **Chat Sessions/Messages**| `chat_sessions`, `chat_messages` | User-scoped Relational Tables | Scoped strictly to `auth()->id()` |
-| **Projects & Epics** *(Deferred)* | `projects`, `epics`, `tickets` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
-| **Staff & Organization** *(Deferred)*| `departments`, `positions`, `position_assignments` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
+| **Projects & Epics** *(Deferred)* | `projects`, `epics`, `tickets` | Relational Store | Deferred per [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
+| **Staff & Organization** *(Deferred)*| `departments`, `positions`, `position_assignments` | Relational Store | Deferred per [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
 
 ---
 
 ## [DESIGN-03] Domain Model Taxonomy & Definitions
 
 ### 1. The Malaysian Engineering Domain Split
-- **"Tugas"**: The overarching product and marketing category term signaling Malaysian engineering workflows ([`OPP-001`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/OPPORTUNITIES.md)). Codebase internals remain in plain English (`actions`, `deliverables`, `personal_tasks`).
+- **"Tugas"**: The overarching product and marketing category term signaling Malaysian engineering workflows ([`OPP-001`](OPPORTUNITIES.md)). Codebase internals remain in plain English (`actions`, `deliverables`, `personal_tasks`).
 - **Action / Aksi**: Fast-track operational tasks (emails, queries, site checks) modeled as `PersonalTask` / `actions`.
 - **Deliverable**: Milestone-driven engineering technical documents (Reports, BQ, Tender Drawings) with formal revision lifecycles ($R_0, R_1, R_2, \dots$) tied to fee claims (Phase 2).
 - **PIC (Person-In-Charge)**: Statutory/governance accountability role (PE / Lead Consultant sign-off), distinct from the operational assignee.
 
 ### 2. Nominal Capacity Definition
 **Nominal Capacity** is defined as the baseline volume capacity index ($1.0 = 100\%$ allocated baseline volume across active Action, Deliverable, and PIC assignments for an engineer).
-- *Policy Guardrail ([`OPP-002`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/OPPORTUNITIES.md))*: Active algorithmic capacity scoring is deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md). Volume allocation metrics are strictly observational; the system never auto-evaluates performance or recommends personnel actions.
+- *Policy Guardrail ([`OPP-002`](OPPORTUNITIES.md))*: Active algorithmic capacity scoring is deferred per [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md). Volume allocation metrics are strictly observational; the system never auto-evaluates performance or recommends personnel actions.
 
 ---
 
@@ -389,6 +389,16 @@ class ExecutivePresetPolicy
     {
         return $preset->user_id === $user->id || $user->role === 'super_admin';
     }
+    public function create(User $user): bool
+    {
+        return true;
+    }
+    public function delete(User $user, ExecutivePreset $preset): bool
+    {
+        // System seeds (user_id === null) are only removable by the super admin.
+        return $preset->user_id === $user->id
+            || ($preset->user_id === null && $user->role === 'super_admin');
+    }
 }
 
 class ChatSessionPolicy
@@ -520,3 +530,26 @@ stateDiagram-v2
    - Injected memory from FTS5 is strictly hard-capped by `MemoryTokenCeiling` (default `1,500` tokens). If candidate records exceed the ceiling, the RRF ranker prunes the lowest-scoring records automatically.
 6. **Fail-Closed Write Confirmation Tokens**:
    - Every mutation payload dispatched through `OutlookCreateDraftTool`, `OutlookReplyTool`, or `OutlookForwardTool` requires a cryptographically signed one-time token generated by `ProposeActionCardTool`. Missing or forged tokens trigger an immediate 403 exception.
+
+---
+
+## [DESIGN-07] Filament v4 Component Mapping & Build-vs-Buy Boundary
+
+Every surface described in [`UI.md`](UI.md) maps to a concrete Filament v4 construct **before** any custom Livewire is written. Standard Filament components are the default; hand-rolled Livewire/Alpine is reserved exclusively for the AI Copilot surfaces where no first-party equivalent exists. This keeps the Phase 1 build cost aligned with the 100%-reuse rationale of [`ADR-001`](adr/ADR-001-stack-selection.md).
+
+| UI Surface (`UI.md`) | Filament v4 Construct | Build Type |
+| :--- | :--- | :--- |
+| **Dashboard** | `Filament\Pages\Dashboard` + `StatsOverviewWidget`, `ChartWidget`, table widgets with polling | **Standard** |
+| **Project Register (index)** | `ProjectRegisterResource` table: tabs, filters, grouping, badges, summarizers | **Standard** |
+| **Project Register (detail)** | Resource `view` page infolist + **Relation Managers** (register entries, linked notes, action receipts) | **Standard** |
+| **Personal Notes / Tasks** | User-scoped resources with policies, table tabs, and slide-over create/edit forms | **Standard** |
+| **Activity Rollups** | Read-only `ActivityRollupResource` with infolist detail | **Standard** |
+| **Executive Settings** | Custom Filament page wrapping Spatie Settings form schema | **Standard (light custom)** |
+| **Global Search (`Cmd+K`)** | Filament global search: `getGloballySearchableAttributes()`, result details + result actions | **Standard** |
+| **Notifications / Bell** | Filament **database notifications** with unread badge and polling | **Standard** |
+| **Navigation & Badges** | Panel navigation groups + `getNavigationBadge()` counts (pending cards, unsynced items) | **Standard** |
+| **AI Copilot Drawer / Chat** | Custom Livewire component injected via panel **render hook** (`panels::body.end`) | **Custom** |
+| **Action Dossier Cards & `ask_user_question` modals** | Custom Livewire components composed from Filament Action/modal primitives | **Custom** |
+| **Mobile bottom nav & bottom sheets** | Custom Blade/Alpine layer over the panel (mobile breakpoints only) | **Custom** |
+
+**Layout rule**: the "3-column adaptive" desktop shell in [`UI-03`](UI.md) is realized as *Filament sidebar (column 1) + resource list page (column 2) + record detail / slide-over + docked Copilot drawer (column 3)* — **not** a bespoke replacement of the panel layout. A fully custom shell forfeits Filament's free functionality (search, notifications, responsive tables, accessibility) and is explicitly out of scope for Phase 1.
