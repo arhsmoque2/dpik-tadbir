@@ -38,7 +38,7 @@
 3. **Exit**: AI renders an executive markdown report providing full transparency into all completed activities and historical decisions for that executive.
 
 ## [SCEN-05] Project & Staff Workload Rebalancing & Ticket Delegation
-- **Status**: `Deferred (Keep In View / KIV)` — *See [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
+- **Status**: `Deferred (Keep In View / KIV)` — *See [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
 1. **Entry**: MD notices a deadline warning for the Sungai Udang tender in the **Project Health Board** widget.
 2. **Progress**: MD prompts: *"Who is assigned to the Sungai Udang hydraulic calculation ticket, and what is their current workload?"*
 3. **Execution**:
@@ -51,7 +51,7 @@
 4. **Exit**: Workload is rebalanced, the bottleneck is cleared, and an audit trail of the reassignment is permanently recorded upon Phase 2 resumption.
 
 ## [SCEN-06] Multi-Role Access Control & Sovereign Privacy Boundary
-- **Status**: `Deferred (Keep In View / KIV)` for internal multi-user tiers — *See [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
+- **Status**: `Deferred (Keep In View / KIV)` for internal multi-user tiers — *See [`ADR-012`](adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
 - In the active build, DPIK Tadbir operates with whitelisted executive accounts (`super_admin`), while external coding agents connecting via `/mcp` authenticate with scoped bearer tokens.
 - *Preserved Phase 2 Spec*: When multi-tier roles are activated, `PersonalNotePolicy` and `PersonalTaskPolicy` strictly scope queries to `auth()->id()`, ensuring complete tenant privacy and role segregation across all roles (`super_admin`, `managing_director`, `admin`, `project_manager`, `staff`, `hr`).
 
