@@ -11,14 +11,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  static-analysis:
-    name: Lint & Typecheck
+  doc-and-spec-hygiene:
+    name: Docs & Spec Quality Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate Markdown Structure
+        run: npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
+
+      - name: Validate JSON Schemas
+        run: |
+          node -e '
+            const fs = require("fs");
+            const files = ["docs/ui-spec/navigation-tree.json", "docs/testing/coverage-risk-matrix.json"];
+            files.forEach(f => {
+              if (fs.existsSync(f)) {
+                JSON.parse(fs.readFileSync(f, "utf8"));
+                console.log("Valid JSON:", f);
+              }
+            });
+          '
+
+  static-analysis:
+    name: PHP Lint & Typecheck
+    runs-on: ubuntu-latest
+    needs: [doc-and-spec-hygiene]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check if composer.json exists
+        id: check_composer
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "has_composer=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_composer=false" >> $GITHUB_OUTPUT
+            echo "No composer.json found (design & specs phase) — skipping PHP lint."
+          fi
+
       - name: Setup PHP
+        if: steps.check_composer.outputs.has_composer == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -26,24 +66,39 @@ jobs:
           coverage: none
 
       - name: Install Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run Pint Code Style Check
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/pint --test
 
       - name: Run Larastan / PHPStan
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/phpstan analyse --memory-limit=1G
 
   test-and-coverage:
     name: Hermetic Tests & Diff Cover Gate
     runs-on: ubuntu-latest
+    needs: [doc-and-spec-hygiene]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Check if composer.json exists
+        id: check_composer
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "has_composer=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_composer=false" >> $GITHUB_OUTPUT
+            echo "No composer.json found (design & specs phase) — skipping test suite."
+          fi
+
       - name: Setup PHP
+        if: steps.check_composer.outputs.has_composer == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -51,9 +106,11 @@ jobs:
           coverage: xdebug
 
       - name: Install Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Execute Tests with Clover Coverage
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/pest --coverage-clover coverage.xml
         env:
           DB_CONNECTION: sqlite
@@ -61,11 +118,13 @@ jobs:
           APP_ENV: testing
 
       - name: Setup uv for diff-cover
+        if: steps.check_composer.outputs.has_composer == 'true'
         uses: astral-sh/setup-uv@v5
 
       - name: Enforce 90% Incremental Diff Coverage Gate
-        if: github.event_name == 'pull_request'
+        if: steps.check_composer.outputs.has_composer == 'true' && github.event_name == 'pull_request'
         run: |
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
             --fail-under 90
+
