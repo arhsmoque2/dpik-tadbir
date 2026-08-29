@@ -87,10 +87,10 @@
 
     <!-- Role & Device Simulation Toggles -->
     <div class="flex items-center gap-2.5">
-      <!-- Role Toggle -->
+      <!-- Sovereign Persona Toggle -->
       <div class="bg-[#141519] p-0.5 rounded-lg border border-[#2C2F38] flex items-center">
-        <button id="btn-role-md" onclick="switchRole('md')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-zinc-200 text-zinc-950 transition shadow-sm">Managing Director</button>
-        <button id="btn-role-pm" onclick="switchRole('pm')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition">Project Manager</button>
+        <button id="btn-role-md" onclick="switchRole('md')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-zinc-200 text-zinc-950 transition shadow-sm">Managing Director (User)</button>
+        <button id="btn-role-admin" onclick="switchRole('admin')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition">Platform Operator (Super Admin)</button>
       </div>
 
       <!-- Viewport Toggle -->
@@ -117,7 +117,6 @@
       <button onclick="triggerScenario('scen-02')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">2. Supervised Reply Card</button>
       <button onclick="triggerScenario('scen-03')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">3. Project Register Memory</button>
       <button onclick="triggerScenario('scen-04')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">4. Activity Ledger</button>
-      <button onclick="triggerScenario('scen-05')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">5. Capacity Balancing</button>
     </div>
   </div>
 
@@ -160,23 +159,15 @@
             </button>
           </div>
 
-          <!-- Group 2: Project Intelligence -->
+          <!-- Group 2: Enterprise Intelligence -->
           <div class="space-y-1">
-            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Project Intelligence</p>
+            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Knowledge Base</p>
             <button onclick="switchTab('register')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
               <div class="flex items-center gap-2.5">
                 <i data-lucide="folder-git-2" class="w-4 h-4 text-[#429A6A]"></i>
                 <span>Project Register</span>
               </div>
               <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#141519] text-zinc-400 border border-[#2C2F38]">FTS5</span>
-            </button>
-            <button onclick="switchTab('projects')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="layers" class="w-4 h-4 text-zinc-400"></i>
-              <span>Consultancies & Claims</span>
-            </button>
-            <button onclick="switchTab('workload')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="users" class="w-4 h-4 text-zinc-400"></i>
-              <span>Staff Capacity Index</span>
             </button>
           </div>
 
@@ -185,11 +176,20 @@
             <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Private Workspace</p>
             <button onclick="switchTab('notes')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
               <i data-lucide="file-text" class="w-4 h-4 text-zinc-400"></i>
-              <span>Encrypted Notes</span>
+              <span>Personal Notes</span>
             </button>
             <button onclick="switchTab('tasks')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
               <i data-lucide="check-square" class="w-4 h-4 text-zinc-400"></i>
               <span>Personal Tasks</span>
+            </button>
+          </div>
+
+          <!-- Group 4: Administration (super_admin only) -->
+          <div id="nav-group-admin" class="space-y-1 hidden">
+            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Administration</p>
+            <button onclick="switchTab('settings')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
+              <i data-lucide="settings" class="w-4 h-4 text-zinc-400"></i>
+              <span>Executive Settings</span>
             </button>
           </div>
         </div>
@@ -308,7 +308,7 @@
         <!-- Dynamic Content Pane -->
         <div id="content-pane" class="flex-1 p-7 space-y-6 max-w-5xl mx-auto w-full">
           
-          <!-- Key Metric Indicators -->
+          <!-- Key Metric Indicators (CAP-009 / UI-11 Dashboard Composition) -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
               <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Staged Proposals</p>
@@ -318,24 +318,24 @@
               </div>
             </div>
             <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Active Consultancies</p>
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-zinc-100 font-mono">4</span>
-                <span class="text-xs text-[#429A6A] font-mono">On Schedule</span>
-              </div>
-            </div>
-            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Action Receipts</p>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Action Receipts (7-Day)</p>
               <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-bold text-zinc-100 font-mono" id="stat-receipts">18</span>
                 <span class="text-xs text-zinc-400">Immutable Ledger</span>
               </div>
             </div>
             <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Team Capacity Load</p>
+              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Outlook Sync Status</p>
               <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-[#429A6A] font-mono">82%</span>
-                <span class="text-xs text-zinc-400">Balanced Allocation</span>
+                <span class="text-2xl font-bold text-[#429A6A] font-mono">Live</span>
+                <span class="text-xs text-zinc-400">Zero Raw Blob</span>
+              </div>
+            </div>
+            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
+              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Project Register</p>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold text-zinc-100 font-mono">142</span>
+                <span class="text-xs text-[#429A6A] font-mono">Indexed Memory</span>
               </div>
             </div>
           </div>
@@ -386,41 +386,42 @@
                 </div>
               </div>
 
-              <!-- Staff Capacity & Allocation Table -->
+              <!-- Project Register Context & Linked Decisions -->
               <div class="p-5 rounded-2xl bg-[#18191E] border border-[#2C2F38] space-y-3.5 shadow-sm">
                 <div class="flex items-center justify-between border-b border-[#2C2F38] pb-3">
-                  <h4 class="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
-                    Department Workload & Delivery Allocation
+                  <h4 class="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="folder-git-2" class="w-4 h-4 text-[#429A6A]"></i>
+                    <span>Linked Project Register Commitments</span>
                   </h4>
-                  <span class="text-[11px] text-zinc-400 font-mono">Capacity Matrix: PIC > Deliverable > Action</span>
+                  <span class="text-[11px] text-zinc-400 font-mono">FTS5 Match: PC-2023-011</span>
                 </div>
 
                 <div class="divide-y divide-[#2C2F38]/60 text-xs">
                   <div class="py-3 flex items-center justify-between">
                     <div>
-                      <p class="font-medium text-zinc-100 text-xs">Ir. Syahril (Lead Hydrologist)</p>
-                      <p class="text-[11px] text-zinc-400 mt-0.5">Sungai Udang Spillway 2D Model (Critical Path)</p>
+                      <p class="font-medium text-zinc-100 text-xs">VO #2 Geotechnical Scope Addendum Signed</p>
+                      <p class="text-[11px] text-zinc-400 mt-0.5">Recorded by Ir. Abdul Rahman Hilmi • 14 Aug 2026</p>
                     </div>
                     <div class="text-right space-y-1">
-                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#D35858]/15 text-[#D35858] border border-[#D35858]/25 font-semibold">140% Load (Bottleneck)</span>
-                      <p class="text-[10px] text-zinc-400 font-mono">7 Active Tickets</p>
+                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#429A6A]/15 text-[#429A6A] border border-[#429A6A]/25 font-semibold">dm:decision</span>
+                      <p class="text-[10px] text-zinc-400 font-mono">RM 120,000.00</p>
                     </div>
                   </div>
                   <div class="py-3 flex items-center justify-between">
                     <div>
-                      <p class="font-medium text-zinc-100 text-xs">En. Haziq (Hydrology Engineer)</p>
-                      <p class="text-[11px] text-zinc-400 mt-0.5">Available for task reassignment</p>
+                      <p class="font-medium text-zinc-100 text-xs">Interim Claim No. 3 Settlement Acknowledged</p>
+                      <p class="text-[11px] text-zinc-400 mt-0.5">State Treasury Payment Voucher #PV-9912 • 28 Jul 2026</p>
                     </div>
                     <div class="text-right space-y-1">
-                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#429A6A]/15 text-[#429A6A] border border-[#429A6A]/25 font-semibold">45% Load (Available)</span>
-                      <p class="text-[10px] text-zinc-400 font-mono">2 Active Tickets</p>
+                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#21232B] text-zinc-300 border border-[#2C2F38] font-medium">dm:financial</span>
+                      <p class="text-[10px] text-zinc-400 font-mono">RM 245,500.00</p>
                     </div>
                   </div>
                 </div>
 
                 <div class="pt-1.5 text-right">
-                  <button onclick="triggerRebalanceModal()" class="text-xs text-[#D4A373] hover:underline font-medium transition">
-                    Rebalance Delegation &rarr;
+                  <button onclick="switchTab('register')" class="text-xs text-[#D4A373] hover:underline font-medium transition">
+                    View Full Project Register &rarr;
                   </button>
                 </div>
               </div>
@@ -647,49 +648,6 @@
 
   </div>
 
-  <!-- Reassignment Interactive Modal Simulation -->
-  <div id="modal-reassign" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-[#18191E] border border-[#2C2F38] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-[#2C2F38] pb-3.5">
-        <h3 class="text-xs font-semibold text-zinc-100 flex items-center gap-2">
-          <i data-lucide="shuffle" class="w-4 h-4 text-[#D4A373]"></i>
-          <span>Reassign Work Package & Balance Capacity</span>
-        </h3>
-        <button onclick="closeReassignModal()" class="text-zinc-400 hover:text-white">&times;</button>
-      </div>
-
-      <div class="space-y-3.5 text-xs">
-        <div>
-          <label class="text-zinc-400 font-mono text-[10px] block mb-1">TARGET ITEM:</label>
-          <p class="font-medium text-zinc-100">PC-2023-011: Sungai Udang Spillway 2D Calculation</p>
-        </div>
-
-        <div>
-          <label class="text-zinc-400 font-mono text-[10px] block mb-1">CURRENT ASSIGNEE (BOTTLENECK):</label>
-          <p class="text-[#D35858] font-medium font-mono">Ir. Syahril (140% Load / 7 Tickets)</p>
-        </div>
-
-        <div>
-          <label class="text-zinc-400 font-mono text-[10px] block mb-1">REASSIGN TO:</label>
-          <select class="w-full bg-[#141519] border border-[#2C2F38] rounded-lg p-2.5 text-zinc-100 text-xs focus:outline-none focus:border-[#C9A36D] font-sans">
-            <option>En. Haziq (Hydrology - 45% Load / 2 Tickets)</option>
-            <option>En. Daniel (Civil Review - 60% Load / 3 Tickets)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="text-zinc-400 font-mono text-[10px] block mb-1">DELEGATION DIRECTIVE (IMMUTABLE AUDIT RECEIPT):</label>
-          <input type="text" value="Prioritized by MD for Thursday submission." class="w-full bg-[#141519] border border-[#2C2F38] rounded-lg p-2.5 text-zinc-100 text-xs font-sans">
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#2C2F38]">
-        <button onclick="closeReassignModal()" class="px-4 py-2 rounded-lg bg-[#21232B] text-zinc-300 text-xs border border-[#2C2F38]">Cancel</button>
-        <button onclick="confirmReassign()" class="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition shadow-sm">Confirm Reassignment</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // Initialize Lucide Icons
     lucide.createIcons();
@@ -720,27 +678,30 @@
       }
     }
 
-    // Role Switching Simulation (RBAC Isolation)
+    // Role Switching Simulation (ADR-013 Two-Tier Role Split)
     function switchRole(role) {
       const btnMd = document.getElementById('btn-role-md');
-      const btnPm = document.getElementById('btn-role-pm');
+      const btnAdmin = document.getElementById('btn-role-admin');
       const userName = document.getElementById('user-display-name');
       const userRole = document.getElementById('user-display-role');
+      const adminNav = document.getElementById('nav-group-admin');
 
       if (role === 'md') {
         btnMd.classList.add('bg-zinc-200', 'text-zinc-950');
         btnMd.classList.remove('text-zinc-400');
-        btnPm.classList.remove('bg-zinc-200', 'text-zinc-950');
-        btnPm.classList.add('text-zinc-400');
+        btnAdmin.classList.remove('bg-zinc-200', 'text-zinc-950');
+        btnAdmin.classList.add('text-zinc-400');
         userName.textContent = 'Ir. Abdul Rahman Hilmi';
-        userRole.textContent = 'Managing Director (Sovereign)';
+        userRole.textContent = 'Managing Director (Sovereign User)';
+        adminNav.classList.add('hidden');
       } else {
-        btnPm.classList.add('bg-zinc-200', 'text-zinc-950');
-        btnPm.classList.remove('text-zinc-400');
+        btnAdmin.classList.add('bg-zinc-200', 'text-zinc-950');
+        btnAdmin.classList.remove('text-zinc-400');
         btnMd.classList.remove('bg-zinc-200', 'text-zinc-950');
         btnMd.classList.add('text-zinc-400');
-        userName.textContent = 'En. Kamil (Project Manager)';
-        userRole.textContent = 'Project Manager (Scoped)';
+        userName.textContent = 'Platform Operator';
+        userRole.textContent = 'Platform Operator (Super Admin)';
+        adminNav.classList.remove('hidden');
       }
     }
 
@@ -799,7 +760,6 @@
       }
       if (scen === 'scen-03') saveToProjectRegister();
       if (scen === 'scen-04') alert("SCEN-04 Activity Ledger: Rendered weekly executive audit summary from 18 verified AiActionReceipt records.");
-      if (scen === 'scen-05') triggerRebalanceModal();
     }
 
     function sendCopilotPrompt() {
@@ -831,18 +791,6 @@
         icon.classList.remove('animate-spin');
         alert("Graph API Delta Scan: 0 new unread messages since 14:15.");
       }, 800);
-    }
-
-    // Modal controls
-    function triggerRebalanceModal() {
-      document.getElementById('modal-reassign').classList.remove('hidden');
-    }
-    function closeReassignModal() {
-      document.getElementById('modal-reassign').classList.add('hidden');
-    }
-    function confirmReassign() {
-      closeReassignModal();
-      alert("Work package reassigned to En. Haziq. Immutable audit receipt logged.");
     }
   </script>
 </body>
