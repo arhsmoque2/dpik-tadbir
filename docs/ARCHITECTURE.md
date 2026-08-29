@@ -47,7 +47,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 - **Registration Whitelist (`allowed_registration_emails`)**:
   - `id`, `email` (unique string), `notes` (e.g. "Managing Director", "Senior Partner"), `is_active` (boolean), `whitelisted_by_user_id`, timestamps.
 - **Users & Authentication (`users`)**:
-  - `id`, `name`, `email`, `role` (`super_admin`), `is_hq` (boolean filter flag), timestamps.
+  - `id`, `name`, `email`, `role` (`super_admin` | `user`), `is_hq` (boolean filter flag), timestamps.
 - **Project Register (`project_registry_entries`)** *(Shared Enterprise Knowledge)*:
   - `id`, `project_code` (e.g. `PC-2023-011`), `project_title`, `source_type` (outlook_search, email_summary, manual_briefing), `source_outlook_id` (nullable string), `title`, `summary` (Markdown), `key_commitments` (JSON), `action_items` (JSON), `recorded_by_user_id`, timestamps.
 - **AI Action Receipts & Memory (`ai_action_receipts`)** *(User-Scoped)*:

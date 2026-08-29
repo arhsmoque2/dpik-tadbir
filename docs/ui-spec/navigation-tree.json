@@ -9,19 +9,19 @@
           "title": "Dashboard",
           "route": "/admin",
           "icon": "heroicon-o-home",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         },
         {
           "title": "AI Assistant & Presets",
           "route": "/admin/ai-assistant",
           "icon": "heroicon-o-sparkles",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         },
         {
           "title": "Activity Rollups",
           "route": "/admin/activity-rollups",
           "icon": "heroicon-o-clipboard-document-list",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         }
       ]
     },
@@ -32,7 +32,7 @@
           "title": "Project Register",
           "route": "/admin/project-register",
           "icon": "heroicon-o-book-open",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         }
       ]
     },
@@ -43,13 +43,13 @@
           "title": "Personal Notes",
           "route": "/admin/personal-notes",
           "icon": "heroicon-o-document-text",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         },
         {
           "title": "Personal Tasks",
           "route": "/admin/personal-tasks",
           "icon": "heroicon-o-check-circle",
-          "roles": ["super_admin"]
+          "roles": ["super_admin", "user"]
         },
         {
           "title": "Executive Settings",

@@ -11,9 +11,12 @@ Opening registration publicly is an unacceptable security risk, but hardcoding a
 
 ## Decision
 
-1. **Email Whitelist Registration Gate**:
+1. **Email Whitelist Registration Gate & Two-Tier Role Split**:
    - User registration is strictly gated by an **Email Whitelist** mechanism (`allowed_registration_emails` table and `REGISTRATION_WHITELIST` environment fallback).
-   - Only email addresses explicitly added to the whitelist (configured by the operator or super admin) are permitted to create an account.
+   - Only email addresses explicitly added to the whitelist (configured by the platform operator) are permitted to create an account.
+   - The platform enforces an explicit **two-tier role split**:
+     - **`super_admin` (Platform Operator)**: Manages the registration whitelist (`allowed_registration_emails`), configures system-wide settings (`AiSettings`, `OutlookSettings`, `SafetySettings`), and administers infrastructure.
+     - **`user` (Whitelisted Registrants)**: Every registered executive (including the Managing Director and Executive Admin) operates with full sovereign workspace privileges and shared Project Register access, but has zero administrative control over the whitelist or global settings. Organizational seniority in the company does not map to application administrative tiers.
    - Any registration attempt from a non-whitelisted email is rejected immediately with a 403 Forbidden error before creating any database records.
 
 2. **Sovereign Multi-User Executive Isolation**:

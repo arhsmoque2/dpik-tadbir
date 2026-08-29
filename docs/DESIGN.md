@@ -411,6 +411,22 @@ class ChatSessionPolicy
     }
 }
 
+class AllowedRegistrationEmailPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->role === 'super_admin';
+    }
+    public function create(User $user): bool
+    {
+        return $user->role === 'super_admin';
+    }
+    public function delete(User $user, AllowedRegistrationEmail $email): bool
+    {
+        return $user->role === 'super_admin';
+    }
+}
+
 /**
  * Deferred Policies (Preserved for Phase 2 Resumption per ADR-012)
  */
