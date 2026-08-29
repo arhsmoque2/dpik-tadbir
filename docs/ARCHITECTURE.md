@@ -1,24 +1,25 @@
 # DPIK Tadbir: Architecture
 
 ## [ARCH-01] System Overview
-DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 administrative control plane. It acts as an **AI Email Processing & Synthesis Layer** over the Managing Director's existing Outlook account, connecting via `outlook-mcp` (Graph API) on-demand and storing only **processed intelligence** (summaries, action items, project register entries, and audit receipts)—never duplicating raw email storage.
+DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 administrative control plane. It acts as an **AI Email Processing & Synthesis Layer** over authorized executives' Outlook accounts, connecting via `outlook-mcp` (Graph API) on-demand and storing only **processed intelligence** (summaries, action items, project register entries, and audit receipts)—never duplicating raw email storage.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                             DPIK TADBIR WORKSTATION                        │
-│                (Single-User Personal Posture: Super Admin)                 │
+│             (Whitelisted Multi-Executive Sovereign Workspaces)             │
 ├────────────────────────────────────────────────────────────────────────────┤
 │                                                                            │
 │  [Presentation Layer]                                                      │
 │  • Filament v4 Admin Panel (Livewire / Alpine.js / Tailwind CSS)           │
 │  • Executive AI Assistant Drawer & Presets Bar ("What's new today?")       │
 │  • Project Register (CAP-005) & Activity Rollup Dashboards                 │
-│  • Personal Notes & Tasks Workspace Panel                                  │
+│  • Personal Notes & Tasks Workspace Panel (Per-Executive Scoped)           │
 │  • [Deferred per ADR-012]: Multi-Department Staff & Ticketing Boards      │
 │                                                                            │
 │  [Application Services Layer]                                              │
 │  • AgentService (Multi-Turn AI Loop + Anti-Hallucination Guard)            │
-│  • OutlookMcpBridge (Connects to local Python outlook-mcp server)          │
+│  • OutlookMcpBridge (Per-user Outlook OAuth & Graph API connector)         │
+│  • RegistrationWhitelistService (Email whitelist registration guard)       │
 │  • MemoryRetrievalService (SQLite FTS5 BM25 + Reciprocal Rank Fusion)      │
 │  • ActionMemoryService (Action receipts & daily/weekly rollup generator)   │
 │  • PresetExecutionService (User-scoped dynamic prompt template engine)     │
@@ -26,8 +27,9 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  • [Deferred per ADR-012]: ProjectOversightService & StaffWorkloadService  │
 │                                                                            │
 │  [Domain & Persistence Layer (Eloquent)]                                   │
-│  • Processed Intelligence: ProjectRegistryEntry, ProjectContextSummary     │
-│  • Personal Workspace: PersonalNote, PersonalTask, ExecutivePreset, User   │
+│  • Shared Knowledge: ProjectRegistryEntry, ProjectContextSummary           │
+│  • Whitelist & Auth: AllowedRegistrationEmail, User                        │
+│  • Sovereign Workspace: PersonalNote, PersonalTask, ExecutivePreset        │
 │  • AI & Audit: ChatSession, ChatMessage, AiActionReceipt, AuditLog         │
 │  • [Deferred per ADR-012]: Project, Epic, Ticket, Department, Position     │
 │                                                                            │
@@ -42,20 +44,22 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 ## [ARCH-02] Storage Schema & Relationships (Processed Outputs Only)
 
 ### Active Core Schema
-- **Project Register (`project_registry_entries`)**:
-  - `id`, `project_code` (e.g. `PC-2023-011`), `project_title`, `source_type` (outlook_search, email_summary, manual_briefing), `source_outlook_id` (nullable string), `title`, `summary` (Markdown), `key_commitments` (JSON), `action_items` (JSON), `recorded_by_user_id`, timestamps.
-- **AI Action Receipts & Memory (`ai_action_receipts`)**:
-  - `id`, `user_id`, `session_id`, `action_type` (draft, reply, forward, summarize, create_note, create_task, update_register), `target_entity_type`, `target_entity_id`, `summary`, `payload` (JSON), `is_confirmed`, `executed_at`, timestamps.
-- **Personal Notes & Tasks (`personal_notes`, `personal_tasks`)**:
-  - `personal_notes`: `id`, `user_id`, `title`, `content` (Markdown), `tags` (JSON), `source_outlook_id` (nullable), `project_code` (nullable), timestamps.
-  - `personal_tasks`: `id`, `user_id`, `title`, `description`, `due_date`, `is_done`, `priority`, timestamps.
-- **Executive Presets (`executive_presets`)**:
-  - `id`, `user_id` (nullable for system seed defaults, foreign key to `users`), `title`, `slug`, `icon`, `color`, `prompt_template`, `lookback_window`, `target_scope`, `output_format`, `sort_order`, `is_active`, timestamps.
-- **Chat Sessions & Messages (`chat_sessions`, `chat_messages`)**:
-  - `chat_sessions`: `id`, `user_id`, `title`, `provider`, `model`, `total_tokens`, timestamps.
-  - `chat_messages`: `id`, `chat_session_id`, `role`, `content`, `tool_calls` (JSON), `tool_results` (JSON), `tokens`, timestamps.
+- **Registration Whitelist (`allowed_registration_emails`)**:
+  - `id`, `email` (unique string), `notes` (e.g. "Managing Director", "Senior Partner"), `is_active` (boolean), `whitelisted_by_user_id`, timestamps.
 - **Users & Authentication (`users`)**:
   - `id`, `name`, `email`, `role` (`super_admin`), `is_hq` (boolean filter flag), timestamps.
+- **Project Register (`project_registry_entries`)** *(Shared Enterprise Knowledge)*:
+  - `id`, `project_code` (e.g. `PC-2023-011`), `project_title`, `source_type` (outlook_search, email_summary, manual_briefing), `source_outlook_id` (nullable string), `title`, `summary` (Markdown), `key_commitments` (JSON), `action_items` (JSON), `recorded_by_user_id`, timestamps.
+- **AI Action Receipts & Memory (`ai_action_receipts`)** *(User-Scoped)*:
+  - `id`, `user_id`, `session_id`, `action_type` (draft, reply, forward, summarize, create_note, create_task, update_register), `target_entity_type`, `target_entity_id`, `summary`, `payload` (JSON), `is_confirmed`, `executed_at`, timestamps.
+- **Personal Notes & Tasks (`personal_notes`, `personal_tasks`)** *(User-Scoped)*:
+  - `personal_notes`: `id`, `user_id`, `title`, `content` (Markdown), `tags` (JSON), `source_outlook_id` (nullable), `project_code` (nullable), timestamps.
+  - `personal_tasks`: `id`, `user_id`, `title`, `description`, `due_date`, `is_done`, `priority`, timestamps.
+- **Executive Presets (`executive_presets`)** *(User-Scoped with System Seeds)*:
+  - `id`, `user_id` (nullable for system seed defaults, foreign key to `users`), `title`, `slug`, `icon`, `color`, `prompt_template`, `lookback_window`, `target_scope`, `output_format`, `sort_order`, `is_active`, timestamps.
+- **Chat Sessions & Messages (`chat_sessions`, `chat_messages`)** *(User-Scoped)*:
+  - `chat_sessions`: `id`, `user_id`, `title`, `provider`, `model`, `total_tokens`, timestamps.
+  - `chat_messages`: `id`, `chat_session_id`, `role`, `content`, `tool_calls` (JSON), `tool_results` (JSON), `tokens`, timestamps.
 
 ### Deferred Schema Models (Preserved for Phase 2 Resumption per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))
 - `projects`, `epics`, `tickets`, `departments`, `positions`, `position_assignments`.
@@ -79,23 +83,24 @@ To maintain strict alignment with local Malaysian engineering consultancy and in
 ---
 
 ## [ARCH-04] AI & Outlook MCP Execution Boundary
-1. The **`AgentService`** executes tool calls through **`ToolRegistry`**.
+1. The **`AgentService`** executes tool calls through **`ToolRegistry`** within the context of `auth()->user()`.
 2. **Read / Scan Tools** (`outlook_list_inbox_delta`, `outlook_search_mail`, `outlook_read_message` with `concise=True`, `query_project_register`):
-   - Directly query the MD's Outlook mailbox via `outlook-mcp` or query local SQLite/FTS5 indexes.
+   - Directly query the executive's Outlook mailbox via `outlook-mcp` using user-specific credentials, or query local SQLite/FTS5 indexes.
    - Results are fed into the LLM context for synthesis and discarded from transient memory once processed.
 3. **Write / Mutation Tools** (`outlook_create_draft`, `outlook_reply`, `outlook_forward`, `create_personal_note`, `create_personal_task`, `commit_project_register`):
    - Generate an **Interactive Action Card** in the UI via `propose_action_card`.
    - Require explicit human confirmation before executing via Graph API or database write.
-4. Confirmed actions commit an `AiActionReceipt`, enriching the AI's searchable action memory and feeding daily/weekly rollups.
+4. Confirmed actions commit an `AiActionReceipt`, enriching the user's searchable action memory and feeding personalized daily/weekly rollups.
 
 ---
 
-## [ARCH-05] Security & Sovereign Data Boundaries
-1. **Zero Raw Email Duplication**: No raw email text or attachments are copied to the database.
-2. **OS Keyring Authentication**: Microsoft Graph API tokens are managed securely in the Windows Credential Store via `outlook-mcp`.
-3. **Single-User Executive Privacy**: `PersonalNote` and `PersonalTask` are strictly user-isolated (`PersonalNotePolicy`, `PersonalTaskPolicy`).
-4. **External MCP Token Authentication**: The `/mcp` endpoint validates bearer tokens for external agent sessions (Cursor, Claude Code) with tool-level permissions.
-5. **Immutable Audit Trail**: All actions produce permanent receipts for governance and compliance.
+## [ARCH-05] Security, Registration Whitelist & Sovereign Data Boundaries
+1. **Email Whitelist Registration Gate**: Account registration validates against `allowed_registration_emails` via `RegistrationWhitelistMiddleware` ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). Unauthorized emails are rejected with 403 Forbidden.
+2. **Zero Raw Email Duplication**: No raw email text or attachments are copied to the database.
+3. **OS Keyring Authentication**: Microsoft Graph API tokens are managed securely in the Windows Credential Store / encrypted storage per executive.
+4. **Sovereign Executive Privacy**: `PersonalNote`, `PersonalTask`, `ChatSession`, and `AiActionReceipt` are strictly user-isolated (`PersonalNotePolicy`, `PersonalTaskPolicy`).
+5. **External MCP Token Authentication**: The `/mcp` endpoint validates bearer tokens for external agent sessions (Cursor, Claude Code) with tool-level permissions.
+6. **Immutable Audit Trail**: All actions produce permanent receipts for governance and compliance.
 
 ---
 

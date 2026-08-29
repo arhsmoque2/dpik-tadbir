@@ -1,6 +1,6 @@
 # DPIK Tadbir: Capabilities
 
-*Posture Note: DPIK Tadbir is explicitly architected as a **single-user personal command center** for the Managing Director (`super_admin`). Multi-user enterprise RBAC and organizational staffing tiers are formally on hold / deferred ([`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)), while external MCP agent access enforces strict bearer token authorization.*
+*Posture Note: DPIK Tadbir is architected as a **whitelisted multi-executive platform** ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). Only explicitly whitelisted email addresses can register. Each registered executive operates within their own sovereign private workspace (isolated Outlook mailbox, chat sessions, personal notes, tasks, and presets) while sharing the company-wide continuous Project Register. Multi-tier organizational staff hierarchies and employee ticketing are deferred ([`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)).*
 
 ## [CAP-001] Multi-Provider AI Agent Loop
 The system must provide an iterative agent execution loop (`AgentService`) supporting Anthropic Claude, Google Gemini, and OpenAI with token tallying, session persistence, and anti-hallucination validation gates (`AntiHallucinationGuard`).
@@ -15,13 +15,13 @@ The system must provide user-scoped, database-backed executive presets (`Executi
 The system must empower the AI to stage email drafts (`OutlookCreateDraftTool`), compose contextual replies (`OutlookReplyTool`), and assemble forwards (`OutlookForwardTool`) via `outlook-mcp`. Every outbound action generates an interactive confirmation card requiring explicit human approval before being dispatched through Outlook.
 
 ## [CAP-005] Processed Output & Project Register Store
-The system must persist exclusively **processed outputs** (summaries, extracted commitments, action items) rather than raw emails. Every search and summary is categorized under a **Project Register** entry (`projects`, `project_registry_entries`), compounding the AI's long-term domain knowledge.
+The system must persist exclusively **processed outputs** (summaries, extracted commitments, action items) rather than raw emails. Every search and summary is categorized under a **Project Register** entry (`projects`, `project_registry_entries`), compounding the AI's long-term domain knowledge across all authorized executives.
 
 ## [CAP-006] Action Memory & Rolling Audit Summaries
-The system must record every AI-assisted action (emails summarized, drafts created, replies sent, notes saved, tasks created) into an immutable activity ledger (`AiActionReceipt` / `AuditLog`). This ledger serves as the AI's episodic memory and auto-generates rolling daily and weekly executive activity summaries.
+The system must record every AI-assisted action (emails summarized, drafts created, replies sent, notes saved, tasks created) into an immutable activity ledger (`AiActionReceipt` / `AuditLog`). This ledger serves as the AI's episodic memory and auto-generates rolling daily and weekly executive activity summaries per user.
 
 ## [CAP-007] Executive Personal Notes & Tasks Engine
-The system must maintain private, encrypted `PersonalNote` records with Markdown support and backlinks to Outlook message IDs, alongside a `PersonalTask` checklist generated seamlessly from email action items.
+The system must maintain private, encrypted `PersonalNote` records with Markdown support and backlinks to Outlook message IDs, alongside a `PersonalTask` checklist generated seamlessly from email action items, strictly isolated to `auth()->id()`.
 
 ## [CAP-008] Project & Staff Oversight Engine
 - **Status**: `Deferred (Keep In View / KIV)` — *See [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
@@ -31,7 +31,7 @@ The system must maintain private, encrypted `PersonalNote` records with Markdown
 The system must provide a visual Filament web interface with interactive tables, metric widgets (`ExecutiveStatsOverview`, `PendingActionCardsWidget`, `RecentActivityRollupWidget`), drawer-based AI chat, quick preset bars, and project register oversight views. *(Note: Multi-department staff workload widgets are deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))*
 
 ## [CAP-010] In-Panel & External MCP Server Exposure (`laravel/mcp`)
-The system must expose internal resources and tools over a standard `/mcp` endpoint and internal `ToolRegistry`. Access control is enforced at the external MCP gateway using scoped bearer tokens for external agent sessions (Cursor, Claude Code), while internal panel actions operate under the single-user executive session. *(Multi-role internal user tiers are deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))*
+The system must expose internal resources and tools over a standard `/mcp` endpoint and internal `ToolRegistry`. Access control is enforced at the external MCP gateway using scoped bearer tokens for external agent sessions (Cursor, Claude Code), while internal panel actions operate under the authenticated executive session.
 
 ## [CAP-011] Hybrid SQLite FTS5 Project Register Search Engine (ARH Session Reader Pattern)
 The system must maintain dedicated SQLite FTS5 virtual tables (`project_registry_entries_fts`, `personal_notes_fts`, `ai_action_receipts_fts`) with unicode61/porter tokenizers to provide sub-millisecond lexical full-text search across all historical summaries, commitments, project records, and action receipts.
@@ -50,3 +50,6 @@ The system must support automated periodic reflection over user interaction hist
 
 ## [CAP-016] Interactive UI Modals, Choice Pickers & Escape Hatch Contracts
 The system must equip the AI with interactive UI tools (`AskUserQuestionTool`, `ProposeActionCardTool`) featuring dedicated **escape hatches** (`[Skip]`, `[Cancel]`) and **non-mutually exclusive supplementary freeform input** ("Other / Notes / Custom Directives"). Users can select predefined options *and/or* append custom freeform text. When invoked, the execution loop pauses in an `AWAITING_INPUT` state, collects the operator's structured selection via Livewire, and resumes the reasoning loop without loss of conversational state.
+
+## [CAP-017] Whitelisted Registration & Sovereign Workspace Isolation Engine
+The system must restrict registration strictly to authorized email addresses (`allowed_registration_emails` table and `RegistrationWhitelistService`). Every whitelisted executive who registers receives their own sovereign workstation with isolated Outlook mailbox credentials, private chat sessions, personal notes, personal tasks, custom presets, and activity rollups, with zero data leakage across accounts ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)).

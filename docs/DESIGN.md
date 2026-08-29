@@ -1,19 +1,19 @@
 # DPIK Tadbir: System Design Specification
 
 ## [DESIGN-01] Component Breakdown & Subsystem Architecture
-DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into decoupled subsystems, with core AI/email intelligence active in Phase 1 and multi-user staffing/ticketing deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md):
+DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into decoupled subsystems, supporting whitelisted multi-executive access ([`ADR-013`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)) while keeping employee ticketing deferred ([`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)):
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                             DPIK TADBIR WORKSTATION                        │
-│                (Single-User Personal Posture: Super Admin)                 │
+│             (Whitelisted Multi-Executive Sovereign Workspaces)             │
 ├────────────────────────────────────────────────────────────────────────────┤
 │                                                                            │
 │  [1. Executive Control Plane & Filament UI]                                │
 │  • App\Filament\Pages\ExecutiveAssistant (Livewire Chat Drawer & Presets)  │
 │  • App\Filament\Resources\ProjectRegisterResource (Continuous Domain Mem)  │
 │  • App\Filament\Resources\ActivityRollupResource (Daily/Weekly Audit Logs) │
-│  • App\Filament\Pages\ExecutiveSettings (Namespaced Settings Control)     │
+│  • App\Filament\Pages\ExecutiveSettings (Per-User Settings & Outlook Auth) │
 │                                                                            │
 │  [2. AI Agent Core & State Machine]                                        │
 │  • App\Services\Ai\AgentService (Multi-Turn Conversational Reasoning Loop) │
@@ -27,7 +27,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  • App\Mcp\Tools\Interactive\* (AskUserQuestion, ProposeActionCard)        │
 │  • App\Mcp\Tools\Memory\* (QueryProjectRegister, CommitProjectRegister)    │
 │  • App\Mcp\Tools\Notes\* (CreatePersonalNote, CreatePersonalTask)          │
-│  • App\Services\Mcp\OutlookMcpBridge (Stdio/IPC connector to Python server)│
+│  • App\Services\Mcp\OutlookMcpBridge (Per-user Graph API client bridge)    │
 │                                                                            │
 │  [4. Project Register & Hybrid Retrieval Subsystem (ARH Session Reader)]   │
 │  • App\Services\Memory\MemoryRetrievalService (FTS5 BM25 + RRF Reranker)   │
@@ -45,12 +45,17 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  • App\Services\Presets\PresetExecutionService (Dynamic Prompt Template)   │
 │  • App\Models\ExecutivePreset (User-scoped with system default seeds)      │
 │                                                                            │
-│  [7. Project & Staff Oversight Engine (Deferred per ADR-012)]              │
+│  [7. Whitelisted Auth & Sovereign Workspace Provisioning (ADR-013)]       │
+│  • App\Services\Auth\RegistrationWhitelistService (Email Whitelist Guard)  │
+│  • App\Http\Middleware\RegistrationWhitelistMiddleware                     │
+│  • App\Models\AllowedRegistrationEmail                                     │
+│                                                                            │
+│  [8. Project & Staff Oversight Engine (Deferred per ADR-012)]              │
 │  • App\Services\Projects\ProjectOversightService (Phase 2 Resumption)      │
 │  • App\Services\Staff\StaffWorkloadService (Phase 2 Resumption)            │
 │  • App\Models\Department, Position, PositionAssignment, Project, Ticket    │
 │                                                                            │
-│  [8. Visual Command Center & MCP Access Boundary (CAP-009, CAP-010)]       │
+│  [9. Visual Command Center & MCP Access Boundary (CAP-009, CAP-010)]       │
 │  • App\Filament\Widgets\ExecutiveStatsOverview, PendingActionCardsWidget   │
 │  • App\Filament\Widgets\RecentActivityRollupWidget                         │
 │  • App\Policies\PersonalNotePolicy, PersonalTaskPolicy                     │
@@ -65,13 +70,15 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 
 | Data Domain | Canonical State Authority | Local Storage Model | Scoping & Cache Invalidation Policy |
 | :--- | :--- | :--- | :--- |
+| **Registration Whitelist** | `allowed_registration_emails` | Relational Eloquent Model | Cached in Database/Memory; managed by super admin |
 | **Raw Outlook Emails** | **Microsoft Exchange / Graph API** | **Zero raw storage** (ephemeral context only) | Transient prompt window; discarded after turn |
-| **Project Knowledge** | `project_registry_entries` table | Relational + SQLite FTS5 Virtual Table | Synchronized via DB triggers on save |
+| **Project Knowledge** | `project_registry_entries` table | Relational + SQLite FTS5 Virtual Table | Synchronized via DB triggers; shared company-wide |
 | **User Personalization** | `user_personalization_profiles` | JSON column / Model | In-memory cache; flushed on weekly reflection / save |
-| **Action Receipts** | `ai_action_receipts` | Immutable Append-Only Ledger | Indexed by `user_id` and `executed_at` |
+| **Action Receipts** | `ai_action_receipts` | Immutable Append-Only Ledger | Scoped strictly per `user_id` and `executed_at` |
 | **Runtime Settings** | `system_settings` (Spatie) | Database-backed Key-Value Store | In-memory cache; hot-reloaded on Filament save |
 | **Executive Presets** | `executive_presets` table | Relational Eloquent Model | User-scoped (`user_id` nullable for system seeds; owned by `auth()->id()`) |
 | **Personal Notes/Tasks**| `personal_notes`, `personal_tasks` | User-scoped Relational Tables | Scoped strictly to `auth()->id()` via `PersonalNotePolicy`, `PersonalTaskPolicy` |
+| **Chat Sessions/Messages**| `chat_sessions`, `chat_messages` | User-scoped Relational Tables | Scoped strictly to `auth()->id()` |
 | **Projects & Epics** *(Deferred)* | `projects`, `epics`, `tickets` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
 | **Staff & Organization** *(Deferred)*| `departments`, `positions`, `position_assignments` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
 
@@ -93,7 +100,33 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 
 ## [DESIGN-04] Concrete Class Contracts & Method Signatures
 
-### 1. AI Agent Loop & Provider Gateway
+### 1. Whitelisted Registration Service & Guard
+```php
+namespace App\Services\Auth;
+
+use App\Models\AllowedRegistrationEmail;
+use App\Models\User;
+
+class RegistrationWhitelistService
+{
+    public function isEmailAllowed(string $email): bool;
+    public function whitelistEmail(string $email, string $notes, ?User $byUser = null): AllowedRegistrationEmail;
+    public function revokeEmail(string $email): bool;
+}
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class RegistrationWhitelistMiddleware
+{
+    public function handle(Request $request, Closure $next): Response;
+}
+```
+
+### 2. AI Agent Loop & Provider Gateway
 ```php
 namespace App\Services\Ai;
 
@@ -130,12 +163,15 @@ class AntiHallucinationGuard
 }
 ```
 
-### 2. Outlook MCP Bridge Client
+### 3. Outlook MCP Bridge Client
 ```php
 namespace App\Services\Mcp;
 
+use App\Models\User;
+
 class OutlookMcpBridge
 {
+    public function forUser(User $user): self;
     public function callTool(string $toolName, array $arguments = []): array;
     public function checkAuthStatus(): bool;
     public function fetchInboxDelta(int $lookbackHours = 24, int $limit = 25, bool $concise = true): array;
@@ -147,7 +183,7 @@ class OutlookMcpBridge
 }
 ```
 
-### 3. Unified MCP Tool Classes & Hierarchy
+### 4. Unified MCP Tool Classes & Hierarchy
 All tool classes inherit from `Laravel\Mcp\Server\Tool` and implement standardized schema contracts:
 
 ```php
@@ -205,7 +241,7 @@ class OutlookReadMessageTool extends Tool
 }
 ```
 
-### 4. Hybrid Memory Retrieval & FTS5 Subsystem (ARH Session Reader Pattern)
+### 5. Hybrid Memory Retrieval & FTS5 Subsystem (ARH Session Reader Pattern)
 ```php
 namespace App\Services\Memory;
 
@@ -215,7 +251,7 @@ use App\DTOs\MemorySearchResult;
 class MemoryRetrievalService
 {
     /**
-     * Executes dual-path lexical FTS5 BM25 + Recency RRF Search.
+     * Executes dual-path lexical FTS5 BM25 + Recency RRF Search across company Project Register.
      */
     public function search(
         string $query,
@@ -237,7 +273,7 @@ class DenseContextFormatter
 }
 ```
 
-### 5. Interactive Human-in-the-Loop Tools
+### 6. Interactive Human-in-the-Loop Tools
 ```php
 namespace App\Mcp\Tools\Interactive;
 
@@ -279,7 +315,7 @@ class ProposeActionCardTool extends Tool
 }
 ```
 
-### 6. Authorization & Personal Isolation Policies
+### 7. Authorization & Sovereign Personal Isolation Policies
 ```php
 namespace App\Policies;
 
@@ -287,6 +323,7 @@ use App\Models\User;
 use App\Models\PersonalNote;
 use App\Models\PersonalTask;
 use App\Models\ExecutivePreset;
+use App\Models\ChatSession;
 use App\Models\Project;
 use App\Models\Ticket;
 
@@ -294,7 +331,7 @@ class PersonalNotePolicy
 {
     public function viewAny(User $user): bool
     {
-        return true; // Scoped per user in queries
+        return true;
     }
     public function view(User $user, PersonalNote $note): bool
     {
@@ -351,6 +388,26 @@ class ExecutivePresetPolicy
     public function update(User $user, ExecutivePreset $preset): bool
     {
         return $preset->user_id === $user->id || $user->role === 'super_admin';
+    }
+}
+
+class ChatSessionPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+    public function view(User $user, ChatSession $session): bool
+    {
+        return $user->id === $session->user_id;
+    }
+    public function update(User $user, ChatSession $session): bool
+    {
+        return $user->id === $session->user_id;
+    }
+    public function delete(User $user, ChatSession $session): bool
+    {
+        return $user->id === $session->user_id;
     }
 }
 
@@ -439,9 +496,11 @@ stateDiagram-v2
    - If the primary provider (e.g. Anthropic) returns `429 Too Many Requests` or `503 Service Unavailable`, `LlmGatewayService` automatically retries against the configured fallback provider (e.g. Google Gemini) with exponential backoff ($250\text{ms} \rightarrow 1\text{s} \rightarrow 2\text{s}$).
 2. **Outlook MCP Disconnection Graceful Recovery**:
    - If the Python bridge fails or Graph token expires (401), the UI renders an inline danger badge with an actionable **[Re-authenticate Outlook]** button rather than crashing the Filament view.
-3. **Anti-Hallucination Guard (`AntiHallucinationGuard`)**:
+3. **Registration Whitelist Guard**:
+   - Registration attempts from non-whitelisted emails are halted before model instantiation and log a security audit event.
+4. **Anti-Hallucination Guard (`AntiHallucinationGuard`)**:
    - Any response where the assistant claims to have sent an email, created a note, or saved a register update without an associated `AiActionReceipt` in the current turn is rejected and re-prompted.
-4. **Context Window Token Overflow Protection**:
+5. **Context Window Token Overflow Protection**:
    - Injected memory from FTS5 is strictly hard-capped by `MemoryTokenCeiling` (default `1,500` tokens). If candidate records exceed the ceiling, the RRF ranker prunes the lowest-scoring records automatically.
-5. **Fail-Closed Write Confirmation Tokens**:
+6. **Fail-Closed Write Confirmation Tokens**:
    - Every mutation payload dispatched through `OutlookCreateDraftTool`, `OutlookReplyTool`, or `OutlookForwardTool` requires a cryptographically signed one-time token generated by `ProposeActionCardTool`. Missing or forged tokens trigger an immediate 403 exception.

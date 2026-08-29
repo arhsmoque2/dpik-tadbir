@@ -11,6 +11,8 @@
         "app/Services/Ai/AgentService.php",
         "app/Services/Ai/AntiHallucinationGuard.php",
         "app/Services/Ai/LlmGatewayService.php",
+        "app/Services/Auth/RegistrationWhitelistService.php",
+        "app/Http/Middleware/RegistrationWhitelistMiddleware.php",
         "app/Services/Mcp/OutlookMcpBridge.php",
         "app/Services/Memory/MemoryRetrievalService.php",
         "app/Services/Audit/ActionMemoryService.php",
@@ -20,9 +22,10 @@
         "app/Mcp/Tools/Outlook/OutlookForwardTool.php",
         "app/Policies/PersonalNotePolicy.php",
         "app/Policies/PersonalTaskPolicy.php",
-        "app/Policies/ExecutivePresetPolicy.php"
+        "app/Policies/ExecutivePresetPolicy.php",
+        "app/Policies/ChatSessionPolicy.php"
       ],
-      "rationale": "High risk of hallucination, unauthorized external email dispatch, broken memory retrieval, or token compromise."
+      "rationale": "High risk of hallucination, unauthorized registration, unauthorized external email dispatch, broken memory retrieval, or inter-user data compromise."
     },
     "tier_2_core_business_logic": {
       "target_coverage": "80-90% branch",
@@ -40,11 +43,14 @@
         "app/Mcp/Tools/Tasks/CreatePersonalTaskTool.php",
         "app/Mcp/Tools/Interactive/AskUserQuestionTool.php",
         "app/Mcp/Tools/Interactive/ProposeActionCardTool.php",
+        "app/Models/AllowedRegistrationEmail.php",
         "app/Models/PersonalNote.php",
         "app/Models/PersonalTask.php",
         "app/Models/ProjectRegistryEntry.php",
         "app/Models/AiActionReceipt.php",
-        "app/Models/ExecutivePreset.php"
+        "app/Models/ExecutivePreset.php",
+        "app/Models/ChatSession.php",
+        "app/Models/ChatMessage.php"
       ],
       "rationale": "Core domain models, preset execution, FTS5 data transformation, search filters, and MCP tool execution."
     },
