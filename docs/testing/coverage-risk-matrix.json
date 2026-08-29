@@ -18,20 +18,16 @@
         "app/Mcp/Tools/Outlook/OutlookCreateDraftTool.php",
         "app/Mcp/Tools/Outlook/OutlookReplyTool.php",
         "app/Mcp/Tools/Outlook/OutlookForwardTool.php",
-        "app/Mcp/Tools/Projects/ReassignTicketTool.php",
         "app/Policies/PersonalNotePolicy.php",
         "app/Policies/PersonalTaskPolicy.php",
-        "app/Policies/ProjectPolicy.php",
-        "app/Policies/TicketPolicy.php"
+        "app/Policies/ExecutivePresetPolicy.php"
       ],
-      "rationale": "High risk of hallucination, unauthorized external email dispatch, broken memory retrieval, or privilege escalation across personal data."
+      "rationale": "High risk of hallucination, unauthorized external email dispatch, broken memory retrieval, or token compromise."
     },
     "tier_2_core_business_logic": {
       "target_coverage": "80-90% branch",
       "required_tests": ["Unit", "Integration", "Database"],
       "components": [
-        "app/Services/Projects/ProjectOversightService.php",
-        "app/Services/Staff/StaffWorkloadService.php",
         "app/Services/Presets/PresetExecutionService.php",
         "app/Services/Memory/DenseContextFormatter.php",
         "app/Services/Memory/DecisionMarkerExtractor.php",
@@ -42,23 +38,15 @@
         "app/Mcp/Tools/Memory/CommitProjectRegisterTool.php",
         "app/Mcp/Tools/Notes/CreatePersonalNoteTool.php",
         "app/Mcp/Tools/Tasks/CreatePersonalTaskTool.php",
-        "app/Mcp/Tools/Projects/ListProjectsTool.php",
-        "app/Mcp/Tools/Staff/GetStaffWorkloadTool.php",
         "app/Mcp/Tools/Interactive/AskUserQuestionTool.php",
         "app/Mcp/Tools/Interactive/ProposeActionCardTool.php",
         "app/Models/PersonalNote.php",
         "app/Models/PersonalTask.php",
-        "app/Models/Project.php",
-        "app/Models/Epic.php",
-        "app/Models/Ticket.php",
-        "app/Models/Department.php",
-        "app/Models/Position.php",
-        "app/Models/PositionAssignment.php",
         "app/Models/ProjectRegistryEntry.php",
         "app/Models/AiActionReceipt.php",
         "app/Models/ExecutivePreset.php"
       ],
-      "rationale": "Core domain models, oversight services, data transformation, search filters, and MCP tool execution."
+      "rationale": "Core domain models, preset execution, FTS5 data transformation, search filters, and MCP tool execution."
     },
     "tier_3_presentation_and_ui": {
       "target_coverage": "50-70% line",
@@ -70,14 +58,34 @@
         "app/Filament/Resources/PersonalTasksResource.php",
         "app/Filament/Resources/ProjectRegisterResource.php",
         "app/Filament/Resources/ActivityRollupResource.php",
-        "app/Filament/Resources/ProjectsResource.php",
-        "app/Filament/Resources/TicketsResource.php",
         "app/Filament/Widgets/ExecutiveStatsOverview.php",
         "app/Filament/Widgets/PendingActionCardsWidget.php",
-        "app/Filament/Widgets/ProjectHealthBoard.php",
         "app/Filament/Widgets/RecentActivityRollupWidget.php"
       ],
       "rationale": "Filament resource forms, tables, action hooks, and AI chat slide-over UI."
+    },
+    "tier_deferred_phase_2": {
+      "target_coverage": "Deferred per ADR-012",
+      "required_tests": ["KIV on Phase 2 Resumption"],
+      "components": [
+        "app/Services/Projects/ProjectOversightService.php",
+        "app/Services/Staff/StaffWorkloadService.php",
+        "app/Mcp/Tools/Projects/ReassignTicketTool.php",
+        "app/Mcp/Tools/Projects/ListProjectsTool.php",
+        "app/Mcp/Tools/Staff/GetStaffWorkloadTool.php",
+        "app/Policies/ProjectPolicy.php",
+        "app/Policies/TicketPolicy.php",
+        "app/Models/Project.php",
+        "app/Models/Epic.php",
+        "app/Models/Ticket.php",
+        "app/Models/Department.php",
+        "app/Models/Position.php",
+        "app/Models/PositionAssignment.php",
+        "app/Filament/Resources/ProjectsResource.php",
+        "app/Filament/Resources/TicketsResource.php",
+        "app/Filament/Widgets/ProjectHealthBoard.php"
+      ],
+      "rationale": "Multi-user project/staff ticketing capabilities deferred per ADR-012."
     },
     "tier_4_excluded": {
       "target_coverage": "0% (Static Analysis Only)",

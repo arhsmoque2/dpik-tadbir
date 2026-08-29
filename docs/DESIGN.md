@@ -1,11 +1,12 @@
 # DPIK Tadbir: System Design Specification
 
 ## [DESIGN-01] Component Breakdown & Subsystem Architecture
-DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into 8 decoupled subsystems:
+DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament v4 control plane. The system is partitioned into decoupled subsystems, with core AI/email intelligence active in Phase 1 and multi-user staffing/ticketing deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md):
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────┐
 │                             DPIK TADBIR WORKSTATION                        │
+│                (Single-User Personal Posture: Super Admin)                 │
 ├────────────────────────────────────────────────────────────────────────────┤
 │                                                                            │
 │  [1. Executive Control Plane & Filament UI]                                │
@@ -25,8 +26,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  • App\Mcp\Tools\Outlook\* (Search, DeltaScan, ReadMessage, Draft, Reply)  │
 │  • App\Mcp\Tools\Interactive\* (AskUserQuestion, ProposeActionCard)        │
 │  • App\Mcp\Tools\Memory\* (QueryProjectRegister, CommitProjectRegister)    │
-│  • App\Mcp\Tools\Projects\* (ListProjects, ReassignTicket)                 │
-│  • App\Mcp\Tools\Staff\* (GetStaffWorkload)                                │
+│  • App\Mcp\Tools\Notes\* (CreatePersonalNote, CreatePersonalTask)          │
 │  • App\Services\Mcp\OutlookMcpBridge (Stdio/IPC connector to Python server)│
 │                                                                            │
 │  [4. Project Register & Hybrid Retrieval Subsystem (ARH Session Reader)]   │
@@ -43,40 +43,55 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  [6. Runtime Settings & Preset Engine]                                     │
 │  • App\Settings\* (AiSettings, OutlookSettings, SafetySettings, etc.)      │
 │  • App\Services\Presets\PresetExecutionService (Dynamic Prompt Template)   │
-│  • App\Models\ExecutivePreset                                              │
+│  • App\Models\ExecutivePreset (User-scoped with system default seeds)      │
 │                                                                            │
-│  [7. Project & Staff Oversight Engine (CAP-008)]                           │
-│  • App\Services\Projects\ProjectOversightService (Delivery & Health Check) │
-│  • App\Services\Staff\StaffWorkloadService (Capacity & Bottleneck Audit)   │
+│  [7. Project & Staff Oversight Engine (Deferred per ADR-012)]              │
+│  • App\Services\Projects\ProjectOversightService (Phase 2 Resumption)      │
+│  • App\Services\Staff\StaffWorkloadService (Phase 2 Resumption)            │
 │  • App\Models\Department, Position, PositionAssignment, Project, Ticket    │
 │                                                                            │
-│  [8. Visual Command Center & Multi-Role RBAC (CAP-009, CAP-010)]           │
+│  [8. Visual Command Center & MCP Access Boundary (CAP-009, CAP-010)]       │
 │  • App\Filament\Widgets\ExecutiveStatsOverview, PendingActionCardsWidget   │
-│  • App\Filament\Widgets\ProjectHealthBoard, RecentActivityRollupWidget     │
-│  • App\Policies\PersonalNotePolicy, PersonalTaskPolicy, ProjectPolicy      │
+│  • App\Filament\Widgets\RecentActivityRollupWidget                         │
+│  • App\Policies\PersonalNotePolicy, PersonalTaskPolicy                     │
+│  • External MCP Token Authentication Middleware (`/mcp` endpoint)          │
 │                                                                            │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## [DESIGN-02] State Authority & Data Ownership
+## [DESIGN-02] State Authority, Data Ownership & Scoping
 
-| Data Domain | Canonical State Authority | Local Storage Model | Cache & Invalidation Policy |
+| Data Domain | Canonical State Authority | Local Storage Model | Scoping & Cache Invalidation Policy |
 | :--- | :--- | :--- | :--- |
 | **Raw Outlook Emails** | **Microsoft Exchange / Graph API** | **Zero raw storage** (ephemeral context only) | Transient prompt window; discarded after turn |
 | **Project Knowledge** | `project_registry_entries` table | Relational + SQLite FTS5 Virtual Table | Synchronized via DB triggers on save |
 | **User Personalization** | `user_personalization_profiles` | JSON column / Model | In-memory cache; flushed on weekly reflection / save |
 | **Action Receipts** | `ai_action_receipts` | Immutable Append-Only Ledger | Indexed by `user_id` and `executed_at` |
 | **Runtime Settings** | `system_settings` (Spatie) | Database-backed Key-Value Store | In-memory cache; hot-reloaded on Filament save |
-| **Executive Presets** | `executive_presets` table | Relational Eloquent Model | Cached in Database/Array/File cache (TTL: 24h) |
-| **Personal Notes/Tasks**| `personal_notes`, `personal_tasks` | User-scoped Relational Tables | Scoped strictly via `PersonalNotePolicy`, `PersonalTaskPolicy` |
-| **Projects & Epics** | `projects`, `epics`, `tickets` | Relational Store | Scoped via `ProjectPolicy`, `TicketPolicy` (Role-gated) |
-| **Organization & Staff**| `departments`, `positions`, `position_assignments` | Relational Store | Scoped via HR / Executive policies |
+| **Executive Presets** | `executive_presets` table | Relational Eloquent Model | User-scoped (`user_id` nullable for system seeds; owned by `auth()->id()`) |
+| **Personal Notes/Tasks**| `personal_notes`, `personal_tasks` | User-scoped Relational Tables | Scoped strictly to `auth()->id()` via `PersonalNotePolicy`, `PersonalTaskPolicy` |
+| **Projects & Epics** *(Deferred)* | `projects`, `epics`, `tickets` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
+| **Staff & Organization** *(Deferred)*| `departments`, `positions`, `position_assignments` | Relational Store | Deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md) |
 
 ---
 
-## [DESIGN-03] Concrete Class Contracts & Method Signatures
+## [DESIGN-03] Domain Model Taxonomy & Definitions
+
+### 1. The Malaysian Engineering Domain Split
+- **"Tugas"**: The overarching product and marketing category term signaling Malaysian engineering workflows ([`OPP-001`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/OPPORTUNITIES.md)). Codebase internals remain in plain English (`actions`, `deliverables`, `personal_tasks`).
+- **Action / Aksi**: Fast-track operational tasks (emails, queries, site checks) modeled as `PersonalTask` / `actions`.
+- **Deliverable**: Milestone-driven engineering technical documents (Reports, BQ, Tender Drawings) with formal revision lifecycles ($R_0, R_1, R_2, \dots$) tied to fee claims (Phase 2).
+- **PIC (Person-In-Charge)**: Statutory/governance accountability role (PE / Lead Consultant sign-off), distinct from the operational assignee.
+
+### 2. Nominal Capacity Definition
+**Nominal Capacity** is defined as the baseline volume capacity index ($1.0 = 100\%$ allocated baseline volume across active Action, Deliverable, and PIC assignments for an engineer).
+- *Policy Guardrail ([`OPP-002`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/OPPORTUNITIES.md))*: Active algorithmic capacity scoring is deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md). Volume allocation metrics are strictly observational; the system never auto-evaluates performance or recommends personnel actions.
+
+---
+
+## [DESIGN-04] Concrete Class Contracts & Method Signatures
 
 ### 1. AI Agent Loop & Provider Gateway
 ```php
@@ -222,48 +237,7 @@ class DenseContextFormatter
 }
 ```
 
-### 5. Project & Staff Oversight Services (CAP-008)
-```php
-namespace App\Services\Projects;
-
-use App\Models\Project;
-use App\Models\Ticket;
-use App\Models\User;
-use Illuminate\Support\Collection;
-
-class ProjectOversightService
-{
-    public function getProjectHealthSummary(Project $project): array;
-    public function getActiveEpics(Project $project): Collection;
-    public function getOverdueTickets(?int $departmentId = null): Collection;
-}
-
-namespace App\Services\Staff;
-
-use App\Models\User;
-use Illuminate\Support\Collection;
-
-class StaffWorkloadService
-{
-    public function getStaffCapacity(User $user): array;
-    public function getDepartmentWorkloadOverview(int $departmentId): Collection;
-    public function detectDeliveryBottlenecks(): Collection;
-}
-
-namespace App\Mcp\Tools\Projects;
-
-use Laravel\Mcp\Server\Tool;
-
-class ReassignTicketTool extends Tool
-{
-    protected string $name = 'reassign_ticket';
-    protected string $description = 'Reassigns a project ticket to a new staff member with audit rationale. Requires confirmation.';
-    public function schema(): array;
-    public function handle(array $arguments): array;
-}
-```
-
-### 6. Interactive Human-in-the-Loop Tools
+### 5. Interactive Human-in-the-Loop Tools
 ```php
 namespace App\Mcp\Tools\Interactive;
 
@@ -298,28 +272,37 @@ class AskUserQuestionTool extends Tool
 class ProposeActionCardTool extends Tool
 {
     protected string $name = 'propose_action_card';
-    protected string $description = 'Stages an actionable proposal (email draft, reply, forward, ticket reassignment) requiring human confirmation.';
+    protected string $description = 'Stages an actionable proposal (email draft, reply, forward) requiring human confirmation.';
 
     public function schema(): array;
     public function handle(array $arguments): array;
 }
 ```
 
-### 7. Multi-Role Authorization & Security Policies (CAP-010 / RBAC)
+### 6. Authorization & Personal Isolation Policies
 ```php
 namespace App\Policies;
 
 use App\Models\User;
 use App\Models\PersonalNote;
 use App\Models\PersonalTask;
+use App\Models\ExecutivePreset;
 use App\Models\Project;
 use App\Models\Ticket;
 
 class PersonalNotePolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return true; // Scoped per user in queries
+    }
     public function view(User $user, PersonalNote $note): bool
     {
         return $user->id === $note->user_id;
+    }
+    public function create(User $user): bool
+    {
+        return true;
     }
     public function update(User $user, PersonalNote $note): bool
     {
@@ -333,19 +316,54 @@ class PersonalNotePolicy
 
 class PersonalTaskPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
     public function view(User $user, PersonalTask $task): bool
     {
         return $user->id === $task->user_id;
+    }
+    public function create(User $user): bool
+    {
+        return true;
     }
     public function update(User $user, PersonalTask $task): bool
     {
         return $user->id === $task->user_id;
     }
+    public function delete(User $user, PersonalTask $task): bool
+    {
+        return $user->id === $task->user_id;
+    }
 }
 
+class ExecutivePresetPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+    public function view(User $user, ExecutivePreset $preset): bool
+    {
+        return $preset->user_id === null || $preset->user_id === $user->id;
+    }
+    public function update(User $user, ExecutivePreset $preset): bool
+    {
+        return $preset->user_id === $user->id || $user->role === 'super_admin';
+    }
+}
+
+/**
+ * Deferred Policies (Preserved for Phase 2 Resumption per ADR-012)
+ */
 class ProjectPolicy
 {
     public function viewAny(User $user): bool
+    {
+        return in_array($user->role, ['super_admin', 'managing_director', 'admin', 'project_manager', 'staff']);
+    }
+    public function view(User $user, Project $project): bool
     {
         return in_array($user->role, ['super_admin', 'managing_director', 'admin', 'project_manager', 'staff']);
     }
@@ -357,6 +375,14 @@ class ProjectPolicy
 
 class TicketPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return in_array($user->role, ['super_admin', 'managing_director', 'admin', 'project_manager', 'staff']);
+    }
+    public function view(User $user, Ticket $ticket): bool
+    {
+        return in_array($user->role, ['super_admin', 'managing_director', 'admin', 'project_manager', 'staff']);
+    }
     public function reassign(User $user, Ticket $ticket): bool
     {
         return in_array($user->role, ['super_admin', 'managing_director', 'admin', 'project_manager']);
@@ -366,7 +392,7 @@ class TicketPolicy
 
 ---
 
-## [DESIGN-04] Asynchronous Interactive State Machine
+## [DESIGN-05] Asynchronous Interactive State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -376,7 +402,7 @@ stateDiagram-v2
     state PROCESSING {
         [*] --> LLM_INFERENCE
         LLM_INFERENCE --> EVALUATE_TOOL_CALL
-        EVALUATE_TOOL_CALL --> EXECUTE_READ_TOOL: Read Tool (FTS5 / Delta Scan / Workload)
+        EVALUATE_TOOL_CALL --> EXECUTE_READ_TOOL: Read Tool (FTS5 / Delta Scan / Memory)
         EXECUTE_READ_TOOL --> LLM_INFERENCE: Tool Result Returned
         
         EVALUATE_TOOL_CALL --> SUSPEND_INTERACTIVE: Interactive Tool Call (AskQuestion / ProposeCard)
@@ -407,15 +433,15 @@ stateDiagram-v2
 
 ---
 
-## [DESIGN-05] Error Handling, Degradation & Safety Guardrails
+## [DESIGN-06] Error Handling, Degradation & Safety Guardrails
 
 1. **LLM Primary Failure & Failover Cascade**:
    - If the primary provider (e.g. Anthropic) returns `429 Too Many Requests` or `503 Service Unavailable`, `LlmGatewayService` automatically retries against the configured fallback provider (e.g. Google Gemini) with exponential backoff ($250\text{ms} \rightarrow 1\text{s} \rightarrow 2\text{s}$).
 2. **Outlook MCP Disconnection Graceful Recovery**:
    - If the Python bridge fails or Graph token expires (401), the UI renders an inline danger badge with an actionable **[Re-authenticate Outlook]** button rather than crashing the Filament view.
 3. **Anti-Hallucination Guard (`AntiHallucinationGuard`)**:
-   - Any response where the assistant claims to have sent an email, created a note, or reassigned a ticket without an associated `AiActionReceipt` in the current turn is rejected and re-prompted.
+   - Any response where the assistant claims to have sent an email, created a note, or saved a register update without an associated `AiActionReceipt` in the current turn is rejected and re-prompted.
 4. **Context Window Token Overflow Protection**:
    - Injected memory from FTS5 is strictly hard-capped by `MemoryTokenCeiling` (default `1,500` tokens). If candidate records exceed the ceiling, the RRF ranker prunes the lowest-scoring records automatically.
 5. **Fail-Closed Write Confirmation Tokens**:
-   - Every mutation payload dispatched through `OutlookCreateDraftTool`, `OutlookReplyTool`, `OutlookForwardTool`, or `ReassignTicketTool` requires a cryptographically signed one-time token generated by `ProposeActionCardTool`. Missing or forged tokens trigger an immediate 403 exception.
+   - Every mutation payload dispatched through `OutlookCreateDraftTool`, `OutlookReplyTool`, or `OutlookForwardTool` requires a cryptographically signed one-time token generated by `ProposeActionCardTool`. Missing or forged tokens trigger an immediate 403 exception.

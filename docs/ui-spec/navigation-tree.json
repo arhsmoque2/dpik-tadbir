@@ -9,19 +9,19 @@
           "title": "Dashboard",
           "route": "/admin",
           "icon": "heroicon-o-home",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "roles": ["super_admin"]
         },
         {
           "title": "AI Assistant & Presets",
           "route": "/admin/ai-assistant",
           "icon": "heroicon-o-sparkles",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "roles": ["super_admin"]
         },
         {
           "title": "Activity Rollups",
           "route": "/admin/activity-rollups",
           "icon": "heroicon-o-clipboard-document-list",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "roles": ["super_admin"]
         }
       ]
     },
@@ -32,19 +32,7 @@
           "title": "Project Register",
           "route": "/admin/project-register",
           "icon": "heroicon-o-book-open",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
-        },
-        {
-          "title": "Projects",
-          "route": "/admin/projects",
-          "icon": "heroicon-o-briefcase",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
-        },
-        {
-          "title": "Tickets",
-          "route": "/admin/tickets",
-          "icon": "heroicon-o-ticket",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
+          "roles": ["super_admin"]
         }
       ]
     },
@@ -55,30 +43,19 @@
           "title": "Personal Notes",
           "route": "/admin/personal-notes",
           "icon": "heroicon-o-document-text",
-          "roles": ["all"]
+          "roles": ["super_admin"]
         },
         {
           "title": "Personal Tasks",
           "route": "/admin/personal-tasks",
           "icon": "heroicon-o-check-circle",
-          "roles": ["all"]
-        }
-      ]
-    },
-    {
-      "group": "Organization",
-      "items": [
-        {
-          "title": "Staff & Positions",
-          "route": "/admin/staff",
-          "icon": "heroicon-o-users",
-          "roles": ["super_admin", "managing_director", "hr"]
+          "roles": ["super_admin"]
         },
         {
-          "title": "Departments",
-          "route": "/admin/departments",
-          "icon": "heroicon-o-building-office",
-          "roles": ["super_admin", "managing_director", "hr"]
+          "title": "Executive Settings",
+          "route": "/admin/settings",
+          "icon": "heroicon-o-cog-6-tooth",
+          "roles": ["super_admin"]
         }
       ]
     }

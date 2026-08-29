@@ -15,8 +15,8 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 
 ## Gate 2: Security, Privacy & Write-Safety Invariants
 - **Secret Preflight Scanner (`gitleaks`)**: Automated preflight scan ensuring zero API keys, Graph tokens, or SSH credentials exist in committed code, fixtures, or environment examples (`gitleaks/gitleaks-action@v2`).
-- **Personal Privacy Policy Isolation (`PersonalNotePolicy`, `PersonalTaskPolicy`)**: 100% test verification in `tests/Feature/Notes/PersonalNotePolicyTest.php` and `tests/Feature/Tasks/PersonalTaskPolicyTest.php` ensuring records strictly enforce `auth()->id()` tenant scoping with zero leakage to other roles or super admins.
-- **Fail-Closed Write Confirmation (`WriteSafetyProposalTest`)**: Verification in `tests/Feature/Mcp/WriteSafetyProposalTest.php` asserting that all write-mutation tools (`OutlookCreateDraftTool`, `OutlookReplyTool`, `OutlookForwardTool`, `ReassignTicketTool`) reject dispatch if an approval token is missing, forged, or expired.
+- **Personal Privacy Policy Isolation (`PersonalNotePolicy`, `PersonalTaskPolicy`)**: 100% test verification in `tests/Feature/Notes/PersonalNotePolicyTest.php` and `tests/Feature/Tasks/PersonalTaskPolicyTest.php` ensuring records strictly enforce `auth()->id()` user scoping.
+- **Fail-Closed Write Confirmation (`WriteSafetyProposalTest`)**: Verification in `tests/Feature/Mcp/WriteSafetyProposalTest.php` asserting that all write-mutation tools (`OutlookCreateDraftTool`, `OutlookReplyTool`, `OutlookForwardTool`) reject dispatch if an approval token is missing, forged, or expired. *(Note: Ticket reassignment gate is deferred per [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md))*
 
 ---
 
@@ -34,11 +34,9 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
   - `App\Mcp\Tools\Outlook\OutlookCreateDraftTool`
   - `App\Mcp\Tools\Outlook\OutlookReplyTool`
   - `App\Mcp\Tools\Outlook\OutlookForwardTool`
-  - `App\Mcp\Tools\Projects\ReassignTicketTool`
   - `App\Policies\PersonalNotePolicy`
   - `App\Policies\PersonalTaskPolicy`
-  - `App\Policies\ProjectPolicy`
-  - `App\Policies\TicketPolicy`
+  - `App\Policies\ExecutivePresetPolicy`
 
 ---
 

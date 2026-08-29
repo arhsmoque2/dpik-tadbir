@@ -34,27 +34,23 @@
 1. **Entry**: MD asks *"What actions did the AI complete this week?"* (or clicks **[Weekly Activity Rollup]**).
 2. **Progress**:
    - AI queries the `ai_action_receipts` table for all confirmed actions across the week via `ActionMemoryService`.
-   - AI groups actions by date and project: drafts sent, replies dispatched, summaries generated, notes created, and tickets reassigned.
+   - AI groups actions by date and project: drafts sent, replies dispatched, summaries generated, notes created, and tasks registered.
 3. **Exit**: AI renders an executive markdown report providing full transparency into all completed activities and historical decisions.
 
 ## [SCEN-05] Project & Staff Workload Rebalancing & Ticket Delegation
+- **Status**: `Deferred (Keep In View / KIV)` — *See [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
 1. **Entry**: MD notices a deadline warning for the Sungai Udang tender in the **Project Health Board** widget.
 2. **Progress**: MD prompts: *"Who is assigned to the Sungai Udang hydraulic calculation ticket, and what is their current workload?"*
 3. **Execution**:
    - AI invokes `GetStaffWorkloadTool` and queries `StaffWorkloadService` to assess active tickets for Engineer B.
-   - AI responds: *"Engineer B currently holds 7 open tickets (140% nominal capacity), causing the Sungai Udang calculation to bottleneck. Engineer C in the same department has 2 active tickets."*
+   - AI responds: *"Engineer B currently holds 7 open tickets (1.40 nominal capacity index), causing the Sungai Udang calculation to bottleneck. Engineer C in the same department has 2 active tickets."*
    - MD prompts: *"Reassign the calculation ticket to Engineer C with note 'Prioritized by MD for Thursday submission'."*
    - AI presents a `ReassignTicketActionCard` for MD approval.
    - MD clicks **[Confirm Reassignment]**.
    - AI invokes `ReassignTicketTool`, updates the `Ticket` record, and logs an `AiActionReceipt`.
-4. **Exit**: Workload is rebalanced, the bottleneck is cleared, and an audit trail of the reassignment is permanently recorded.
+4. **Exit**: Workload is rebalanced, the bottleneck is cleared, and an audit trail of the reassignment is permanently recorded upon Phase 2 resumption.
 
 ## [SCEN-06] Multi-Role Access Control & Sovereign Privacy Boundary
-1. **Entry**: A Project Manager logs into DPIK Tadbir.
-2. **Progress**:
-   - The navigation menu dynamically filters according to `navigation-tree.json` permissions: Project Register, Projects, and Tickets are accessible; Executive Hub Presets and Organization Staff HR views are hidden.
-   - The Project Manager opens Personal Notes and creates site visit notes.
-3. **Execution**:
-   - `PersonalNotePolicy` and `PersonalTaskPolicy` strictly scope queries to `auth()->id()`.
-   - When the MD logs in later, the MD's confidential executive notes and private presets are completely isolated from the Project Manager's view.
-4. **Exit**: System guarantees absolute tenant privacy and role segregation across all roles (`super_admin`, `managing_director`, `admin`, `project_manager`, `staff`, `hr`).
+- **Status**: `Deferred (Keep In View / KIV)` for internal multi-user tiers — *See [`ADR-012`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md)*.
+- In the active build, DPIK Tadbir operates as a single-user personal command center (`super_admin`), while external coding agents connecting via `/mcp` authenticate with scoped bearer tokens.
+- *Preserved Phase 2 Spec*: When multi-tenant roles are activated, `PersonalNotePolicy` and `PersonalTaskPolicy` strictly scope queries to `auth()->id()`, ensuring complete tenant privacy and role segregation across all roles (`super_admin`, `managing_director`, `admin`, `project_manager`, `staff`, `hr`).
