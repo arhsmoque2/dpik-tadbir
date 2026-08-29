@@ -1,0 +1,71 @@
+name: Quality Gate CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-analysis:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run Pint Code Style Check
+        run: ./vendor/bin/pint --test
+
+      - name: Run Larastan / PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G
+
+  test-and-coverage:
+    name: Hermetic Tests & Diff Cover Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: xdebug
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Execute Tests with Clover Coverage
+        run: ./vendor/bin/pest --coverage-clover coverage.xml
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          APP_ENV: testing
+
+      - name: Setup uv for diff-cover
+        uses: astral-sh/setup-uv@v5
+
+      - name: Enforce 90% Incremental Diff Coverage Gate
+        if: github.event_name == 'pull_request'
+        run: |
+          uvx diff-cover coverage.xml \
+            --compare-branch origin/${{ github.base_ref }} \
+            --fail-under 90

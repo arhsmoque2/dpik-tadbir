@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "DPIK Tadbir",
+  "framework": "Laravel 12 / Filament v4",
+  "test_runner": "Pest PHP / PHPUnit",
+  "risk_tiers": {
+    "tier_1_mission_critical": {
+      "target_coverage": "95-100% branch",
+      "required_tests": ["Unit", "Integration", "Contract", "Security"],
+      "components": [
+        "app/Services/AgentService.php",
+        "app/Services/Agent/ToolRegistry.php",
+        "app/Mcp/Tools/Outlook/SendEmailTool.php",
+        "app/Mcp/Tools/Outlook/CreateDraftTool.php",
+        "app/Mcp/Tools/Projects/ReassignTicketTool.php",
+        "app/Policies/PersonalNotePolicy.php",
+        "app/Policies/PersonalTaskPolicy.php"
+      ],
+      "rationale": "High risk of hallucination, unauthorized external email dispatch, or privilege escalation across personal data."
+    },
+    "tier_2_core_business_logic": {
+      "target_coverage": "80-90% branch",
+      "required_tests": ["Unit", "Integration", "Database"],
+      "components": [
+        "app/Services/EmailSyncService.php",
+        "app/Mcp/Tools/Outlook/ReadEmailTool.php",
+        "app/Mcp/Tools/Outlook/SearchEmailTool.php",
+        "app/Mcp/Tools/Notes/CreatePersonalNoteTool.php",
+        "app/Mcp/Tools/Tasks/CreatePersonalTaskTool.php",
+        "app/Mcp/Tools/Projects/ListProjectsTool.php",
+        "app/Mcp/Tools/Staff/GetStaffWorkloadTool.php",
+        "app/Models/PersonalNote.php",
+        "app/Models/PersonalTask.php",
+        "app/Models/Ticket.php"
+      ],
+      "rationale": "Core domain models, data transformation, search filters, and MCP tool execution."
+    },
+    "tier_3_presentation_and_ui": {
+      "target_coverage": "50-70% line",
+      "required_tests": ["Feature", "Livewire Component", "Smoke"],
+      "components": [
+        "app/Filament/Resources/PersonalNotesResource.php",
+        "app/Filament/Resources/PersonalTasksResource.php",
+        "app/Filament/Resources/InboxResource.php",
+        "app/Filament/Resources/ProjectsResource.php",
+        "app/Filament/Pages/AiAssistant.php"
+      ],
+      "rationale": "Filament resource forms, tables, action hooks, and AI chat slide-over UI."
+    },
+    "tier_4_excluded": {
+      "target_coverage": "0% (Static Analysis Only)",
+      "required_tests": ["Larastan Level 8", "Laravel Pint"],
+      "components": [
+        "config/**",
+        "database/migrations/**",
+        "database/seeders/**",
+        "routes/**"
+      ],
+      "rationale": "Static configuration, database migrations, and framework routing boilerplate."
+    }
+  }
+}
