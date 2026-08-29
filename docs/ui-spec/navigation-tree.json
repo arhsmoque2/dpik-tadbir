@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "DPIK Tadbir",
+  "navigation": [
+    {
+      "group": "Executive Hub",
+      "items": [
+        {
+          "title": "Dashboard",
+          "route": "/admin",
+          "icon": "heroicon-o-home",
+          "roles": ["super_admin", "managing_director", "admin"]
+        },
+        {
+          "title": "AI Assistant",
+          "route": "/admin/ai-assistant",
+          "icon": "heroicon-o-sparkles",
+          "roles": ["super_admin", "managing_director", "admin"]
+        }
+      ]
+    },
+    {
+      "group": "Communications",
+      "items": [
+        {
+          "title": "Inbox",
+          "route": "/admin/inbox",
+          "icon": "heroicon-o-inbox",
+          "badge": "unread_count",
+          "roles": ["super_admin", "managing_director", "admin"]
+        },
+        {
+          "title": "Contacts",
+          "route": "/admin/contacts",
+          "icon": "heroicon-o-user-group",
+          "roles": ["super_admin", "managing_director", "admin"]
+        }
+      ]
+    },
+    {
+      "group": "Executive Workspace",
+      "items": [
+        {
+          "title": "Personal Notes",
+          "route": "/admin/personal-notes",
+          "icon": "heroicon-o-document-text",
+          "roles": ["all"]
+        },
+        {
+          "title": "Personal Tasks",
+          "route": "/admin/personal-tasks",
+          "icon": "heroicon-o-check-circle",
+          "roles": ["all"]
+        }
+      ]
+    },
+    {
+      "group": "Operations & Projects",
+      "items": [
+        {
+          "title": "Projects",
+          "route": "/admin/projects",
+          "icon": "heroicon-o-briefcase",
+          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
+        },
+        {
+          "title": "Tickets",
+          "route": "/admin/tickets",
+          "icon": "heroicon-o-ticket",
+          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
+        }
+      ]
+    },
+    {
+      "group": "Organization",
+      "items": [
+        {
+          "title": "Staff & Positions",
+          "route": "/admin/staff",
+          "icon": "heroicon-o-users",
+          "roles": ["super_admin", "managing_director", "hr"]
+        },
+        {
+          "title": "Departments",
+          "route": "/admin/departments",
+          "icon": "heroicon-o-building-office",
+          "roles": ["super_admin", "managing_director", "hr"]
+        }
+      ]
+    }
+  ]
+}

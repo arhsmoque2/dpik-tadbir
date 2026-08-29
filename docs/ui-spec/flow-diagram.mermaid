@@ -1,0 +1,42 @@
+```mermaid
+flowchart TD
+    subgraph MD_Interaction [Managing Director Workflow]
+        A[Enter DPIK Tadbir] --> B{Select Workflow}
+        B -->|Prompt AI| C[Open AI Chat Assistant]
+        B -->|Browse Inbox| D[Open Visual Inbox / Threads]
+        B -->|Review Projects| E[Open Projects / Staff Board]
+        B -->|Check Workspace| F[Open Personal Notes / Tasks]
+    end
+
+    subgraph AI_Processing [AI & Tool Execution Engine]
+        C --> G[AgentService Loop]
+        G --> H{Determine Needed Tools}
+        H -->|Outlook / Gmail| I[outlook-mcp / Graph API]
+        H -->|Personal Notes| J[PersonalNote Model]
+        H -->|Projects / Staff| K[Project & Ticket Models]
+        
+        I --> L[Fetch Email Context / Delta]
+        K --> M[Fetch Project Status & Workload]
+        
+        L --> N[Synthesize Evidence-Based Answer]
+        M --> N
+        
+        N --> O{Requires Mutation / Action?}
+        O -->|No| P[Stream Response to User]
+        O -->|Yes| Q[Render Structured Action Proposal]
+    end
+
+    subgraph Approval_Gate [Human-in-the-Loop Write Safety]
+        Q --> R[Review Diff / Draft]
+        R --> S{MD Decision}
+        S -->|Discard / Edit| T[Cancel / Refine Prompt]
+        S -->|Approve & Execute| U[Execute Action]
+        U -->|Send Email| V[Dispatch via outlook_send_message]
+        U -->|Save Note| W[Commit to personal_notes table]
+        U -->|Reassign Ticket| X[Update tickets table]
+        
+        V --> Y[Log to Activity Audit & Show Toast]
+        W --> Y
+        X --> Y
+    end
+```
