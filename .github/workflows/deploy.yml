@@ -1,0 +1,40 @@
+name: Deploy DPIK Tadbir
+
+on:
+  workflow_run:
+    workflows: ["Quality Gate CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-gate-check:
+    name: "Gate 5: Production Deployment Gate"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify CI Quality Gate Conclusion
+        run: |
+          echo "Verified: Quality Gate CI workflow concluded with status 'success' on branch '${{ github.event.workflow_run.head_branch }}'."
+          echo "Release is cleared for automated artifact build and production rollout."
+
+      - name: Check Deployment Prerequisites
+        id: check_deploy
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "ready_for_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "ready_for_deploy=false" >> $GITHUB_OUTPUT
+            echo "Design & specifications phase active — deployment skipped until application skeleton is scaffolded."
+          fi
+
+      - name: Execute Deployment Pipeline
+        if: steps.check_deploy.outputs.ready_for_deploy == 'true'
+        run: |
+          echo "Triggering production deployment via Shawl / PM2 runner..."

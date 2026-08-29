@@ -8,42 +8,74 @@
       "target_coverage": "95-100% branch",
       "required_tests": ["Unit", "Integration", "Contract", "Security"],
       "components": [
-        "app/Services/AgentService.php",
-        "app/Services/Agent/ToolRegistry.php",
-        "app/Mcp/Tools/Outlook/SendEmailTool.php",
-        "app/Mcp/Tools/Outlook/CreateDraftTool.php",
+        "app/Services/Ai/AgentService.php",
+        "app/Services/Ai/AntiHallucinationGuard.php",
+        "app/Services/Ai/LlmGatewayService.php",
+        "app/Services/Mcp/OutlookMcpBridge.php",
+        "app/Services/Memory/MemoryRetrievalService.php",
+        "app/Services/Audit/ActionMemoryService.php",
+        "app/Mcp/ToolRegistry.php",
+        "app/Mcp/Tools/Outlook/OutlookCreateDraftTool.php",
+        "app/Mcp/Tools/Outlook/OutlookReplyTool.php",
+        "app/Mcp/Tools/Outlook/OutlookForwardTool.php",
         "app/Mcp/Tools/Projects/ReassignTicketTool.php",
         "app/Policies/PersonalNotePolicy.php",
-        "app/Policies/PersonalTaskPolicy.php"
+        "app/Policies/PersonalTaskPolicy.php",
+        "app/Policies/ProjectPolicy.php",
+        "app/Policies/TicketPolicy.php"
       ],
-      "rationale": "High risk of hallucination, unauthorized external email dispatch, or privilege escalation across personal data."
+      "rationale": "High risk of hallucination, unauthorized external email dispatch, broken memory retrieval, or privilege escalation across personal data."
     },
     "tier_2_core_business_logic": {
       "target_coverage": "80-90% branch",
       "required_tests": ["Unit", "Integration", "Database"],
       "components": [
-        "app/Services/EmailSyncService.php",
-        "app/Mcp/Tools/Outlook/ReadEmailTool.php",
-        "app/Mcp/Tools/Outlook/SearchEmailTool.php",
+        "app/Services/Projects/ProjectOversightService.php",
+        "app/Services/Staff/StaffWorkloadService.php",
+        "app/Services/Presets/PresetExecutionService.php",
+        "app/Services/Memory/DenseContextFormatter.php",
+        "app/Services/Memory/DecisionMarkerExtractor.php",
+        "app/Mcp/Tools/Outlook/OutlookSearchMailTool.php",
+        "app/Mcp/Tools/Outlook/OutlookListInboxDeltaTool.php",
+        "app/Mcp/Tools/Outlook/OutlookReadMessageTool.php",
+        "app/Mcp/Tools/Memory/QueryProjectRegisterTool.php",
+        "app/Mcp/Tools/Memory/CommitProjectRegisterTool.php",
         "app/Mcp/Tools/Notes/CreatePersonalNoteTool.php",
         "app/Mcp/Tools/Tasks/CreatePersonalTaskTool.php",
         "app/Mcp/Tools/Projects/ListProjectsTool.php",
         "app/Mcp/Tools/Staff/GetStaffWorkloadTool.php",
+        "app/Mcp/Tools/Interactive/AskUserQuestionTool.php",
+        "app/Mcp/Tools/Interactive/ProposeActionCardTool.php",
         "app/Models/PersonalNote.php",
         "app/Models/PersonalTask.php",
-        "app/Models/Ticket.php"
+        "app/Models/Project.php",
+        "app/Models/Epic.php",
+        "app/Models/Ticket.php",
+        "app/Models/Department.php",
+        "app/Models/Position.php",
+        "app/Models/PositionAssignment.php",
+        "app/Models/ProjectRegistryEntry.php",
+        "app/Models/AiActionReceipt.php",
+        "app/Models/ExecutivePreset.php"
       ],
-      "rationale": "Core domain models, data transformation, search filters, and MCP tool execution."
+      "rationale": "Core domain models, oversight services, data transformation, search filters, and MCP tool execution."
     },
     "tier_3_presentation_and_ui": {
       "target_coverage": "50-70% line",
       "required_tests": ["Feature", "Livewire Component", "Smoke"],
       "components": [
+        "app/Filament/Pages/ExecutiveAssistant.php",
+        "app/Filament/Pages/ExecutiveSettings.php",
         "app/Filament/Resources/PersonalNotesResource.php",
         "app/Filament/Resources/PersonalTasksResource.php",
-        "app/Filament/Resources/InboxResource.php",
+        "app/Filament/Resources/ProjectRegisterResource.php",
+        "app/Filament/Resources/ActivityRollupResource.php",
         "app/Filament/Resources/ProjectsResource.php",
-        "app/Filament/Pages/AiAssistant.php"
+        "app/Filament/Resources/TicketsResource.php",
+        "app/Filament/Widgets/ExecutiveStatsOverview.php",
+        "app/Filament/Widgets/PendingActionCardsWidget.php",
+        "app/Filament/Widgets/ProjectHealthBoard.php",
+        "app/Filament/Widgets/RecentActivityRollupWidget.php"
       ],
       "rationale": "Filament resource forms, tables, action hooks, and AI chat slide-over UI."
     },
