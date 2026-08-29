@@ -47,7 +47,7 @@
 
 By extracting proven modules across these three repositories, we can implement 80% of `dpik-tadbir` capabilities immediately with near-zero R&D cost:
 
-### Detailed Breakdown of Reusable Modules:
+### Detailed Breakdown of Reusable Modules
 
 #### 1. AI Core & Tool Bridge (from `ARH-URUS`)
 * **`AgentService.php` + `ToolRegistry.php`**: Multi-turn conversational loop that executes tools derived from `Laravel\Mcp\Server\Tool`.
