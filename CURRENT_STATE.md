@@ -2,26 +2,38 @@
 
 ## Verified Reality Snapshot
 - **Lifecycle Phase**: Design, Architecture, CI/CD Quality Gates & Test Coverage Plan Complete $\rightarrow$ Ready for Codebase Scaffolding.
-- **Governing ADR**: `docs/adr/ADR-001-stack-selection.md` (Accepted: Laravel 12 + Filament v4 + MCP + Resonator).
+- **Governing ADRs (ADR-001 through ADR-011)**:
+  - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP)
+  - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
+  - `docs/adr/ADR-003-outlook-mcp-email-processor-boundary.md` (Zero Raw Email Storage Boundary)
+  - `docs/adr/ADR-004-executive-presets-and-quick-action-engine.md` (Custom Presets & Templating)
+  - `docs/adr/ADR-005-project-register-and-continuous-memory.md` (Project Register & Domain Memory)
+  - `docs/adr/ADR-006-hybrid-memory-search-and-retrieval-engine.md` (SQLite FTS5, RRF, Dense Context)
+  - `docs/adr/ADR-007-write-safety-human-in-the-loop-approval-gates.md` (Action Cards, Approval Gates)
+  - `docs/adr/ADR-008-action-receipts-and-automated-activity-rollups.md` (Action Ledger & Rollups)
+  - `docs/adr/ADR-009-system-settings-and-runtime-configurability.md` (Zero-Hardcoding Settings Store)
+  - `docs/adr/ADR-010-continual-executive-personalization-engine.md` (Behavioral Adaptation & Executive Persona Profile)
+  - `docs/adr/ADR-011-interactive-ui-modals-and-human-in-the-loop-tools.md` (Interactive Modals, Choice Pickers & State Machine)
 - **Progressive Lifecycle Specs**:
-  - `docs/INTENT.md` ✅ Complete
-  - `docs/SCENARIOS.md` ✅ Complete
-  - `docs/CAPABILITIES.md` ✅ Complete
-  - `docs/ARCHITECTURE.md` ✅ Complete
-  - `docs/UI.md` ✅ Complete
+  - `docs/INTENT.md` ✅ Complete (Outlook MCP Processor, Zero Raw Storage, Presets, Project Memory)
+  - `docs/SCENARIOS.md` ✅ Complete (On-Demand Inbox Checks, Presets, Reply/Forward Confirmation, Project Register, Activity Rollups)
+  - `docs/CAPABILITIES.md` ✅ Complete (CAP-001 to CAP-016)
+  - `docs/ARCHITECTURE.md` ✅ Complete (Outlook MCP Bridge, SQLite FTS5 Indexing, RRF Reranking, Token-Dense Context Contract)
+  - `docs/DESIGN.md` ✅ Complete (Component Breakdown, State Authority, Service Signatures, Livewire State Machine)
+  - `docs/UI.md` ✅ Complete (Executive Assistant, Preset Chips, Action Cards, Project Register, Activity Rollups)
   - `docs/ui-spec/navigation-tree.json` ✅ Complete
   - `docs/ui-spec/flow-diagram.mermaid` ✅ Complete
-  - `docs/testing/coverage-risk-matrix.json` ✅ Complete (Tier 1-4 risk mapping)
-  - `docs/testing/test-plan.md` ✅ Complete (Spec-to-test verification)
-  - `docs/QUALITY-GATES.md` ✅ Complete (Pint, Larastan Level 8, Diff-Cover)
-  - `.github/workflows/ci.yml` ✅ Complete (Automated PR gate with 90% diff coverage)
+  - `docs/testing/coverage-risk-matrix.json` ✅ Complete
+  - `docs/testing/test-plan.md` ✅ Complete
+  - `docs/QUALITY-GATES.md` ✅ Complete (Beelal Coffee multi-tier translation: Pint, Larastan 8, cspell, markdownlint, Playwright layout, Diff-Cover 90%)
+  - `.github/workflows/ci.yml` ✅ Complete (Automated PR gate)
 
 ## Active Invariants & Boundaries
-1. In-app AI Agent uses `ARH-URUS` `AgentService` + `ToolRegistry` bridged to `laravel/mcp`.
-2. Outlook email connectivity uses `mpalermiti/outlook-mcp` via OS Credential Store.
-3. Visual Inbox uses `ekandreas/filament-resonator` schema.
-4. Personal Notes & Tasks are strictly user-isolated.
-5. All PRs must achieve ≥90% branch coverage on modified lines.
+1. **Zero Raw Email Storage**: The app does not replicate Outlook or store raw emails; it queries Outlook on-demand via `outlook-mcp` (Graph API) and stores only processed outputs (summaries, commitments, notes, tasks).
+2. **ARH Session Reader Memory Engine**: SQLite FTS5 full-text indexing + RRF fusion + decision markers (`dm:decision`, `dm:commitment`) across project registers and action receipts.
+3. **One-Click Presets**: Instant preset triggers (*"What's new today?"*, *"Check my email today"*, *"Action items needing reply"*).
+4. **Explicit Write Confirmation**: AI generates interactive Action Cards for drafting, replying, and forwarding; execution requires human approval before Graph API dispatch.
+5. **High-Density Memory Output**: Token-efficient pipe-delimited context formatting to inject decades of project memory into <500 tokens.
 
 ## Single Next Entry Point
 - Scaffold the Laravel 12 + Filament v4 application skeleton into `D:\_ARH-AGENT-OS\projects\dpik-tadbir`.

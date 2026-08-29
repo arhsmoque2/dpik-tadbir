@@ -1,36 +1,38 @@
 # DPIK Tadbir: User Scenarios
 
-## [SCEN-01] Executive Morning Briefing
-1. **Entry**: MD opens DPIK Tadbir dashboard on desktop or mobile.
-2. **Progress**: MD clicks the AI Assistant panel or issues the query *"Give me my morning briefing"*.
-3. **Execution**: The AI invokes `outlook_changes_since` / `outlook_list_inbox_delta` to get new unread high-priority emails, checks pending tickets across active projects in `dpik-tadbir`, and retrieves today's due `PersonalTasks`.
-4. **Exit**: AI outputs a concise executive summary formatted with bullet points, flagging 2 urgent client emails and 1 overdue project deliverable.
-
-## [SCEN-02] Inbox Triage, Summarization, and Note Capture
-1. **Entry**: MD notices an important thread regarding "Site Survey Phase 2".
-2. **Progress**: MD prompts the AI: *"Summarize the thread from Client X and save the key commitments to my personal notes."*
+## [SCEN-01] On-Demand Email Check via "What's New Today?" Preset
+1. **Entry**: MD opens the DPIK Tadbir dashboard.
+2. **Progress**: MD clicks the preset button: **[What's new today?]** (or **[Check my email today]**).
 3. **Execution**:
-   - AI calls `outlook_read_message` / `outlook_list_thread` with `concise=True`.
-   - AI extracts the key decisions and deliverables.
-   - AI calls `PersonalNoteTool::create` to persist a new `PersonalNote` with tags `["Client X", "Site Survey"]` and backlinks to the Outlook thread ID.
-4. **Exit**: AI displays the formatted summary in chat, confirms the note has been saved to the database, and provides a direct link to view the Note in the Filament Notes panel.
+   - The AI calls `outlook-mcp` (`outlook_list_inbox_delta` / `outlook_changes_since` with `concise=True`) to query the MD's Outlook inbox directly via Microsoft Graph API.
+   - The AI reviews and parses the returned email threads, groups topics by client and urgency, and filters out non-critical noise.
+4. **Exit**: AI outputs a concise executive summary directly in the chat drawer highlighting 3 urgent client inquiries and 2 pending approvals. No raw emails are saved locally—only the generated summary and action cards are stored.
 
-## [SCEN-03] Supervised Email Reply
-1. **Entry**: MD wants to reply to a pending vendor query.
-2. **Progress**: MD prompts: *"Draft a polite reply to Vendor Y agreeing to the revised schedule for Friday, but requesting updated drawings by Wednesday 5 PM."*
+## [SCEN-02] Supervised Email Reply & Forward via Outlook
+1. **Entry**: Reviewing the morning briefing, the MD wants to respond to a tender query from Client X.
+2. **Progress**: MD prompts: *"Draft a reply to Client X confirming the updated hydraulic report will be sent by Thursday 3 PM, and forward the drawing attachments to Engineer A for review."*
 3. **Execution**:
-   - AI formats the reply and generates an in-chat draft preview showing `To`, `Subject`, and `Body`.
-   - AI provides an interactive **[Approve & Send]** action button.
-   - MD reviews the draft, makes a minor tweak, and clicks **[Approve & Send]**.
-   - AI invokes `outlook_send_message` via MCP and confirms dispatch.
-4. **Exit**: The email is sent from the MD's authenticated Outlook account, logged in the audit trail, and reflected in the visual Inbox.
+   - AI generates two staged **Action Cards** in the chat:
+     1. **Reply Action Card**: `To: Client X`, `Subject`, `Body preview`.
+     2. **Forward Action Card**: `To: Engineer A`, `Note preview`, `Attached files`.
+   - MD reviews the drafts and clicks **[Approve & Dispatch]**.
+   - AI invokes `outlook_reply` and `outlook_forward` through `outlook-mcp`.
+   - The system records the execution into `ai_action_receipts`.
+4. **Exit**: The emails are dispatched from the MD's actual Outlook account, an immutable audit receipt is logged, and the AI acknowledges completion.
 
-## [SCEN-04] Project Bottleneck Diagnosis & Workload Rebalancing
-1. **Entry**: MD notices the "JPS Kelantan" project timeline is slipping.
-2. **Progress**: MD asks: *"Why is JPS Kelantan delayed, and who is currently assigned to the open tickets?"*
-3. **Execution**:
-   - AI queries `ProjectOversightTool`, retrieving tickets for project `JPS Kelantan` and current capacity across `PositionAssignments`.
-   - AI identifies that Senior Engineer A has 14 open tickets while Junior Engineer B has capacity.
-   - AI proposes: *"Reassign 4 CAD drafting tickets (#102, #104, #108, #112) from Engineer A to Engineer B."*
-   - MD clicks **[Execute Rebalance]**.
-4. **Exit**: Tickets are updated in the database, notifications are queued, and an audit entry is created.
+## [SCEN-03] Project Register Categorization & Knowledge Accumulation
+1. **Entry**: MD prompts the AI: *"Search Outlook for all emails regarding Sungai Udang Barrage and extract our latest milestone commitments into the Project Register."*
+2. **Progress**:
+   - AI executes `outlook_search_mail` with query `"Sungai Udang"` (`concise=True`).
+   - AI extracts agreed deadlines, revision submissions, and site survey milestones.
+   - AI presents the extracted summary: *"Save findings to Project Register under 'PC-2023-011: Sungai Udang'?"*
+   - MD clicks **[Confirm & Save]**.
+3. **Execution**: The AI saves the structured summary into `project_registry_entries` (storing commitments, dates, and client contacts).
+4. **Exit**: The project register is enriched. Next week, when the MD asks *"What commitments did we make on Sungai Udang?"*, the AI immediately draws from the accumulated project register memory.
+
+## [SCEN-04] Daily & Weekly Executive Activity Rollup
+1. **Entry**: MD asks *"What actions did the AI complete this week?"* (or clicks **[Weekly Activity Rollup]**).
+2. **Progress**:
+   - AI queries the `ai_action_receipts` table for all confirmed actions across the week.
+   - AI groups actions by date and project: drafts sent, replies dispatched, summaries generated, and notes created.
+3. **Exit**: AI renders an executive markdown report providing full transparency into all completed activities and historical decisions.

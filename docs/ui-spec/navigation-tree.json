@@ -12,28 +12,39 @@
           "roles": ["super_admin", "managing_director", "admin"]
         },
         {
-          "title": "AI Assistant",
+          "title": "AI Assistant & Presets",
           "route": "/admin/ai-assistant",
           "icon": "heroicon-o-sparkles",
+          "roles": ["super_admin", "managing_director", "admin"]
+        },
+        {
+          "title": "Activity Rollups",
+          "route": "/admin/activity-rollups",
+          "icon": "heroicon-o-clipboard-document-list",
           "roles": ["super_admin", "managing_director", "admin"]
         }
       ]
     },
     {
-      "group": "Communications",
+      "group": "Project Intelligence",
       "items": [
         {
-          "title": "Inbox",
-          "route": "/admin/inbox",
-          "icon": "heroicon-o-inbox",
-          "badge": "unread_count",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "title": "Project Register",
+          "route": "/admin/project-register",
+          "icon": "heroicon-o-book-open",
+          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
         },
         {
-          "title": "Contacts",
-          "route": "/admin/contacts",
-          "icon": "heroicon-o-user-group",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "title": "Projects",
+          "route": "/admin/projects",
+          "icon": "heroicon-o-briefcase",
+          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
+        },
+        {
+          "title": "Tickets",
+          "route": "/admin/tickets",
+          "icon": "heroicon-o-ticket",
+          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
         }
       ]
     },
@@ -51,23 +62,6 @@
           "route": "/admin/personal-tasks",
           "icon": "heroicon-o-check-circle",
           "roles": ["all"]
-        }
-      ]
-    },
-    {
-      "group": "Operations & Projects",
-      "items": [
-        {
-          "title": "Projects",
-          "route": "/admin/projects",
-          "icon": "heroicon-o-briefcase",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
-        },
-        {
-          "title": "Tickets",
-          "route": "/admin/tickets",
-          "icon": "heroicon-o-ticket",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
         }
       ]
     },
