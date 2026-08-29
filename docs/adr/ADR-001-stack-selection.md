@@ -14,13 +14,14 @@ We evaluated:
 
 ## Decision
 1. **Adopt Laravel 12 with Filament v4**:
-   - `filament-resonator` email inbox natively requires Filament `^4.0`.
+   - `filament-resonator` UI components natively require Filament `^4.0` for Livewire email thread visualization and action drawer styling over on-demand MCP data.
    - `dpik-tugas-laravel` models and resources are already written for Filament v4.
    - Filament provides out-of-the-box forms, tables, modals, action drawers, and notifications with zero boilerplate.
 2. **Adopt `laravel/mcp` + `ARH-URUS` `ToolRegistry` Pattern**:
    - Allows writing single standard `Tool` classes that run internally inside the Laravel web chat AND can be served via `/mcp` to external desktop coding agents (Cursor, Claude Code).
 3. **Adopt `outlook-mcp` for Graph API Operations**:
-   - Python-based server storing tokens in Windows Credential Store, providing 62 typed tools with concise mode and delta synchronization.
+   - Python-based server storing tokens in Windows Credential Store, providing typed tools with concise mode and delta synchronization.
+   - In accordance with ADR-003, Tadbir stores zero raw email bodies or attachments locally; `filament-resonator` serves strictly as a presentation surface for on-demand MCP data.
 
 ## Consequences
 - **Positive**: 100% component reuse from `filament-resonator`, `ARH-URUS`, and `dpik-tugas-laravel` without version friction.

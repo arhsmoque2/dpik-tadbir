@@ -9,31 +9,30 @@
           "title": "Dashboard",
           "route": "/admin",
           "icon": "heroicon-o-home",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "roles": ["super_admin", "user"]
         },
         {
-          "title": "AI Assistant",
+          "title": "AI Assistant & Presets",
           "route": "/admin/ai-assistant",
           "icon": "heroicon-o-sparkles",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "roles": ["super_admin", "user"]
+        },
+        {
+          "title": "Activity Rollups",
+          "route": "/admin/activity-rollups",
+          "icon": "heroicon-o-clipboard-document-list",
+          "roles": ["super_admin", "user"]
         }
       ]
     },
     {
-      "group": "Communications",
+      "group": "Project Intelligence",
       "items": [
         {
-          "title": "Inbox",
-          "route": "/admin/inbox",
-          "icon": "heroicon-o-inbox",
-          "badge": "unread_count",
-          "roles": ["super_admin", "managing_director", "admin"]
-        },
-        {
-          "title": "Contacts",
-          "route": "/admin/contacts",
-          "icon": "heroicon-o-user-group",
-          "roles": ["super_admin", "managing_director", "admin"]
+          "title": "Project Register",
+          "route": "/admin/project-register",
+          "icon": "heroicon-o-book-open",
+          "roles": ["super_admin", "user"]
         }
       ]
     },
@@ -44,47 +43,19 @@
           "title": "Personal Notes",
           "route": "/admin/personal-notes",
           "icon": "heroicon-o-document-text",
-          "roles": ["all"]
+          "roles": ["super_admin", "user"]
         },
         {
           "title": "Personal Tasks",
           "route": "/admin/personal-tasks",
           "icon": "heroicon-o-check-circle",
-          "roles": ["all"]
-        }
-      ]
-    },
-    {
-      "group": "Operations & Projects",
-      "items": [
-        {
-          "title": "Projects",
-          "route": "/admin/projects",
-          "icon": "heroicon-o-briefcase",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
+          "roles": ["super_admin", "user"]
         },
         {
-          "title": "Tickets",
-          "route": "/admin/tickets",
-          "icon": "heroicon-o-ticket",
-          "roles": ["super_admin", "managing_director", "project_manager", "staff"]
-        }
-      ]
-    },
-    {
-      "group": "Organization",
-      "items": [
-        {
-          "title": "Staff & Positions",
-          "route": "/admin/staff",
-          "icon": "heroicon-o-users",
-          "roles": ["super_admin", "managing_director", "hr"]
-        },
-        {
-          "title": "Departments",
-          "route": "/admin/departments",
-          "icon": "heroicon-o-building-office",
-          "roles": ["super_admin", "managing_director", "hr"]
+          "title": "Executive Settings",
+          "route": "/admin/settings",
+          "icon": "heroicon-o-cog-6-tooth",
+          "roles": ["super_admin"]
         }
       ]
     }

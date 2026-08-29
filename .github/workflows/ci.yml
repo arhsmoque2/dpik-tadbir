@@ -10,32 +10,48 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
-  static-analysis:
-    name: Lint & Typecheck
+  doc-and-spec-hygiene:
+    name: "Gate 1: Docs, Lexicon & Spec Hygiene"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          php-version: '8.4'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
-          coverage: none
+          node-version: 22
 
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Validate Markdown Structure (markdownlint)
+        run: npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
 
-      - name: Run Pint Code Style Check
-        run: ./vendor/bin/pint --test
+      - name: Validate JSON Schemas
+        run: |
+          node -e '
+            const fs = require("fs");
+            const files = [
+              "docs/ui-spec/navigation-tree.json",
+              "docs/testing/coverage-risk-matrix.json",
+              ".cspell.json"
+            ];
+            files.forEach(f => {
+              if (fs.existsSync(f)) {
+                JSON.parse(fs.readFileSync(f, "utf8"));
+                console.log("Valid JSON:", f);
+              }
+            });
+          '
 
-      - name: Run Larastan / PHPStan
-        run: ./vendor/bin/phpstan analyse --memory-limit=1G
+      - name: Spelling & Lexicon Hygiene (cspell)
+        run: npx --yes cspell --no-progress "**/*.md" "docs/**/*.json"
 
-  test-and-coverage:
-    name: Hermetic Tests & Diff Cover Gate
+  security-and-secrets:
+    name: "Gate 2: Secret & Policy Preflight"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -43,7 +59,82 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Gitleaks Binary
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz | tar -xz -C /tmp
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Run Gitleaks Secret Scanner
+        run: gitleaks detect --source=. --verbose --redact
+
+  static-analysis:
+    name: "Gate 1: PHP Lint, Typecheck & Unused Audit"
+    runs-on: ubuntu-latest
+    needs: [doc-and-spec-hygiene, security-and-secrets]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check if composer.json exists
+        id: check_composer
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "has_composer=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_composer=false" >> $GITHUB_OUTPUT
+            echo "No composer.json found (specifications phase) — skipping PHP static analysis."
+          fi
+
       - name: Setup PHP
+        if: steps.check_composer.outputs.has_composer == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run Pint Code Style Check
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: ./vendor/bin/pint --test
+
+      - name: Run Larastan / PHPStan (Level 8)
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: ./vendor/bin/phpstan analyse --level=8 --memory-limit=1G
+
+      - name: Run Composer Unused Audit
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: |
+          if [ -f "./vendor/bin/composer-unused" ]; then
+            ./vendor/bin/composer-unused
+          fi
+
+  test-and-coverage:
+    name: "Gate 3: Hermetic Tests & 90% Diff-Cover"
+    runs-on: ubuntu-latest
+    needs: [doc-and-spec-hygiene, security-and-secrets]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if composer.json exists
+        id: check_composer
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "has_composer=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_composer=false" >> $GITHUB_OUTPUT
+            echo "No composer.json found (specifications phase) — skipping test suite."
+          fi
+
+      - name: Setup PHP
+        if: steps.check_composer.outputs.has_composer == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -51,21 +142,47 @@ jobs:
           coverage: xdebug
 
       - name: Install Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Execute Tests with Clover Coverage
-        run: ./vendor/bin/pest --coverage-clover coverage.xml
+      - name: Execute Hermetic Pest Suite (Unit, Integration, Security Policies)
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: ./vendor/bin/pest --coverage-clover coverage.xml --parallel
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
           APP_ENV: testing
 
       - name: Setup uv for diff-cover
+        if: steps.check_composer.outputs.has_composer == 'true'
         uses: astral-sh/setup-uv@v5
 
       - name: Enforce 90% Incremental Diff Coverage Gate
-        if: github.event_name == 'pull_request'
+        if: steps.check_composer.outputs.has_composer == 'true' && github.event_name == 'pull_request'
         run: |
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
             --fail-under 90
+
+  ui-layout-audit:
+    name: "Gate 4: Playwright UI & Layout Audit"
+    runs-on: ubuntu-latest
+    needs: [static-analysis, test-and-coverage]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check if application and tests are scaffolded
+        id: check_ui
+        run: |
+          if [ -f "composer.json" ] && [ -d "tests/Browser" ]; then
+            echo "has_ui_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_ui_tests=false" >> $GITHUB_OUTPUT
+            echo "UI and browser test suite not yet scaffolded (specifications phase) — skipping Playwright layout audit."
+          fi
+
+      - name: Run Playwright Layout & State Auditor
+        if: steps.check_ui.outputs.has_ui_tests == 'true'
+        run: |
+          npx playwright test --config=playwright.config.ts

@@ -1,42 +1,51 @@
 ```mermaid
 flowchart TD
-    subgraph MD_Interaction [Managing Director Workflow]
-        A[Enter DPIK Tadbir] --> B{Select Workflow}
-        B -->|Prompt AI| C[Open AI Chat Assistant]
-        B -->|Browse Inbox| D[Open Visual Inbox / Threads]
-        B -->|Review Projects| E[Open Projects / Staff Board]
-        B -->|Check Workspace| F[Open Personal Notes / Tasks]
+    subgraph MD_Operations [Managing Director Interaction]
+        A[Enter DPIK Tadbir] --> B{Select Action}
+        B -->|Trigger Preset| C[Click Preset: What's new today?]
+        B -->|Specific Query| D[AI Chat: Search / Summarize Topic]
+        B -->|Review Projects| E[Open Project Register]
+        B -->|Review Activity| F[View Daily/Weekly Rollups]
     end
 
-    subgraph AI_Processing [AI & Tool Execution Engine]
-        C --> G[AgentService Loop]
-        G --> H{Determine Needed Tools}
-        H -->|Outlook / Gmail| I[outlook-mcp / Graph API]
-        H -->|Personal Notes| J[PersonalNote Model]
-        H -->|Projects / Staff| K[Project & Ticket Models]
+    subgraph Outlook_MCP_Processor [On-Demand Outlook MCP Processor]
+        C --> McpCall[AgentService: Invoke outlook_list_inbox_delta]
+        D --> McpCall2[AgentService: Invoke outlook_search_mail]
         
-        I --> L[Fetch Email Context / Delta]
-        K --> M[Fetch Project Status & Workload]
+        McpCall --> OutlookServer[outlook-mcp / Microsoft Graph API]
+        McpCall2 --> OutlookServer
         
-        L --> N[Synthesize Evidence-Based Answer]
-        M --> N
-        
-        N --> O{Requires Mutation / Action?}
-        O -->|No| P[Stream Response to User]
-        O -->|Yes| Q[Render Structured Action Proposal]
+        OutlookServer -->|Concise Context JSON - Zero Raw Storage| LLM[LLM Synthesis Engine]
     end
 
-    subgraph Approval_Gate [Human-in-the-Loop Write Safety]
-        Q --> R[Review Diff / Draft]
-        R --> S{MD Decision}
-        S -->|Discard / Edit| T[Cancel / Refine Prompt]
-        S -->|Approve & Execute| U[Execute Action]
-        U -->|Send Email| V[Dispatch via outlook_send_message]
-        U -->|Save Note| W[Commit to personal_notes table]
-        U -->|Reassign Ticket| X[Update tickets table]
+    subgraph AI_Synthesis_And_Proposals [AI Synthesis & Proposal Generation]
+        LLM --> Briefing[Render Executive Summary & Urgent Insights]
         
-        V --> Y[Log to Activity Audit & Show Toast]
-        W --> Y
-        X --> Y
+        LLM --> ActionCheck{Action Required?}
+        ActionCheck -->|Draft / Reply / Forward| ActionCard[Generate Staged Action Card]
+        ActionCheck -->|Project Commitments| RegCard[Generate Project Register Proposal]
+        ActionCheck -->|Personal To-Dos| NoteCard[Generate Personal Note/Task Proposal]
+    end
+
+    subgraph Human_Confirmation [Human-in-the-Loop Confirmation Gate]
+        ActionCard --> Approval{MD Confirmation}
+        RegCard --> Approval
+        NoteCard --> Approval
+        
+        Approval -->|Discard / Edit| Cancel[Refine / Discard]
+        Approval -->|Approve & Dispatch| Execute[Execute Action via Graph API / DB]
+    end
+
+    subgraph Processed_Output_Storage [Stored Processed Memory Ledger]
+        Execute --> DispatchOutbound[Dispatch Email via outlook_send_message / reply / forward]
+        Execute --> SaveRegister[Save to project_registry_entries]
+        Execute --> SaveNotes[Save to personal_notes / personal_tasks]
+        
+        DispatchOutbound --> Receipt[Commit to ai_action_receipts & AuditLog]
+        SaveRegister --> Receipt
+        SaveNotes --> Receipt
+        
+        Receipt --> CompoundingMemory[(Cumulative Project Context Knowledge Base)]
+        Receipt --> RollupReports[(Rolling Daily & Weekly Activity Rollups)]
     end
 ```

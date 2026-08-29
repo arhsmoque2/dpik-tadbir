@@ -1,0 +1,127 @@
+name: Deploy to Cloud Run
+
+on:
+  workflow_run:
+    workflows: ["Quality Gate CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+  IMAGE: asia-southeast1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_SERVICE }}:${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  deploy:
+    name: "Gate 5: Build, Migrate & Deploy to Cloud Run"
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Check if application is scaffolded
+        id: check_scaffold
+        run: |
+          if [ -f "composer.json" ]; then
+            echo "is_scaffolded=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_scaffolded=false" >> $GITHUB_OUTPUT
+            echo "Design & specifications phase active — deployment skipped until application skeleton is scaffolded."
+          fi
+
+      - name: Authenticate to GCP (Workload Identity Federation)
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install neonctl
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        run: npm install -g neonctl@3.6.0
+
+      - name: Fetch Neon connection strings
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        id: neon
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+        run: |
+          POOLED=$(neonctl connection-string --project-id "${{ vars.NEON_PROJECT_ID }}" --role-name neondb_owner --database-name neondb --pooled | tr -d '[:space:]')
+          DIRECT=$(neonctl connection-string --project-id "${{ vars.NEON_PROJECT_ID }}" --role-name neondb_owner --database-name neondb | tr -d '[:space:]')
+          if [ -z "$POOLED" ] || [ -z "$DIRECT" ]; then
+            echo "::error::neonctl returned an empty connection string - check NEON_API_KEY / NEON_PROJECT_ID"
+            exit 1
+          fi
+          echo "::add-mask::$POOLED"
+          echo "::add-mask::$DIRECT"
+          echo "pooled=$POOLED" >> "$GITHUB_OUTPUT"
+          echo "direct=$DIRECT" >> "$GITHUB_OUTPUT"
+
+      - name: Run database migrations (Cloud Run Job, direct connection)
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        env:
+          DATABASE_URL: ${{ steps.neon.outputs.direct }}
+        run: |
+          gcloud run jobs deploy dpik-tadbir-migrate \
+            --image="${{ env.IMAGE }}" \
+            --region="${{ vars.GCP_REGION }}" \
+            --set-env-vars="DATABASE_URL=${DATABASE_URL},DB_CONNECTION=pgsql,APP_ENV=production,APP_KEY=${{ secrets.APP_KEY }}" \
+            --args="sh,-c,php artisan migrate --force" \
+            --max-retries=0 \
+            --quiet
+          gcloud run jobs execute dpik-tadbir-migrate --region="${{ vars.GCP_REGION }}" --wait --quiet
+
+      - name: Deploy to Cloud Run
+        if: steps.check_scaffold.outputs.is_scaffolded == 'true'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ env.IMAGE }}
+          env_vars: |
+            APP_ENV=production
+            DB_CONNECTION=pgsql
+            DATABASE_URL=${{ steps.neon.outputs.pooled }}
+            APP_KEY=${{ secrets.APP_KEY }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            MICROSOFT_CLIENT_ID=${{ secrets.MICROSOFT_CLIENT_ID }}
+            MICROSOFT_CLIENT_SECRET=${{ secrets.MICROSOFT_CLIENT_SECRET }}
+            MICROSOFT_TENANT_ID=${{ secrets.MICROSOFT_TENANT_ID }}
