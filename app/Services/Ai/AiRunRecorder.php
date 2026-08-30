@@ -14,7 +14,7 @@ class AiRunRecorder
     ) {}
 
     /**
-     * Records a completed or suspended AI turn into the telemetry database.
+     * Records a completed, suspended, or failed AI turn into the telemetry database with PII redaction.
      *
      * @param  array<string, mixed>  $metadata
      */
@@ -26,8 +26,14 @@ class AiRunRecorder
         string $responseContent,
         int $latencyMs,
         string $status = 'completed',
-        array $metadata = []
+        array $metadata = [],
+        ?string $errorMessage = null
     ): AiRun {
+        // Redact any PII before persistence to database
+        $sanitizedPrompt = $this->piiDetector->redact($prompt);
+        $sanitizedResponse = $this->piiDetector->redact($responseContent);
+        $sanitizedMetadata = $this->piiDetector->redactArray($metadata);
+
         // Approximate token count (4 chars ~= 1 token) if not provided by mock/gateway
         $promptTokens = (int) ($metadata['prompt_tokens'] ?? max(1, (int) ceil(strlen($prompt) / 4)));
         $completionTokens = (int) ($metadata['completion_tokens'] ?? max(1, (int) ceil(strlen($responseContent) / 4)));
@@ -49,19 +55,51 @@ class AiRunRecorder
             'cost_myr' => $cost['myr'],
             'has_pii' => $hasPii,
             'status' => $status,
-            'metadata' => array_merge($metadata, [
-                'pii_detected' => $hasPii ? $this->piiDetector->detect($prompt) : [],
+            'payload' => $sanitizedPrompt,
+            'response' => $sanitizedResponse,
+            'error_message' => $errorMessage !== null ? $this->piiDetector->redact($errorMessage) : null,
+            'metadata' => array_merge($sanitizedMetadata, [
+                'pii_types' => $hasPii ? array_keys($this->piiDetector->detect($prompt)) : [],
+                'pii_counts' => $hasPii ? $this->piiDetector->detectCounts($prompt) : [],
             ]),
         ]);
 
         Log::info("AI Run recorded [ID: {$run->id}]", [
             'provider' => $provider,
             'model' => $model,
+            'status' => $status,
             'tokens' => $totalTokens,
             'cost_usd' => $cost['usd'],
             'latency_ms' => $latencyMs,
         ]);
 
         return $run;
+    }
+
+    /**
+     * Records an unrecoverable AI provider failure into the telemetry database.
+     *
+     * @param  array<string, mixed>  $metadata
+     */
+    public function recordFailure(
+        ChatSession $session,
+        string $provider,
+        string $model,
+        string $prompt,
+        \Throwable $exception,
+        int $latencyMs,
+        array $metadata = []
+    ): AiRun {
+        return $this->record(
+            session: $session,
+            provider: $provider,
+            model: $model,
+            prompt: $prompt,
+            responseContent: '',
+            latencyMs: $latencyMs,
+            status: 'failed',
+            metadata: $metadata,
+            errorMessage: $exception->getMessage()
+        );
     }
 }

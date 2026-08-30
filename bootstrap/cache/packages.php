@@ -182,4 +182,11 @@
       0 => 'Spatie\\LaravelSettings\\LaravelSettingsServiceProvider',
     ),
   ),
+  'webcrafts-studio/lens-for-laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'LensForLaravel\\LensForLaravel\\LensForLaravelServiceProvider',
+    ),
+  ),
 );

@@ -16,22 +16,63 @@ class LlmGatewayService
 
     protected string $fallbackModel;
 
+    protected ?string $activeProvider = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    protected static ?array $fakeProviders = null;
+
+    /**
+     * @var list<mixed>|null
+     */
+    protected static ?array $fakeSequence = null;
+
     public function __construct()
     {
         $this->primaryProvider = (string) Config::get('services.ai.default_provider', 'anthropic');
         $this->primaryModel = (string) Config::get('services.ai.default_model', 'claude-3-7-sonnet-20250219');
         $this->fallbackProvider = (string) Config::get('services.ai.fallback_provider', 'gemini');
         $this->fallbackModel = (string) Config::get('services.ai.fallback_model', 'gemini-2.5-flash');
+        $this->activeProvider = $this->primaryProvider;
     }
 
     public function getActiveProvider(): string
     {
-        return $this->primaryProvider;
+        return $this->activeProvider ?? $this->primaryProvider;
     }
 
     public function getActiveModel(): string
     {
-        return $this->primaryModel;
+        return ($this->activeProvider ?? $this->primaryProvider) === $this->fallbackProvider
+            ? $this->fallbackModel
+            : $this->primaryModel;
+    }
+
+    /**
+     * Set fake responses or exceptions keyed by provider name.
+     *
+     * @param  array<string, mixed>  $fakes
+     */
+    public static function fake(array $fakes): void
+    {
+        self::$fakeProviders = $fakes;
+    }
+
+    /**
+     * Set an ordered sequence of responses or exceptions.
+     *
+     * @param  list<mixed>  $sequence
+     */
+    public static function fakeSequence(array $sequence): void
+    {
+        self::$fakeSequence = $sequence;
+    }
+
+    public static function resetFakes(): void
+    {
+        self::$fakeProviders = null;
+        self::$fakeSequence = null;
     }
 
     /**
@@ -44,14 +85,25 @@ class LlmGatewayService
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
-        if (app()->environment('testing')) {
-            return $this->mockCompletion($messages, $tools);
+        if (self::$fakeSequence !== null && count(self::$fakeSequence) > 0) {
+            $step = array_shift(self::$fakeSequence);
+            if ($step instanceof \Throwable) {
+                throw $step;
+            }
+            if (is_array($step)) {
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>} $step */
+                return $step;
+            }
         }
 
         try {
+            $this->activeProvider = $this->primaryProvider;
+
             return $this->invokeProvider($this->primaryProvider, $this->primaryModel, $messages, $tools, $options);
         } catch (\Throwable $e) {
             Log::warning("Primary LLM provider [{$this->primaryProvider}] failed: {$e->getMessage()}. Triggering fallback to [{$this->fallbackProvider}].");
+
+            $this->activeProvider = $this->fallbackProvider;
 
             return $this->invokeProvider($this->fallbackProvider, $this->fallbackModel, $messages, $tools, $options);
         }
@@ -70,6 +122,17 @@ class LlmGatewayService
         array $tools,
         array $options
     ): array {
+        if (self::$fakeProviders !== null && array_key_exists($provider, self::$fakeProviders)) {
+            $fake = self::$fakeProviders[$provider];
+            if ($fake instanceof \Throwable) {
+                throw $fake;
+            }
+            if (is_array($fake)) {
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>} $fake */
+                return $fake;
+            }
+        }
+
         // Fallback simulation or mock if no external key is configured
         $key = match ($provider) {
             'anthropic' => (string) Config::get('services.ai.anthropic_api_key'),

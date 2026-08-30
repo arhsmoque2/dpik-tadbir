@@ -32,7 +32,8 @@
     "pestphp/pest": "^3.7",
     "pestphp/pest-plugin-arch": "^3.1",
     "pestphp/pest-plugin-laravel": "^3.1",
-    "pestphp/pest-plugin-livewire": "^3.0"
+    "pestphp/pest-plugin-livewire": "^3.0",
+    "webcrafts-studio/lens-for-laravel": "^3.2"
   },
   "autoload": {
     "psr-4": {
@@ -65,7 +66,8 @@
     ],
     "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
     "lint": "vendor/bin/pint",
-    "test": "vendor/bin/pest"
+    "test": "vendor/bin/pest",
+    "test:mutate": "vendor/bin/pest --mutate --covered-only"
   },
   "extra": {
     "laravel": {

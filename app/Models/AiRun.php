@@ -20,6 +20,9 @@ use Illuminate\Support\Carbon;
  * @property float $cost_myr
  * @property bool $has_pii
  * @property string $status
+ * @property string|null $payload
+ * @property string|null $response
+ * @property string|null $error_message
  * @property array<string, mixed>|null $metadata
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -39,6 +42,9 @@ class AiRun extends Model
         'cost_myr',
         'has_pii',
         'status',
+        'payload',
+        'response',
+        'error_message',
         'metadata',
     ];
 

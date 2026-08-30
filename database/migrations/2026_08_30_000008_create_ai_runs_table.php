@@ -22,6 +22,9 @@ return new class extends Migration
             $table->decimal('cost_myr', 10, 6)->default(0.000000);
             $table->boolean('has_pii')->default(false);
             $table->string('status')->default('completed'); // completed, suspended, failed
+            $table->longText('payload')->nullable();
+            $table->longText('response')->nullable();
+            $table->text('error_message')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
         });

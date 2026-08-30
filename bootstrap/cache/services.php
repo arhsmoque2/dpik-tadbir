@@ -48,8 +48,9 @@
     44 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
     45 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
     46 => 'Spatie\\LaravelSettings\\LaravelSettingsServiceProvider',
-    47 => 'App\\Providers\\AppServiceProvider',
-    48 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    47 => 'LensForLaravel\\LensForLaravel\\LensForLaravelServiceProvider',
+    48 => 'App\\Providers\\AppServiceProvider',
+    49 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'eager' => 
   array (
@@ -85,8 +86,9 @@
     29 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
     30 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
     31 => 'Spatie\\LaravelSettings\\LaravelSettingsServiceProvider',
-    32 => 'App\\Providers\\AppServiceProvider',
-    33 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    32 => 'LensForLaravel\\LensForLaravel\\LensForLaravelServiceProvider',
+    33 => 'App\\Providers\\AppServiceProvider',
+    34 => 'App\\Providers\\Filament\\AdminPanelProvider',
   ),
   'deferred' => 
   array (

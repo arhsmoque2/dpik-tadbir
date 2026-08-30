@@ -4,8 +4,10 @@ namespace Tests;
 
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Tests\Support\DatabaseQueryCounter;
 
 abstract class TestCase extends BaseTestCase
 {
+    use DatabaseQueryCounter;
     use LazilyRefreshDatabase;
 }
