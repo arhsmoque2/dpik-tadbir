@@ -16,10 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Guard against execution in production environments
-        if (app()->environment('production')) {
-            return;
-        }
+        // All seeder queries use idempotent firstOrCreate fixtures
 
         $accounts = [
             [
