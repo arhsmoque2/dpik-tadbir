@@ -20,17 +20,14 @@ test.describe('E2E Journey 3: Livewire AI Copilot Drawer & Action Card Ledger', 
     await expect(drawer.first()).toBeVisible({ timeout: 10000 });
 
     // Verify seeded preset is rendered in presets ribbon
-    const presetBtn = drawer.locator('text="Tender Review Brief"');
+    const presetBtn = drawer.getByText('Tender Review Brief');
     await expect(presetBtn.first()).toBeVisible({ timeout: 10000 });
 
     // Verify input textarea is available for executive instructions
     const promptInput = drawer.locator('textarea');
     await expect(promptInput.first()).toBeVisible();
 
-    // Close drawer via close button
-    const closeBtn = drawer.locator('button[title*="Close"]');
-    if (await closeBtn.count() > 0) {
-      await closeBtn.first().click();
-    }
+    // Close drawer via Escape key
+    await page.keyboard.press('Escape');
   });
 });

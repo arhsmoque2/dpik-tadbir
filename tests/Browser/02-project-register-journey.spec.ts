@@ -13,7 +13,7 @@ test.describe('E2E Journey 2: Project Register & Responsive Table Toolbar QA', (
     await expect(tableElement.first()).toBeVisible({ timeout: 15000 });
 
     // Assert seeded record exists in the table view
-    const seededRecord = page.locator('text=PC-2023-011, text="Jambatan Sungai Udang"');
+    const seededRecord = page.getByText('PC-2023-011');
     await expect(seededRecord.first()).toBeVisible({ timeout: 10000 });
 
     // Verify search input & filter action buttons

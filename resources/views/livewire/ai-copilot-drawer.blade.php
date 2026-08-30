@@ -10,6 +10,7 @@
             });
         }
     }"
+    @toggle-copilot-drawer.window="isOpen = !isOpen"
     x-cloak
 >
     <!-- Drawer Overlay -->
