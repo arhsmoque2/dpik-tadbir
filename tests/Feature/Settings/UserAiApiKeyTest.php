@@ -91,7 +91,7 @@ test('executive settings handles empty keys, save format validation, and unauthe
 
     // 4. Save unauthenticated
     Auth::logout();
-    $page = new ExecutiveSettings();
+    $page = app(ExecutiveSettings::class);
     $page->save();
     expect(Auth::user())->toBeNull();
 });
