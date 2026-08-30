@@ -102,7 +102,7 @@ jobs:
           gcloud run jobs deploy dpik-tadbir-migrate \
             --image="${{ env.IMAGE }}" \
             --region="${{ vars.GCP_REGION }}" \
-            --set-env-vars="DATABASE_URL=${DATABASE_URL},DB_CONNECTION=pgsql,APP_ENV=production,APP_KEY=${{ secrets.APP_KEY }}" \
+            --set-env-vars="DATABASE_URL=${DATABASE_URL},DB_URL=${DATABASE_URL},DB_CONNECTION=pgsql,APP_ENV=production,APP_KEY=${{ secrets.APP_KEY }}" \
             --args="sh,-c,php artisan migrate --force" \
             --max-retries=0 \
             --quiet
@@ -119,6 +119,7 @@ jobs:
             APP_ENV=production
             DB_CONNECTION=pgsql
             DATABASE_URL=${{ steps.neon.outputs.pooled }}
+            DB_URL=${{ steps.neon.outputs.pooled }}
             APP_KEY=${{ secrets.APP_KEY }}
             APP_URL=${{ vars.APP_URL }}
             ALLOWED_REGISTRATION_EMAILS=${{ vars.ALLOWED_REGISTRATION_EMAILS }}
