@@ -22,7 +22,7 @@ test('pii is strictly redacted from persisted ai_runs payload, response, and met
 
     $rawNric = '850712-14-5543';
     $rawCard = '4111222233334444';
-    $rawSecret = 'sk-live-1234567890abcdef1234567890';
+    $rawSecret = 'sk-live-1234567890abcdef1234567890'; // gitleaks:allow
     $prompt = "Sila semak invois kontraktor dengan IC {$rawNric}, kad kredit {$rawCard}, dan API {$rawSecret}.";
 
     $response = $agent->handleUserTurn($session, $prompt);

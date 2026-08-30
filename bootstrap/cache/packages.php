@@ -90,11 +90,50 @@
       0 => 'Filament\\Widgets\\WidgetsServiceProvider',
     ),
   ),
+  'gsferro/generate-tests-easy' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Gsferro\\GenerateTestsEasy\\Providers\\GenerateTestsEasyServiceProvider',
+    ),
+  ),
+  'joshcirre/laravel-doctor' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Josh\\LaravelDoctor\\LaravelDoctorServiceProvider',
+    ),
+  ),
   'kirschbaum-development/eloquent-power-joins' => 
   array (
     'providers' => 
     array (
       0 => 'Kirschbaum\\PowerJoins\\PowerJoinsServiceProvider',
+    ),
+  ),
+  'laravel/boost' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Boost\\BoostServiceProvider',
+    ),
+  ),
+  'laravel/mcp' => 
+  array (
+    'aliases' => 
+    array (
+      'Mcp' => 'Laravel\\Mcp\\Facades\\Mcp',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
+    ),
+  ),
+  'laravel/roster' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Roster\\RosterServiceProvider',
     ),
   ),
   'laravel/sail' => 
@@ -127,6 +166,12 @@
     'providers' => 
     array (
       0 => 'Livewire\\LivewireServiceProvider',
+    ),
+  ),
+  'lukaszzychal/phpstan-fixer' => 
+  array (
+    'dont-discover' => 
+    array (
     ),
   ),
   'nesbot/carbon' => 
@@ -168,6 +213,13 @@
       0 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
     ),
   ),
+  'sophireak/laracheck' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Sophireak\\Laracheck\\LaracheckServiceProvider',
+    ),
+  ),
   'spatie/laravel-activitylog' => 
   array (
     'providers' => 
@@ -180,6 +232,13 @@
     'providers' => 
     array (
       0 => 'Spatie\\LaravelSettings\\LaravelSettingsServiceProvider',
+    ),
+  ),
+  'tranquil-tools/laravel-pest-recorder' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'TranquilTools\\PestRecorder\\PestRecorderServiceProvider',
     ),
   ),
   'webcrafts-studio/lens-for-laravel' => 

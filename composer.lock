@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "208d24f967cedfc225c950981c1e11e0",
+    "content-hash": "b9080bf4bb780109275d7bab60cf0bb0",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -8881,6 +8881,83 @@
             "time": "2026-06-07T11:47:49+00:00"
         },
         {
+            "name": "composer/semver",
+            "version": "3.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/composer/semver.git",
+                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/composer/semver/zipball/198166618906cb2de69b95d7d47e5fa8aa1b2b95",
+                "reference": "198166618906cb2de69b95d7d47e5fa8aa1b2b95",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.3.2 || ^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.11",
+                "symfony/phpunit-bridge": "^3 || ^7"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Composer\\Semver\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nils Adermann",
+                    "email": "naderman@naderman.de",
+                    "homepage": "http://www.naderman.de"
+                },
+                {
+                    "name": "Jordi Boggiano",
+                    "email": "j.boggiano@seld.be",
+                    "homepage": "http://seld.be"
+                },
+                {
+                    "name": "Rob Bast",
+                    "email": "rob.bast@gmail.com",
+                    "homepage": "http://robbast.nl"
+                }
+            ],
+            "description": "Semver library that offers utilities, version constraint parsing and validation.",
+            "keywords": [
+                "semantic",
+                "semver",
+                "validation",
+                "versioning"
+            ],
+            "support": {
+                "irc": "ircs://irc.libera.chat:6697/composer",
+                "issues": "https://github.com/composer/semver/issues",
+                "source": "https://github.com/composer/semver/tree/3.4.4"
+            },
+            "funding": [
+                {
+                    "url": "https://packagist.com",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/composer",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-08-20T19:15:30+00:00"
+        },
+        {
             "name": "composer/xdebug-handler",
             "version": "3.0.5",
             "source": {
@@ -8945,6 +9022,64 @@
                 }
             ],
             "time": "2024-05-06T16:37:16+00:00"
+        },
+        {
+            "name": "driftingly/rector-laravel",
+            "version": "2.6.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/driftingly/rector-laravel.git",
+                "reference": "c0f9a2ff7365cec45d4dc64223608e7cec74604a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/driftingly/rector-laravel/zipball/c0f9a2ff7365cec45d4dc64223608e7cec74604a",
+                "reference": "c0f9a2ff7365cec45d4dc64223608e7cec74604a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.3",
+                "rector/rector": "^2.6.4",
+                "symplify/rule-doc-generator-contracts": "^11.2",
+                "webmozart/assert": "^1.11 || ^2.0"
+            },
+            "require-dev": {
+                "boundwize/structarmed": "^0.16",
+                "nette/utils": "^4.0",
+                "nikic/php-parser": "^5.6",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan": "^2.2",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpstan/phpstan-webmozart-assert": "^2.0",
+                "phpunit/phpunit": "^10.5",
+                "symplify/rule-doc-generator": "^12.2",
+                "tightenco/duster": "^3.1",
+                "tracy/tracy": "^2.10"
+            },
+            "type": "rector-extension",
+            "extra": {
+                "rector": {
+                    "includes": [
+                        "config/config.php"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RectorLaravel\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Rector upgrades rules for Laravel Framework",
+            "support": {
+                "issues": "https://github.com/driftingly/rector-laravel/issues",
+                "source": "https://github.com/driftingly/rector-laravel/tree/2.6.2"
+            },
+            "time": "2026-08-29T21:42:57+00:00"
         },
         {
             "name": "fakerphp/faker",
@@ -9140,6 +9275,76 @@
                 }
             ],
             "time": "2025-08-08T12:00:00+00:00"
+        },
+        {
+            "name": "gsferro/generate-tests-easy",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/gsferro/generate-tests-easy.git",
+                "reference": "58129555b12e55983f8934f2c0eabb4a35049dd9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/gsferro/generate-tests-easy/zipball/58129555b12e55983f8934f2c0eabb4a35049dd9",
+                "reference": "58129555b12e55983f8934f2c0eabb4a35049dd9",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^8.0|^9.0|^10.0|^11.0|^12.0",
+                "pestphp/pest": "^1.22|^2.8.1|^3.0",
+                "pestphp/pest-plugin-arch": "^2.0|^v3.0",
+                "pestphp/pest-plugin-laravel": "^1.4|^2.0|^3.2",
+                "php": "^8.0|^8.1|^8.2|^8.3|^8.4",
+                "phpunit/phpunit": "^9.5.10|^10.1|^11.0|^12.0",
+                "symfony/finder": "^5.0|^6.0|^7.0"
+            },
+            "require-dev": {
+                "filament/filament": "^2.0|^3.0|^4.0",
+                "livewire/livewire": "^2.0|^3.0",
+                "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0"
+            },
+            "suggest": {
+                "filament/filament": "Required to generate tests for Filament resources",
+                "livewire/livewire": "Required to generate tests for Livewire components"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Gsferro\\GenerateTestsEasy\\Providers\\GenerateTestsEasyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Gsferro\\GenerateTestsEasy\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Guilherme Ferro",
+                    "email": "gsferroti@gmail.com"
+                }
+            ],
+            "description": "Automated test generation for Laravel applications using Pest",
+            "keywords": [
+                "automated tests",
+                "easy",
+                "generate",
+                "laravel",
+                "pest",
+                "testing"
+            ],
+            "support": {
+                "issues": "https://github.com/gsferro/generate-tests-easy/issues",
+                "source": "https://github.com/gsferro/generate-tests-easy/tree/v1.0.0"
+            },
+            "time": "2025-05-17T06:14:22+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -9399,6 +9604,52 @@
             "time": "2025-03-19T14:43:43+00:00"
         },
         {
+            "name": "joshcirre/laravel-doctor",
+            "version": "v0.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/joshcirre/laravel-doctor.git",
+                "reference": "97b0d677592ce4a3c05b50da6df9ee02ca4c0848"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/joshcirre/laravel-doctor/zipball/97b0d677592ce4a3c05b50da6df9ee02ca4c0848",
+                "reference": "97b0d677592ce4a3c05b50da6df9ee02ca4c0848",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Josh\\LaravelDoctor\\LaravelDoctorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Josh\\LaravelDoctor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Artisan-first Laravel codebase health scanner with diagnostics and scoring",
+            "support": {
+                "issues": "https://github.com/joshcirre/laravel-doctor/issues",
+                "source": "https://github.com/joshcirre/laravel-doctor/tree/v0.0.4"
+            },
+            "time": "2026-02-18T21:23:59+00:00"
+        },
+        {
             "name": "kirschbaum-development/mail-intercept",
             "version": "1.1.0",
             "source": {
@@ -9545,6 +9796,146 @@
             "time": "2026-05-28T08:00:58+00:00"
         },
         {
+            "name": "laravel/boost",
+            "version": "v2.7.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/boost.git",
+                "reference": "b19e98a8637cb69b2aab7b5b6c5fe9e2c79d182f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/boost/zipball/b19e98a8637cb69b2aab7b5b6c5fe9e2c79d182f",
+                "reference": "b19e98a8637cb69b2aab7b5b6c5fe9e2c79d182f",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.9|^8.0",
+                "illuminate/console": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/contracts": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/routing": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/support": "^11.45.3|^12.41.1|^13.0",
+                "laravel/mcp": "^0.7.1|^0.8.0|^0.9.0",
+                "laravel/prompts": "^0.3.10",
+                "laravel/roster": "^1.0.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.27.0",
+                "mockery/mockery": "^1.6.12",
+                "orchestra/testbench": "^9.15.0|^10.6|^11.0",
+                "pestphp/pest": "^2.36.0|^3.8.4|^4.1.5",
+                "phpstan/phpstan": "^2.1.27",
+                "rector/rector": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Boost\\BoostServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Boost\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Laravel Boost accelerates AI-assisted development by providing the essential context and structure that AI needs to generate high-quality, Laravel-specific code.",
+            "homepage": "https://github.com/laravel/boost",
+            "keywords": [
+                "ai",
+                "dev",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/boost/issues",
+                "source": "https://github.com/laravel/boost"
+            },
+            "time": "2026-08-26T21:39:22+00:00"
+        },
+        {
+            "name": "laravel/mcp",
+            "version": "v0.9.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/mcp.git",
+                "reference": "7ca5b923630118696602d14348cd0466a5e853ec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/mcp/zipball/7ca5b923630118696602d14348cd0466a5e853ec",
+                "reference": "7ca5b923630118696602d14348cd0466a5e853ec",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "illuminate/console": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/container": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/contracts": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/http": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/json-schema": "^12.41.1|^13.0",
+                "illuminate/routing": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/support": "^11.45.3|^12.41.1|^13.0",
+                "illuminate/validation": "^11.45.3|^12.41.1|^13.0",
+                "php": "^8.2",
+                "symfony/process": "^7.4.5|^8.0.5"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.20",
+                "orchestra/testbench": "^9.15|^10.8|^11.0",
+                "pestphp/pest": "^3.8.5|^4.3.2",
+                "phpstan/phpstan": "^2.1.27",
+                "rector/rector": "^2.2.4"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Mcp": "Laravel\\Mcp\\Facades\\Mcp"
+                    },
+                    "providers": [
+                        "Laravel\\Mcp\\Server\\McpServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Mcp\\": "src/",
+                    "Laravel\\Mcp\\Server\\": "src/Server/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Rapidly build MCP servers for your Laravel applications.",
+            "homepage": "https://github.com/laravel/mcp",
+            "keywords": [
+                "laravel",
+                "mcp"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/mcp/issues",
+                "source": "https://github.com/laravel/mcp"
+            },
+            "time": "2026-08-13T15:01:07+00:00"
+        },
+        {
             "name": "laravel/pint",
             "version": "v1.30.5",
             "source": {
@@ -9613,6 +10004,68 @@
                 "source": "https://github.com/laravel/pint"
             },
             "time": "2026-08-10T15:35:50+00:00"
+        },
+        {
+            "name": "laravel/roster",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/roster.git",
+                "reference": "89e518bd88ae98ff50f6082f6b517c8d8e8245fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/roster/zipball/89e518bd88ae98ff50f6082f6b517c8d8e8245fa",
+                "reference": "89e518bd88ae98ff50f6082f6b517c8d8e8245fa",
+                "shasum": ""
+            },
+            "require": {
+                "composer/semver": "^3.0",
+                "illuminate/console": "^11.0|^12.0|^13.0",
+                "illuminate/contracts": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "php": "^8.2",
+                "symfony/yaml": "^7.2|^8.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.29",
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^9.0|^10.0|^11.0",
+                "pestphp/pest": "^3.0|^4.1",
+                "phpstan/phpstan": "^2.0",
+                "rector/rector": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Roster\\RosterServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Roster\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Detect packages & approaches in use within a Laravel project",
+            "homepage": "https://github.com/laravel/roster",
+            "keywords": [
+                "dev",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/roster/issues",
+                "source": "https://github.com/laravel/roster"
+            },
+            "time": "2026-07-18T17:53:15+00:00"
         },
         {
             "name": "laravel/sail",
@@ -9747,6 +10200,110 @@
                 "source": "https://github.com/LaravelDaily/FilaCheck/tree/v1.2.5"
             },
             "time": "2026-08-06T08:22:19+00:00"
+        },
+        {
+            "name": "lukaszzychal/phpstan-fixer",
+            "version": "v1.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lukaszzychal/phpstan-fixer.git",
+                "reference": "196442d9516f1a61c0ec1fe25571c7b1c179a1e8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lukaszzychal/phpstan-fixer/zipball/196442d9516f1a61c0ec1fe25571c7b1c179a1e8",
+                "reference": "196442d9516f1a61c0ec1fe25571c7b1c179a1e8",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "nikic/php-parser": "^5.0",
+                "php": "^8.0",
+                "symfony/console": "^6.0|^7.0"
+            },
+            "require-dev": {
+                "lukaszzychal/php-compatibility-tester": "^1.1",
+                "phpstan/phpstan": "^1.10 || ^2.0",
+                "phpunit/phpunit": "^10.0"
+            },
+            "suggest": {
+                "ext-yaml": "For YAML configuration file support",
+                "symfony/yaml": "Alternative YAML parser if ext-yaml is not available"
+            },
+            "bin": [
+                "bin/phpstan-fixer"
+            ],
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "dont-discover": []
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PhpstanFixer\\": "src/PhpstanFixer/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Łukasz Zychal",
+                    "email": "lukasz.zychal.dev@gmail.com",
+                    "homepage": "https://github.com/lukaszzychal",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Framework-agnostic PHP library for automatically fixing PHPStan errors using static analysis",
+            "homepage": "https://github.com/lukaszzychal/phpstan-fixer",
+            "keywords": [
+                "PHPStan",
+                "automation",
+                "code-fixer",
+                "code-quality",
+                "php",
+                "phpdoc",
+                "static-analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/lukaszzychal/phpstan-fixer/issues",
+                "source": "https://github.com/lukaszzychal/phpstan-fixer"
+            },
+            "time": "2025-12-14T17:37:21+00:00"
+        },
+        {
+            "name": "mjgapp/larascan",
+            "version": "v0.5.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/marcelg7/larascan.git",
+                "reference": "1483c14d02315962baa4a91129fc27e39601c653"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/marcelg7/larascan/zipball/1483c14d02315962baa4a91129fc27e39601c653",
+                "reference": "1483c14d02315962baa4a91129fc27e39601c653",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "bin": [
+                "bin/larascan"
+            ],
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "description": "Dependency-free Laravel static analysis scanner with auto-fix, baseline, and SARIF output.",
+            "support": {
+                "issues": "https://github.com/marcelg7/larascan/issues",
+                "source": "https://github.com/marcelg7/larascan/tree/v0.5.4"
+            },
+            "time": "2026-04-26T22:38:30+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -11217,6 +11774,66 @@
             "time": "2026-07-06T14:52:39+00:00"
         },
         {
+            "name": "rector/rector",
+            "version": "2.6.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rectorphp/rector.git",
+                "reference": "6ff008471683591224951526247b7a2b86980ba9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/6ff008471683591224951526247b7a2b86980ba9",
+                "reference": "6ff008471683591224951526247b7a2b86980ba9",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0",
+                "phpstan/phpstan": "^2.2.6"
+            },
+            "conflict": {
+                "rector/rector-doctrine": "*",
+                "rector/rector-downgrade-php": "*",
+                "rector/rector-phpunit": "*",
+                "rector/rector-symfony": "*"
+            },
+            "suggest": {
+                "ext-dom": "To manipulate phpunit.xml via the custom-rule command"
+            },
+            "bin": [
+                "bin/rector"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Instant Upgrade and Automated Refactoring of any PHP code",
+            "homepage": "https://getrector.com/",
+            "keywords": [
+                "automation",
+                "dev",
+                "migration",
+                "refactoring"
+            ],
+            "support": {
+                "issues": "https://github.com/rectorphp/rector/issues",
+                "source": "https://github.com/rectorphp/rector/tree/2.6.4"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-27T09:20:34+00:00"
+        },
+        {
             "name": "sebastian/cli-parser",
             "version": "3.0.2",
             "source": {
@@ -12203,6 +12820,62 @@
             "time": "2024-10-09T05:16:32+00:00"
         },
         {
+            "name": "sophireak/laracheck",
+            "version": "v1.0.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Sophireak/laracheck.git",
+                "reference": "44a58c9e623c61bbfb553c7c2db20b50b49a8de1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Sophireak/laracheck/zipball/44a58c9e623c61bbfb553c7c2db20b50b49a8de1",
+                "reference": "44a58c9e623c61bbfb553c7c2db20b50b49a8de1",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^9.0|^10.0|^11.0|^12.0",
+                "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Sophireak\\Laracheck\\LaracheckServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Sophireak\\Laracheck\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sophireak",
+                    "email": "sophireak@example.com"
+                }
+            ],
+            "description": "A smart pre-push helper script for Laravel teams. Checks setup, fixes safe issues, and explains problems with AI.",
+            "keywords": [
+                "ai",
+                "developer-tools",
+                "git-hook",
+                "laravel",
+                "pre-push"
+            ],
+            "support": {
+                "issues": "https://github.com/Sophireak/laracheck/issues",
+                "source": "https://github.com/Sophireak/laracheck/tree/v1.0.9"
+            },
+            "time": "2026-04-01T14:46:05+00:00"
+        },
+        {
             "name": "spatie/browsershot",
             "version": "5.4.0",
             "source": {
@@ -13147,6 +13820,65 @@
             "time": "2026-08-21T12:16:08+00:00"
         },
         {
+            "name": "symplify/rule-doc-generator-contracts",
+            "version": "11.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symplify/rule-doc-generator-contracts.git",
+                "reference": "479cfcfd46047f80624aba931d9789e50475b5c6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symplify/rule-doc-generator-contracts/zipball/479cfcfd46047f80624aba931d9789e50475b5c6",
+                "reference": "479cfcfd46047f80624aba931d9789e50475b5c6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "php-parallel-lint/php-parallel-lint": "^1.3",
+                "phpstan/extension-installer": "^1.2",
+                "rector/rector": "^0.15.10",
+                "symplify/easy-ci": "^11.1",
+                "symplify/easy-coding-standard": "^11.1",
+                "symplify/easy-testing": "^11.1",
+                "symplify/phpstan-extensions": "^11.1",
+                "symplify/phpstan-rules": "11.2.3.72",
+                "tomasvotruba/unused-public": "^0.0.34"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "11.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symplify\\RuleDocGenerator\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Contracts for production code of RuleDocGenerator",
+            "support": {
+                "source": "https://github.com/symplify/rule-doc-generator-contracts/tree/11.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/rectorphp",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-03-18T22:02:54+00:00"
+        },
+        {
             "name": "ta-tikoma/phpunit-architecture-test",
             "version": "0.8.7",
             "source": {
@@ -13254,6 +13986,74 @@
                 }
             ],
             "time": "2025-11-17T20:03:58+00:00"
+        },
+        {
+            "name": "tranquil-tools/laravel-pest-recorder",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ComfyCodersBV/laravel-pest-recorder.git",
+                "reference": "f1d24651112ec861439d6af05ed84e9cc8a1ce37"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ComfyCodersBV/laravel-pest-recorder/zipball/f1d24651112ec861439d6af05ed84e9cc8a1ce37",
+                "reference": "f1d24651112ec861439d6af05ed84e9cc8a1ce37",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^11.0||^12.0||^13.0",
+                "php": "^8.4",
+                "spatie/laravel-package-tools": "^1.16"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.8",
+                "orchestra/testbench": "^9.0.0||^10.0.0||^11.0.0",
+                "pestphp/pest": "^4.0",
+                "pestphp/pest-plugin-arch": "^4.0",
+                "pestphp/pest-plugin-laravel": "^4.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "TranquilTools\\PestRecorder\\PestRecorderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "TranquilTools\\PestRecorder\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "ComfyCoders BV",
+                    "email": "development@comfycoders.nl",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Laravel Pest Browsertest Recorder",
+            "homepage": "https://github.com/comfycodersbv/laravel-pest-recorder",
+            "keywords": [
+                "ComfyCoders BV",
+                "laravel",
+                "laravel-pest-recorder"
+            ],
+            "support": {
+                "issues": "https://github.com/ComfyCodersBV/laravel-pest-recorder/issues",
+                "source": "https://github.com/ComfyCodersBV/laravel-pest-recorder/tree/1.0.3"
+            },
+            "time": "2026-05-21T12:21:11+00:00"
         },
         {
             "name": "webcrafts-studio/lens-for-laravel",

@@ -1,0 +1,2 @@
+# Gitleaks ignore list for test fixture strings
+1f1f034909fcd7578266b7536edaed3ce1d95a42:tests/Feature/Ai/PiiStorageSanitizationTest.php:generic-api-key:25

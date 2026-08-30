@@ -20,19 +20,28 @@
     "spatie/laravel-settings": "^3.9"
   },
   "require-dev": {
+    "driftingly/rector-laravel": "^2.6",
     "fakerphp/faker": "^1.23",
+    "gsferro/generate-tests-easy": "^1.0",
     "icanhazstring/composer-unused": "^0.9",
+    "joshcirre/laravel-doctor": "^0.0.4",
     "kirschbaum-development/mail-intercept": "^1.1",
     "larastan/larastan": "^3.0",
+    "laravel/boost": "^2.7",
     "laravel/pint": "^1.13",
     "laravel/sail": "^1.41",
     "laraveldaily/filacheck": "^1.2",
+    "lukaszzychal/phpstan-fixer": "^1.2",
+    "mjgapp/larascan": "^0.5.4",
     "mockery/mockery": "^1.6",
     "nunomaduro/collision": "^8.6",
     "pestphp/pest": "^3.7",
     "pestphp/pest-plugin-arch": "^3.1",
     "pestphp/pest-plugin-laravel": "^3.1",
     "pestphp/pest-plugin-livewire": "^3.0",
+    "rector/rector": "^2.6",
+    "sophireak/laracheck": "^1.0",
+    "tranquil-tools/laravel-pest-recorder": "^1.0",
     "webcrafts-studio/lens-for-laravel": "^3.2"
   },
   "autoload": {
@@ -67,7 +76,28 @@
     "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
     "lint": "vendor/bin/pint",
     "test": "vendor/bin/pest",
-    "test:mutate": "vendor/bin/pest --mutate --covered-only"
+    "test:mutate": "vendor/bin/pest --mutate --covered-only",
+    "fix": [
+      "vendor/bin/filacheck app/Filament --fix --dirty",
+      "vendor/bin/rector process",
+      "vendor/bin/pint"
+    ],
+    "check:quick": [
+      "vendor/bin/pint --test",
+      "vendor/bin/filacheck app/Filament",
+      "vendor/bin/phpstan analyse --level=8 --memory-limit=1G",
+      "vendor/bin/pest --parallel"
+    ],
+    "check:full": [
+      "@check:quick",
+      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 90",
+      "vendor/bin/composer-unused"
+    ],
+    "test:coverage": "vendor/bin/pest --coverage-clover coverage.xml --parallel",
+    "test:diff": [
+      "@test:coverage",
+      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 90"
+    ]
   },
   "extra": {
     "laravel": {
