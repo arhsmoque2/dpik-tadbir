@@ -18,6 +18,6 @@ return [
     ],
 
     'registration' => [
-        'allowed_emails' => array_filter(array_map('trim', explode(',', (string) env('ALLOWED_REGISTRATION_EMAILS', 'abdulrahman@dpik.com.my')))),
+        'allowed_emails' => array_filter(array_map('trim', explode(',', (string) env('ALLOWED_REGISTRATION_EMAILS', 'rahman@dpik.com.my,smoque@gmail.com,arh.homelab@gmail.com,hilmio@dpik.com.my,hamid@dpik.com.my')))),
     ],
 ];

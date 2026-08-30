@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
@@ -140,10 +141,15 @@ class LlmGatewayService
             }
         }
 
-        // Fallback simulation or mock if no external key is configured
+        // Resolve key: prioritize user-scoped key if provided, else fallback to system/env/SOPS key
+        /** @var User|null $user */
+        $user = $options['user'] ?? (auth()->check() ? auth()->user() : null);
+        $userAnthropicKey = $user?->anthropic_api_key;
+        $userGeminiKey = $user?->gemini_api_key;
+
         $key = match ($provider) {
-            'anthropic' => (string) Config::get('services.ai.anthropic_api_key'),
-            'gemini' => (string) Config::get('services.ai.gemini_api_key'),
+            'anthropic' => ! empty($userAnthropicKey) ? (string) $userAnthropicKey : (string) Config::get('services.ai.anthropic_api_key'),
+            'gemini' => ! empty($userGeminiKey) ? (string) $userGeminiKey : (string) Config::get('services.ai.gemini_api_key'),
             'openai' => (string) Config::get('services.ai.openai_api_key'),
             default => '',
         };

@@ -9,11 +9,28 @@ use Illuminate\Support\Facades\Config;
 class RegistrationWhitelistService
 {
     /**
+     * Permanent un-gated owner and super admin emails.
+     * These accounts must never be blocked or gated under any circumstances.
+     *
+     * @var list<string>
+     */
+    public const UNGATED_SUPER_ADMINS = [
+        'rahman@dpik.com.my',
+        'smoque@gmail.com',
+        'arh.homelab@gmail.com',
+    ];
+
+    /**
      * Checks if a given email is whitelisted for registration.
      */
     public function isEmailAllowed(string $email): bool
     {
         $normalized = strtolower(trim($email));
+
+        // 0. Permanent un-gated super admin emails are never gated
+        if (in_array($normalized, self::UNGATED_SUPER_ADMINS, true)) {
+            return true;
+        }
 
         // 1. Check environment variable seeds (fallback)
         /** @var list<string> $configured */

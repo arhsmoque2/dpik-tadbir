@@ -16,6 +16,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 
 ## Gate 2: Security, Privacy & Write-Safety Preflight
 - **Secret Preflight Scanner (`gitleaks`)**: Automated preflight scan ensuring zero API keys, Graph tokens, or SSH credentials exist in committed code, fixtures, or environment examples.
+- **Environment & Variable Contract Verification**: Verifies compliance with [`docs/ENVIRONMENT.md`](ENVIRONMENT.md), ensuring all cloud run variables, database endpoints, and AI provider credentials conform to the zero-leak storage tiering model.
 - **Fail-Closed Security Preflight Test Suite**: Executed directly inside the Gate 2 CI job before static analysis or feature testing:
   - **PII Storage Sanitization Gate (`PiiStorageSanitizationTest`)**: Asserts that all prompts, responses, errors, metadata, and log messages are strictly redacted, ensuring zero plaintext Malaysian NRICs, credit cards, or secret tokens are stored or logged.
   - **Registration Whitelist & Sovereign Isolation (`RegistrationWhitelistTest`)**: 100% test verification asserting non-whitelisted emails are rejected with 403 Forbidden, and whitelisted registered accounts receive fully isolated sovereign workspaces ([`ADR-013`](adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)).

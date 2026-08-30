@@ -21,22 +21,68 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@dpik.com.my'],
+        $accounts = [
             [
-                'name' => 'Admin DPIK',
-                'password' => Hash::make('password'),
+                'email' => 'rahman@dpik.com.my',
+                'name' => 'Rahman',
                 'role' => 'super_admin',
-            ]
-        );
-
-        AllowedRegistrationEmail::firstOrCreate(
-            ['email' => 'admin@dpik.com.my'],
+                'notes' => 'Super Admin (Owner)',
+            ],
             [
+                'email' => 'smoque@gmail.com',
+                'name' => 'Smoque',
+                'role' => 'super_admin',
+                'notes' => 'Super Admin (Owner)',
+            ],
+            [
+                'email' => 'arh.homelab@gmail.com',
+                'name' => 'ARH Homelab',
+                'role' => 'super_admin',
+                'notes' => 'Super Admin (Owner)',
+            ],
+            [
+                'email' => 'hilmio@dpik.com.my',
+                'name' => 'Hilmio',
+                'role' => 'user',
+                'notes' => 'Managing Director',
+            ],
+            [
+                'email' => 'hamid@dpik.com.my',
+                'name' => 'Hamid',
+                'role' => 'user',
+                'notes' => 'Corporate Administrator',
+            ],
+            [
+                'email' => 'admin@dpik.com.my',
+                'name' => 'Admin DPIK',
+                'role' => 'super_admin',
                 'notes' => 'Primary administrative executive account for E2E testing',
-                'created_by_user_id' => $admin->id,
-            ]
-        );
+            ],
+        ];
+
+        $admin = null;
+        foreach ($accounts as $acc) {
+            $user = User::firstOrCreate(
+                ['email' => $acc['email']],
+                [
+                    'name' => $acc['name'],
+                    'password' => Hash::make('password'),
+                    'role' => $acc['role'],
+                ]
+            );
+
+            AllowedRegistrationEmail::firstOrCreate(
+                ['email' => $acc['email']],
+                [
+                    'notes' => $acc['notes'],
+                    'created_by_user_id' => $user->id,
+                ]
+            );
+
+            if ($acc['email'] === 'admin@dpik.com.my') {
+                $admin = $user;
+            }
+        }
 
         ProjectRegistryEntry::firstOrCreate(
             ['project_code' => 'PC-2023-011'],

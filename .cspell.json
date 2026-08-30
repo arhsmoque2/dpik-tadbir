@@ -282,7 +282,15 @@
     "PITR",
     "SQLSTATE",
     "unpooled",
-    "unredacted"
+    "unredacted",
+    "hamid",
+    "hilmio",
+    "homelab",
+    "pgsql",
+    "poolers",
+    "rahman",
+    "smoque",
+    "sslmode"
   ],
   "ignorePaths": [
     "node_modules/**",

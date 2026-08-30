@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Auth\RegistrationWhitelistService;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,11 +20,15 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'anthropic_api_key',
+        'gemini_api_key',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'anthropic_api_key',
+        'gemini_api_key',
     ];
 
     protected function casts(): array
@@ -31,6 +36,8 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'anthropic_api_key' => 'encrypted',
+            'gemini_api_key' => 'encrypted',
         ];
     }
 
@@ -41,6 +48,10 @@ class User extends Authenticatable implements FilamentUser
 
     public function isSuperAdmin(): bool
     {
+        if (in_array(strtolower((string) $this->email), RegistrationWhitelistService::UNGATED_SUPER_ADMINS, true)) {
+            return true;
+        }
+
         return $this->role === 'super_admin';
     }
 

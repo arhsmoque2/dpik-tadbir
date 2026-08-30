@@ -54,6 +54,7 @@ To achieve maximum token reduction, agents must execute the **5-Phase Local Casc
 php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
 php artisan config:clear
 php artisan route:clear
+# Consult docs/ENVIRONMENT.md for complete 5-layer cloud variable matrix
 
 # ==============================================================================
 # PHASE 2: AST DEPRECATION & FILAMENT V4 REPAIR (<5 seconds)
