@@ -15,9 +15,5 @@ fi
 if [ $# -gt 0 ]; then
     exec "$@"
 else
-    exec php artisan octane:start \
-        --server=frankenphp \
-        --host=0.0.0.0 \
-        --admin-port=2019 \
-        --port="${PORT:-8080}"
+    exec frankenphp run --config /app/Caddyfile --adapter caddyfile
 fi
