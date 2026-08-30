@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\RegistrationWhitelistMiddleware;
 use App\Models\AllowedRegistrationEmail;
+use App\Models\User;
 use App\Services\Auth\RegistrationWhitelistService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -46,3 +47,26 @@ test('middleware allows whitelisted email to proceed', function () {
 
     expect($response->getContent())->toBe('PASSED');
 });
+
+test('owner and super admin emails are permanently un-gated', function (string $ownerEmail) {
+    $service = app(RegistrationWhitelistService::class);
+
+    expect($service->isEmailAllowed($ownerEmail))->toBeTrue();
+    expect($service->isEmailAllowed(strtoupper($ownerEmail)))->toBeTrue();
+
+    $user = new User(['email' => $ownerEmail]);
+    expect($user->isSuperAdmin())->toBeTrue();
+})->with([
+    'rahman@dpik.com.my',
+    'smoque@gmail.com',
+    'arh.homelab@gmail.com',
+]);
+
+test('executive leadership emails are allowed via default configuration', function (string $execEmail) {
+    $service = app(RegistrationWhitelistService::class);
+
+    expect($service->isEmailAllowed($execEmail))->toBeTrue();
+})->with([
+    'hilmio@dpik.com.my',
+    'hamid@dpik.com.my',
+]);

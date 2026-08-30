@@ -57,7 +57,7 @@ class AgentService
         $completion = null;
 
         try {
-            $completion = $this->llmGateway->complete($messages, $tools);
+            $completion = $this->llmGateway->complete($messages, $tools, ['user' => $session->user]);
         } catch (\Throwable $e) {
             $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
             $redactedError = $this->piiDetector->redact($e->getMessage());
