@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
+use Illuminate\Support\Facades\Config;
 
 beforeEach(function () {
     $this->user = User::create([
@@ -39,4 +40,21 @@ test('bridge executes tools and returns mock or live responses', function () {
 
     $forward = $bridge->forwardMessage('msg_001', ['director@dpik.com.my'], 'FYI');
     expect($forward)->toBeTrue();
+});
+
+test('bridge executes tools in simulated production mode and falls back gracefully', function () {
+    app()['env'] = 'production';
+    Config::set('services.outlook_mcp.command', 'non_existent_mcp_command_xyz');
+
+    $this->user->update([
+        'microsoft_client_id' => '11111111-2222-3333-4444-555555555555',
+        'microsoft_client_secret' => 'mock-secret',
+        'microsoft_tenant_id' => 'organizations',
+    ]);
+
+    $bridge = app(OutlookMcpBridge::class)->forUser($this->user);
+    $res = $bridge->callTool('outlook_auth_status');
+
+    expect($res)->toHaveKey('status', 'unavailable');
+    app()['env'] = 'testing';
 });

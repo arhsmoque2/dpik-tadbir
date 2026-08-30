@@ -8,6 +8,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Spatie\LaravelSettings\SettingsContainer;
+use Throwable;
 
 class ExecutiveSettings extends Page
 {
@@ -184,7 +185,7 @@ class ExecutiveSettings extends Page
             if (class_exists(SettingsContainer::class)) {
                 app(SettingsContainer::class)->clearCache();
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // ignore cache clear errors in test/minimal env
         }
 

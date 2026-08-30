@@ -58,6 +58,44 @@ test('executive settings page allows user to configure and save private api keys
     expect($fresh->microsoft_tenant_id)->toBe('ffffffff-0000-1111-2222-333333333333');
 });
 
+test('executive settings handles empty keys, save format validation, and unauthenticated guard', function () {
+    $user = User::create([
+        'name' => 'Format Exec',
+        'email' => 'format_exec@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    // 1. Empty AI keys test
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('anthropic_api_key', '')
+        ->set('gemini_api_key', '')
+        ->call('testAiConnection')
+        ->assertSet('aiProbeStatus', 'error')
+        ->assertSee('No personal AI API keys provided');
+
+    // 2. Save invalid client ID
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('microsoft_client_id', 'not-a-valid-uuid')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // 3. Save invalid tenant ID
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('microsoft_client_id', '11111111-2222-3333-4444-555555555555')
+        ->set('microsoft_tenant_id', 'not-a-valid-tenant')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    // 4. Save unauthenticated
+    Auth::logout();
+    $page = new ExecutiveSettings();
+    $page->save();
+    expect(Auth::user())->toBeNull();
+});
+
 test('executive settings page validates connection probes and handles diagnostic error reporting', function () {
     $user = User::create([
         'name' => 'Probe Exec',
