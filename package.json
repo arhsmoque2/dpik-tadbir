@@ -1,0 +1,21 @@
+{
+  "name": "dpik-tadbir",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:doc": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#vendor\"",
+    "lint:spell": "cspell --no-progress \"**/*.md\" \"docs/**/*.json\""
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "laravel-vite-plugin": "^1.2.0",
+    "prettier": "3.9.6",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.0"
+  }
+}
