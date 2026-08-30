@@ -10,11 +10,6 @@ use App\Filament\Resources\PersonalTaskResource;
 use App\Filament\Resources\ProjectRegisterResource;
 use App\Filament\Widgets\ExecutiveStatsOverview;
 use App\Mcp\ToolRegistry;
-use App\Models\AllowedRegistrationEmail;
-use App\Models\ExecutivePreset;
-use App\Models\PersonalNote;
-use App\Models\PersonalTask;
-use App\Models\ProjectRegistryEntry;
 use App\Models\User;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -76,115 +71,200 @@ test('filament resources and pages provide valid forms and tables configurations
     expect(ExecutiveSettings::getNavigationLabel())->not->toBeEmpty();
 
     // Test Page Hook Mutators
-    $createEmailPage = new class extends AllowedRegistrationEmailResource\Pages\CreateAllowedRegistrationEmail {
-        public function testMutate(array $d): array {
+    $createEmailPage = new class extends AllowedRegistrationEmailResource\Pages\CreateAllowedRegistrationEmail
+    {
+        /**
+         * @param  array<string, mixed>  $d
+         * @return array<string, mixed>
+         */
+        public function testMutate(array $d): array
+        {
             return $this->mutateFormDataBeforeCreate($d);
         }
     };
     expect($createEmailPage->testMutate([]))->toHaveKey('created_by_user_id');
 
-    $createPresetPage = new class extends ExecutivePresetResource\Pages\CreateExecutivePreset {
-        public function testMutate(array $d): array {
+    $createPresetPage = new class extends ExecutivePresetResource\Pages\CreateExecutivePreset
+    {
+        /**
+         * @param  array<string, mixed>  $d
+         * @return array<string, mixed>
+         */
+        public function testMutate(array $d): array
+        {
             return $this->mutateFormDataBeforeCreate($d);
         }
     };
     expect($createPresetPage->testMutate([]))->toHaveKey('user_id');
 
-    $createNotePage = new class extends PersonalNoteResource\Pages\CreatePersonalNote {
-        public function testMutate(array $d): array {
+    $createNotePage = new class extends PersonalNoteResource\Pages\CreatePersonalNote
+    {
+        /**
+         * @param  array<string, mixed>  $d
+         * @return array<string, mixed>
+         */
+        public function testMutate(array $d): array
+        {
             return $this->mutateFormDataBeforeCreate($d);
         }
     };
     expect($createNotePage->testMutate([]))->toHaveKey('user_id');
 
-    $createTaskPage = new class extends PersonalTaskResource\Pages\CreatePersonalTask {
-        public function testMutate(array $d): array {
+    $createTaskPage = new class extends PersonalTaskResource\Pages\CreatePersonalTask
+    {
+        /**
+         * @param  array<string, mixed>  $d
+         * @return array<string, mixed>
+         */
+        public function testMutate(array $d): array
+        {
             return $this->mutateFormDataBeforeCreate($d);
         }
     };
     expect($createTaskPage->testMutate([]))->toHaveKey('user_id');
 
-    $createProjPage = new class extends ProjectRegisterResource\Pages\CreateProjectRegister {
-        public function testMutate(array $d): array {
+    $createProjPage = new class extends ProjectRegisterResource\Pages\CreateProjectRegister
+    {
+        /**
+         * @param  array<string, mixed>  $d
+         * @return array<string, mixed>
+         */
+        public function testMutate(array $d): array
+        {
             return $this->mutateFormDataBeforeCreate($d);
         }
     };
     expect($createProjPage->testMutate([]))->toHaveKey('user_id');
 
     // Page Header Actions
-    $listEmailsPage = new class extends AllowedRegistrationEmailResource\Pages\ListAllowedRegistrationEmails {
-        public function testActions(): array {
+    $listEmailsPage = new class extends AllowedRegistrationEmailResource\Pages\ListAllowedRegistrationEmails
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($listEmailsPage->testActions())->toBeArray();
 
-    $listPresetsPage = new class extends ExecutivePresetResource\Pages\ListExecutivePresets {
-        public function testActions(): array {
+    $listPresetsPage = new class extends ExecutivePresetResource\Pages\ListExecutivePresets
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($listPresetsPage->testActions())->toBeArray();
 
-    $editPresetPage = new class extends ExecutivePresetResource\Pages\EditExecutivePreset {
-        public function testActions(): array {
+    $editPresetPage = new class extends ExecutivePresetResource\Pages\EditExecutivePreset
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($editPresetPage->testActions())->toBeArray();
 
-    $listNotesPage = new class extends PersonalNoteResource\Pages\ListPersonalNotes {
-        public function testActions(): array {
+    $listNotesPage = new class extends PersonalNoteResource\Pages\ListPersonalNotes
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($listNotesPage->testActions())->toBeArray();
 
-    $editNotePage = new class extends PersonalNoteResource\Pages\EditPersonalNote {
-        public function testActions(): array {
+    $editNotePage = new class extends PersonalNoteResource\Pages\EditPersonalNote
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($editNotePage->testActions())->toBeArray();
 
-    $listTasksPage = new class extends PersonalTaskResource\Pages\ListPersonalTasks {
-        public function testActions(): array {
+    $listTasksPage = new class extends PersonalTaskResource\Pages\ListPersonalTasks
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($listTasksPage->testActions())->toBeArray();
 
-    $editTaskPage = new class extends PersonalTaskResource\Pages\EditPersonalTask {
-        public function testActions(): array {
+    $editTaskPage = new class extends PersonalTaskResource\Pages\EditPersonalTask
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($editTaskPage->testActions())->toBeArray();
 
-    $listProjPage = new class extends ProjectRegisterResource\Pages\ListProjectRegisters {
-        public function testActions(): array {
+    $listProjPage = new class extends ProjectRegisterResource\Pages\ListProjectRegisters
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($listProjPage->testActions())->toBeArray();
 
-    $editProjPage = new class extends ProjectRegisterResource\Pages\EditProjectRegister {
-        public function testActions(): array {
+    $editProjPage = new class extends ProjectRegisterResource\Pages\EditProjectRegister
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($editProjPage->testActions())->toBeArray();
 
-    $viewProjPage = new class extends ProjectRegisterResource\Pages\ViewProjectRegister {
-        public function testActions(): array {
+    $viewProjPage = new class extends ProjectRegisterResource\Pages\ViewProjectRegister
+    {
+        /**
+         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
+         */
+        public function testActions(): array
+        {
             return $this->getHeaderActions();
         }
     };
     expect($viewProjPage->testActions())->toBeArray();
 
     // Widget Stats
-    $widget = new class extends ExecutiveStatsOverview {
-        public function callGetStats(): array {
+    $widget = new class extends ExecutiveStatsOverview
+    {
+        /**
+         * @return list<\Filament\Widgets\StatsOverviewWidget\Stat>
+         */
+        public function callGetStats(): array
+        {
             return $this->getStats();
         }
     };
