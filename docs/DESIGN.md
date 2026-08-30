@@ -570,3 +570,20 @@ Governed by [`ADR-017`](adr/ADR-017-runtime-integrations-and-graceful-error-fall
 4. **Graceful Degradation Boundary**:
    - Missing or misconfigured Microsoft Graph credentials trigger non-blocking degraded mode where all non-email features (FTS5 Project Register, Personal Notes, Tasks, AI reasoning) remain 100% operational.
 
+---
+
+## [DESIGN-09] OpenRouter Gateway & In-Chat 3-Favorites Runtime Swapper (ADR-018)
+
+Governed by [`ADR-018`](adr/ADR-018-openrouter-multi-model-catalog-and-runtime-favorites-swapper.md), the system integrates the `ai-openrouter-gateway` pattern into `LlmGatewayService` and the Copilot Drawer:
+
+1. **Unified Multi-Model Routing Engine**:
+   - Supports `openrouter_api_key` alongside direct Anthropic/Gemini provider keys.
+   - Normalizes requests to OpenRouter's OpenAI-compatible completions endpoint (`https://openrouter.ai/api/v1/chat/completions`) with custom site referer and title headers.
+2. **Executive Top-3 Favorites Subsystem**:
+   - Stores up to 3 preferred model tuples (`provider`, `model_id`, `display_label`) per executive in `ExecutiveSettings`.
+   - Defaults to Slot 1 (`Claude 3.7 Sonnet`), with Slots 2 & 3 mapped to high-speed or specialized models (e.g., `DeepSeek R1`, `Gemini 2.5 Flash`).
+3. **In-Chat Livewire Swapper Component**:
+   - Copilot drawer header renders a compact 2-item badge (`[ Provider · Active Model ▾ ]`).
+   - Clicking opens an ephemeral 3-option quick-switch popover; selecting a favorite instantly swaps the active model for subsequent turns in the current session without losing conversational history or active Action Cards.
+
+

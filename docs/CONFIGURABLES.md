@@ -37,6 +37,10 @@ DPIK Tadbir supports a dual-tier configuration architecture:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `anthropic_api_key` | User (`users`) | AES-256 | `/admin/executive-settings` | System SOPS fallback | Starts with `sk-ant-api03-...` (≥90 chars) | Primary LLM key for Claude 3.7 Sonnet executive turns and Action Card drafting. |
 | `gemini_api_key` | User (`users`) | AES-256 | `/admin/executive-settings` | System SOPS fallback | Starts with `AIzaSy...` (39 chars) | Secondary fallback LLM key triggered automatically on Anthropic rate limits or timeouts. |
+| `openrouter_api_key` | User (`users`) | AES-256 | `/admin/executive-settings` | None | Starts with `sk-or-v1-...` | Unified API key for OpenRouter multi-model catalog (Claude, DeepSeek, GPT-4o, Llama). |
+| `favorite_model_1` | User (`users`) | Plain Text | `/admin/executive-settings` | `anthropic:claude-3-7-sonnet-20250219` | Provider & Model Tuple | Primary favorite brain for default executive reasoning turns. |
+| `favorite_model_2` | User (`users`) | Plain Text | `/admin/executive-settings` | `openrouter:deepseek/deepseek-r1` | Provider & Model Tuple | Secondary favorite brain for logic, calculations, and code review. |
+| `favorite_model_3` | User (`users`) | Plain Text | `/admin/executive-settings` | `gemini:gemini-2.5-flash` | Provider & Model Tuple | Tertiary favorite brain for ultra high-speed batch summaries. |
 | `microsoft_client_id` | User / System | Plain Text | `/admin/executive-settings` | `env('MICROSOFT_CLIENT_ID')` | UUID v4 (`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`) | Azure Entra ID Application (Client) ID for Microsoft Graph. |
 | `microsoft_client_secret` | User / System | AES-256 | `/admin/executive-settings` | `env('MICROSOFT_CLIENT_SECRET')` | Alphanumeric secret string (~34-40 chars) | Azure Entra ID client secret value for mailbox OAuth authentication. |
 | `microsoft_tenant_id` | User / System | Plain Text | `/admin/executive-settings` | `env('MICROSOFT_TENANT_ID')` | UUID v4 or `organizations` / `common` | Azure Directory (Tenant) ID for corporate M365 tenant boundary. |

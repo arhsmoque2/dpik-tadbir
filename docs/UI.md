@@ -272,3 +272,23 @@ When a provider returns an authentication or validation failure, the UI renders 
 - Global panel topbar and Copilot drawer (`Cmd+J`) badges update state immediately without page refreshes.
 - If an executive invokes an email preset without Outlook configured, an inline warning CTA card seamlessly directs them to `/admin/executive-settings`.
 
+---
+
+## [UI-14] In-Chat Two-Tier Model Selector & Iconography Standards (ADR-018)
+
+Governed by [`ADR-018`](adr/ADR-018-openrouter-multi-model-catalog-and-runtime-favorites-swapper.md) and [`docs/CONFIGURABLES.md`](CONFIGURABLES.md), the AI Copilot Drawer features a compact runtime model selector:
+
+### 1. Two-Tier Visual Continuum
+- **Compact Badge (At Rest)**:
+  - Renders inside the drawer header as a subtle slate pill (`#18191E` with hairline `#2C2F38` border).
+  - Displays exactly two items: the **Active Provider** and **Model Name** (e.g. `[ ⚡ Anthropic · Claude 3.7 Sonnet ▾ ]` or `[ ⚡ OpenRouter · DeepSeek R1 ▾ ]`).
+- **Expanded 3-Favorites Quick-Switcher (On Click)**:
+  - Expands an ephemeral popover showcasing the executive's 3 pre-configured favorite models with visual indicators (`Active`, `Select`).
+  - Clicking any option immediately swaps the active model for subsequent conversation turns, auto-collapsing the menu in 1 click.
+  - Bottom action link: `[ ⚙️ Configure Favorites in Settings → ]`.
+
+### 2. Strict Iconography Standards ([`UI-01`](#ui-01-archetype--design-philosophy))
+- **Anti-Emoji Doctrine**: Strict enforcement of the "Not a Toy Box" rule. Zero childish emojis, gaming icons, or arcade badges in core navigation and model switcher chrome.
+- **First-Party Vector Icons**: Strictly utilizes thin-stroke **Heroicons v2 Outline** (`heroicon-o-cpu-chip`, `heroicon-o-sparkles`, `heroicon-o-chevron-down`) and minimal geometric status dots (`#429A6A` emerald, `#C9A36D` champagne-amber).
+
+
