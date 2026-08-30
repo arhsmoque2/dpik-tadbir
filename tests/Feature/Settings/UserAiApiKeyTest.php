@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Services\Ai\LlmGatewayService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 test('user model encrypts anthropic, gemini, and microsoft client secret keys', function () {
@@ -108,8 +109,8 @@ test('executive settings page validates connection probes and handles diagnostic
         ->assertSet('outlookProbeStatus', 'error');
 
     // Test outlook probe valid
-    \Illuminate\Support\Facades\Http::fake([
-        'https://login.microsoftonline.com/*' => \Illuminate\Support\Facades\Http::response([
+    Http::fake([
+        'https://login.microsoftonline.com/*' => Http::response([
             'token_type' => 'Bearer',
             'access_token' => 'mock-jwt-token',
         ], 200),
@@ -148,7 +149,7 @@ test('probeOutlookCredentials handles all status and error conditions', function
     expect($res['error_code'])->toBe('MISSING_CLIENT_SECRET');
 
     // 5-9. Setup mock sequence for token responses
-    $seq = \Illuminate\Support\Facades\Http::fakeSequence();
+    $seq = Http::fakeSequence();
     $seq->push(['token_type' => 'Bearer', 'access_token' => 'mock-jwt-token'], 200);
     $seq->push(['error' => 'invalid_client', 'error_description' => 'AADSTS7000215: Invalid client secret provided.'], 401);
     $seq->push(['error' => 'invalid_client', 'error_description' => 'AADSTS700016: Application not found in directory.'], 400);

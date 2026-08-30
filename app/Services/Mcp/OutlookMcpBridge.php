@@ -107,7 +107,7 @@ class OutlookMcpBridge
             }
 
             return ['raw_output' => $output];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Outlook MCP connection error fallback', [
                 'tool' => $toolName,
                 'error' => $e->getMessage(),
