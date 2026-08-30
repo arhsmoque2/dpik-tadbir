@@ -145,3 +145,14 @@ The application integrates a dedicated high-performance search subsystem modeled
    - Matches structured milestones, agreed change orders, and delivery commitments.
 3. **High-Density Output Contract**:
    - Standardized output format enables instant semantic recall by the AI without blowing up context window token limits.
+
+---
+
+## [ARCH-06] Infrastructure & Environment Contract
+
+The runtime environment, external cloud integrations, and secret management boundaries are formalized in [`docs/ENVIRONMENT.md`](ENVIRONMENT.md):
+
+- **GCP & Cloud Run**: Multi-stage FrankenPHP containerization deployed to `asia-southeast1` using Workload Identity Federation (WIF).
+- **Neon Serverless PostgreSQL**: Dual-endpoint connection model separating direct connections (for Cloud Run migration jobs) from pooled connections (for web runtime traffic).
+- **Multi-Provider AI Fallback**: Dual-provider hierarchy (Anthropic Claude 3.7 Sonnet primary, Google Gemini 2.5 Flash fallback) prioritizing user-configured private keys over system credentials.
+- **Outlook MCP Gateway**: Stdio-based subprocess execution over Microsoft Graph API with write-safety approval tokens.

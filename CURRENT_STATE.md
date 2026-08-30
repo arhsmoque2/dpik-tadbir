@@ -48,6 +48,7 @@
 8. **High-Density Memory Output**: Token-efficient pipe-delimited context formatting to inject decades of project memory into <500 tokens.
 9. **Livewire AI Copilot Drawer**: Docks gracefully via Filament panel render hooks (`PanelsRenderHook::BODY_END` and `PanelsRenderHook::GLOBAL_SEARCH_AFTER`), providing keyboard-driven (`Cmd+J`) executive assistance, preset ribbon execution, and interactive HITL modals.
 10. **Provisioned Cloud Run & Neon Infrastructure**: Neon Serverless project `floral-haze-01285681` (`DPIK-Tadbir`), GCP Artifact Registry `dpik-tadbir`, and WIF bindings active.
+11. **Authoritative Environment Contract**: All infrastructure parameters, storage tiers, secrets classifications, and preflight commands across GCP, Neon, AI Providers, Outlook MCP, and Application layers are maintained with zero plaintext leaks in [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md).
 
 ## Single Next Entry Point
 - Trigger Gate 5 CI deployment to Cloud Run or run local preview via Shawl / PM2 daemon service.
