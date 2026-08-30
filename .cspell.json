@@ -272,7 +272,17 @@
     "jordandalton",
     "joshcirre",
     "larascan",
-    "mjgapp"
+    "mjgapp",
+    "blindspot",
+    "Franken",
+    "Jambatan",
+    "neondb",
+    "neonctl",
+    "phpunit",
+    "PITR",
+    "SQLSTATE",
+    "unpooled",
+    "unredacted"
   ],
   "ignorePaths": [
     "node_modules/**",

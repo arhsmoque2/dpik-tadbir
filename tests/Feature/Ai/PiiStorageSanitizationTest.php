@@ -4,6 +4,15 @@ use App\Models\AiRun;
 use App\Models\ChatSession;
 use App\Models\User;
 use App\Services\Ai\AgentService;
+use App\Services\Ai\LlmGatewayService;
+
+beforeEach(function () {
+    LlmGatewayService::resetFakes();
+});
+
+afterEach(function () {
+    LlmGatewayService::resetFakes();
+});
 
 test('pii is strictly redacted from persisted ai_runs payload, response, and metadata', function () {
     $user = User::create([
@@ -56,4 +65,46 @@ test('pii is strictly redacted from persisted ai_runs payload, response, and met
     expect($run->metadata['pii_types'])->toContain('nric_formatted');
     expect($run->metadata['pii_types'])->toContain('credit_card');
     expect($run->metadata['pii_types'])->toContain('secret_key');
+});
+
+test('pii is strictly redacted from error messages in ai_runs and chat_messages upon upstream failure', function () {
+    $user = User::create([
+        'name' => 'Security Officer',
+        'email' => 'sec@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $session = ChatSession::create([
+        'user_id' => $user->id,
+        'title' => 'Error Leak Prevention Session',
+    ]);
+
+    $rawNric = '800101-10-1234';
+    $rawCard = '5105105105105100';
+
+    // Upstream exception echoes sensitive user PII
+    LlmGatewayService::fake([
+        'anthropic' => new RuntimeException("Anthropic 400: Upstream rejected request with IC {$rawNric}"),
+        'gemini' => new RuntimeException("Gemini 500: Failed processing card payload {$rawCard}"),
+    ]);
+
+    $agent = app(AgentService::class);
+    $response = $agent->handleUserTurn($session, 'Tolong semak data.');
+
+    expect($response->status)->toBe('failed');
+
+    // 1. Verify ai_runs error_message does not contain raw PII
+    $failedRun = AiRun::latest('id')->first();
+    expect($failedRun)->not->toBeNull();
+    expect($failedRun->status)->toBe('failed');
+    expect($failedRun->error_message)->not->toContain($rawCard);
+    expect($failedRun->error_message)->toContain('[REDACTED_CREDIT_CARD]');
+
+    // 2. Verify chat_messages metadata does not contain raw PII
+    $lastMsg = $session->messages()->latest('id')->first();
+    expect($lastMsg)->not->toBeNull();
+    expect($lastMsg->metadata)->toHaveKey('error');
+    expect($lastMsg->metadata['error'])->not->toContain($rawCard);
+    expect($lastMsg->metadata['error'])->toContain('[REDACTED_CREDIT_CARD]');
 });

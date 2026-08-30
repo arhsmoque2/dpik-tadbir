@@ -1,25 +1,36 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('E2E Journey 3: Livewire AI Copilot Drawer & Action Card Ledger', () => {
-  test('validates copilot trigger presence and drawer DOM structure', async ({ page }) => {
+  test('validates copilot trigger presence, drawer expansion, and preset ribbon', async ({ page }) => {
     await page.goto('/admin');
+    await page.waitForLoadState('domcontentloaded');
 
-    // If redirected to login, verify login form container
-    if (page.url().includes('/admin/login')) {
-      const loginBox = page.locator('main, form, .fi-simple-main');
-      await expect(loginBox.first()).toBeVisible();
-      return;
-    }
+    // Confirm authenticated session (no redirect to login)
+    await expect(page).toHaveURL(/.*admin/);
 
-    // When logged in, topbar trigger hook renders the Copilot button
-    const copilotTrigger = page.locator('[data-copilot-trigger], button:has-text("Copilot"), [aria-label*="Copilot"]');
-    if (await copilotTrigger.count() > 0) {
-      await expect(copilotTrigger.first()).toBeVisible();
-      await copilotTrigger.first().click();
+    // Locate copilot topbar trigger button
+    const copilotTrigger = page.locator('[data-copilot-trigger]');
+    await expect(copilotTrigger.first()).toBeVisible({ timeout: 15000 });
 
-      // Verify drawer opens
-      const drawer = page.locator('[data-copilot-drawer], .fi-modal, [role="dialog"]');
-      await expect(drawer.first()).toBeVisible();
+    // Open copilot drawer
+    await copilotTrigger.first().click();
+
+    // Verify slide-over drawer panel opens and is visible
+    const drawer = page.locator('[data-copilot-drawer]');
+    await expect(drawer.first()).toBeVisible({ timeout: 10000 });
+
+    // Verify seeded preset is rendered in presets ribbon
+    const presetBtn = drawer.locator('text="Tender Review Brief"');
+    await expect(presetBtn.first()).toBeVisible({ timeout: 10000 });
+
+    // Verify input textarea is available for executive instructions
+    const promptInput = drawer.locator('textarea');
+    await expect(promptInput.first()).toBeVisible();
+
+    // Close drawer via close button
+    const closeBtn = drawer.locator('button[title*="Close"]');
+    if (await closeBtn.count() > 0) {
+      await closeBtn.first().click();
     }
   });
 });

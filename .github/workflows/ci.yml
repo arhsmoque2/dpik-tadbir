@@ -68,6 +68,28 @@ jobs:
       - name: Run Gitleaks Secret Scanner
         run: gitleaks detect --source=. --verbose --redact
 
+      - name: Setup PHP for Security Preflight
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Execute Security & Policy Preflight Tests
+        run: |
+          ./vendor/bin/pest \
+            tests/Feature/Auth \
+            tests/Feature/Policies \
+            tests/Feature/Mcp/WriteSafetyProposalTest.php \
+            tests/Feature/Ai/PiiStorageSanitizationTest.php
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          APP_ENV: testing
+
   static-analysis:
     name: "Gate 1: PHP Lint, Typecheck & Unused Audit"
     runs-on: ubuntu-latest
@@ -154,7 +176,7 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Execute Hermetic Pest Suite (Unit, Integration, Security Policies)
+      - name: Execute Hermetic Pest Suite (Unit, Integration, AI Resilience)
         if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/pest --coverage-clover coverage.xml --parallel
         env:
@@ -172,14 +194,6 @@ jobs:
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
             --fail-under 90
-
-      - name: Execute Mutation Testing Gate (Pest --mutate)
-        if: steps.check_composer.outputs.has_composer == 'true'
-        run: ./vendor/bin/pest --mutate --covered-only --min=80 || true
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
-          APP_ENV: testing
 
   ui-layout-audit:
     name: "Gate 4: Playwright E2E, Visual & Accessibility QA"
@@ -215,15 +229,21 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Bootstrap Environment & SQLite Database
+      - name: Bootstrap Test Environment & File-Backed Database
         run: |
-          cp .env.example .env
-          php artisan key:generate
-          touch database/database.sqlite
-          php artisan migrate --force
+          cp .env.example .env.testing
+          sed -i 's|DB_DATABASE=.*|DB_DATABASE=database/testing.sqlite|g' .env.testing
+          sed -i 's|SESSION_DRIVER=.*|SESSION_DRIVER=database|g' .env.testing
+          sed -i 's|CACHE_STORE=.*|CACHE_STORE=database|g' .env.testing
+          php artisan key:generate --env=testing
+          touch database/testing.sqlite
+          php artisan migrate:fresh --seed --env=testing --force
 
       - name: Run Playwright E2E & Visual Regression Suite
         run: npx playwright test --config=playwright.config.ts
+        env:
+          CI: true
+          APP_ENV: testing
 
       - name: Upload Playwright Test Artifacts & Visual Screenshots
         if: always()

@@ -120,6 +120,8 @@ jobs:
             DB_CONNECTION=pgsql
             DATABASE_URL=${{ steps.neon.outputs.pooled }}
             APP_KEY=${{ secrets.APP_KEY }}
+            APP_URL=${{ vars.APP_URL }}
+            ALLOWED_REGISTRATION_EMAILS=${{ vars.ALLOWED_REGISTRATION_EMAILS }}
             ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             MICROSOFT_CLIENT_ID=${{ secrets.MICROSOFT_CLIENT_ID }}

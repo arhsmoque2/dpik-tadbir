@@ -16,7 +16,8 @@ class AgentService
         protected ToolRegistry $toolRegistry,
         protected AntiHallucinationGuard $guard,
         protected MemoryRetrievalService $memory,
-        protected AiRunRecorder $recorder
+        protected AiRunRecorder $recorder,
+        protected PiiDetector $piiDetector
     ) {}
 
     public function handleUserTurn(ChatSession $session, string $prompt): AiTurnResponse
@@ -59,7 +60,8 @@ class AgentService
             $completion = $this->llmGateway->complete($messages, $tools);
         } catch (\Throwable $e) {
             $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
-            Log::error("Upstream AI provider error: {$e->getMessage()}");
+            $redactedError = $this->piiDetector->redact($e->getMessage());
+            Log::error("Upstream AI provider error: {$redactedError}");
 
             // Persist failed run with error details and PII redaction
             $this->recorder->recordFailure(
@@ -73,14 +75,14 @@ class AgentService
 
             $friendlyMessage = 'DPIK Tadbir AI is experiencing high upstream traffic or temporary rate limits. Please try again in a few moments.';
 
-            // Record Assistant Message with failure notice
+            // Record Assistant Message with failure notice and sanitized error
             ChatMessage::create([
                 'chat_session_id' => $session->id,
                 'role' => 'assistant',
                 'content' => $friendlyMessage,
                 'metadata' => [
                     'status' => 'failed',
-                    'error' => $e->getMessage(),
+                    'error' => $redactedError,
                 ],
             ]);
 
@@ -157,10 +159,13 @@ class AgentService
 
         // 8. Record Observability & Telemetry Run
         $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+        $actualProvider = $completion['provider'];
+        $actualModel = $completion['model'];
+
         $this->recorder->record(
             session: $session,
-            provider: $this->llmGateway->getActiveProvider(),
-            model: $this->llmGateway->getActiveModel(),
+            provider: $actualProvider,
+            model: $actualModel,
             prompt: $prompt,
             responseContent: $turnResponse->content,
             latencyMs: $latencyMs,

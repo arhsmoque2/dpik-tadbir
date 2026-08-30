@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+// Auth journey executes with clean storage state to evaluate login mechanics
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe('E2E Journey 1: Authentication, Session Handling & SSO Routing', () => {
   test('redirects unauthenticated root visitors to admin login page', async ({ page }) => {
     await page.goto('/');
@@ -31,5 +34,21 @@ test.describe('E2E Journey 1: Authentication, Session Handling & SSO Routing', (
 
     // Should remain on login page with error feedback
     await expect(page).toHaveURL(/.*admin\/login/);
+  });
+
+  test('authenticates valid executive and navigates to admin dashboard', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.waitForLoadState('domcontentloaded');
+
+    const emailField = page.locator('input[type="email"], input[name*="email"], input#data\\.email').first();
+    const passwordField = page.locator('input[type="password"], input[name*="password"], input#data\\.password').first();
+    const submitBtn = page.locator('button[type="submit"], button.fi-btn, button:has-text("Sign in"), button:has-text("Log in")').first();
+
+    await emailField.fill('admin@dpik.com.my');
+    await passwordField.fill('password');
+    await submitBtn.click();
+
+    await page.waitForURL((url) => !url.pathname.includes('/admin/login'), { timeout: 15000 });
+    await expect(page).not.toHaveURL(/.*admin\/login/);
   });
 });

@@ -35,6 +35,7 @@
         x-transition:leave="transform transition ease-in duration-200"
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
+        data-copilot-drawer
         class="fixed inset-y-0 right-0 z-50 w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col"
         role="dialog"
         aria-modal="true"

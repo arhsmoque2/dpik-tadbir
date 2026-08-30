@@ -17,7 +17,7 @@ Toolchains are pinned in accordance with ARH OS Standards (`AGENTS.md` §3):
 | **Admin & TALL UI** | `filament/filament: ^4.0` | Filament v4 + Livewire 3 | 5 Resources + Copilot Drawer verified |
 | **Package Management**| Composer `^2.8` | Composer CLI / `composer.json` | Lockfile synchronized (`composer.lock`) |
 | **Node.js & Tooling** | Node `^22.x` / `pnpm ^10.x` | `fnm` + `pnpm` | Prettier, Markdownlint, CSpell, Playwright |
-| **Testing Harness** | `pestphp/pest: ^3.7` (3.8.7) | In-Memory SQLite | 49 passing tests (272 assertions) |
+| **Testing Harness** | `pestphp/pest: ^3.7` (3.8.7) | In-Memory SQLite | 54 passing tests (343 assertions) |
 | **Strict Typechecker**| `larastan/larastan: ^3.0` | PHPStan 2.2.9 (Level 8) | 0 errors across 103 files |
 | **AST Deprecation** | `laraveldaily/filacheck: ^1.2`| FilaCheck (Filament v4) | 17/17 rules passed (*PR #5*) |
 | **Code Style** | `laravel/pint: ^1.13` | Pint 1.30.5 (`pint.json`) | 0 violations (`pint --test`) |

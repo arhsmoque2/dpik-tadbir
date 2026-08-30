@@ -5,20 +5,21 @@
 - **Quality Gates Status**:
   - **Gate 1 (Static Analysis & Hygiene)**:
     - Laravel Pint: `passed` (0 style violations)
-    - Larastan / PHPStan (Level 8): `[OK] No errors` across 103 files
+    - Larastan / PHPStan (Level 8): `[OK] No errors` across 104 files
     - FilaCheck (Filament v4 AST rules): `17/17 rules passed` across all resources
-    - markdownlint: `0 issues in 27 files`
-    - cspell: `0 issues in 29 files`
+    - markdownlint: `0 issues in 28 files`
+    - cspell: `0 issues in 30 files`
     - composer-unused: `0 unused, 0 zombies`
-  - **Gate 2 & 3 (Security, Telemetry & Hermetic Tests)**:
-    - 53 Hermetic Pest Tests `passed` (334 assertions) including PII storage redaction verification, AI provider rate limit fallback & graceful degradation, and N+1 query bounds (`assertMaxQueries`)
-    - Pest mutation testing gate (`--mutate --covered-only`)
+  - **Gate 2 & 3 (Security Preflight, Telemetry & Hermetic Tests)**:
+    - Gate 2 standalone security preflight job (Gitleaks + Whitelist, Policy, Write-Safety, and PII storage tests)
+    - 54 Hermetic Pest Tests `passed` (343 assertions) including error message PII sanitization in both `ai_runs` and `chat_messages`
+    - 90% diff-cover gate on PRs (`uvx diff-cover`), with exhaustive mutation testing (`pest --mutate`) decoupled to weekly scheduled audits
     - Strict Eloquent hygiene: `Model::preventLazyLoading` and `Model::preventSilentlyDiscardingAttributes` active
   - **Gate 4 (E2E, Visual & Accessibility QA)**:
-    - Playwright suite in `tests/Browser` covering 3 core user journeys (Auth & SSO, Project Register responsive toolbar actions, AI Copilot drawer & Action Cards)
-    - WCAG 2.1 Level AA conformance checks via `@axe-core/playwright` and `webcrafts-studio/lens-for-laravel` (`php artisan lens:audit`)
-    - Full-page viewport screenshot snapshots for visual regression detection
-- **Governing ADRs (ADR-001 through ADR-013)**:
+    - Playwright suite in `tests/Browser` with global auth storageState (`auth.setup.ts`) covering 3 core user journeys (Auth & SSO, Project Register responsive toolbar actions, AI Copilot drawer & Action Cards)
+    - WCAG 2.1 Level AA conformance checks via `@axe-core/playwright` without disabling color contrast, backed by `DatabaseSeeder` deterministic fixtures
+    - Full-page viewport screenshot snapshots with `maxDiffPixelRatio: 0.05` for visual regression detection
+- **Governing ADRs (ADR-001 through ADR-016)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
   - `docs/adr/ADR-003-outlook-mcp-email-processor-boundary.md` (Zero Raw Email Storage Boundary)
@@ -34,6 +35,7 @@
   - `docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md` (Email Whitelist Registration Gate & Multi-Executive Sovereign Workspaces)
   - `docs/adr/ADR-014-agent-devtooling-quality-automation-and-auto-fix-cascade.md` (Agent Devtooling, Quality Automation & Auto-Fix Cascade)
   - `docs/adr/ADR-015-quality-gates-e2e-testing-and-ai-observability-resilience.md` (E2E Browser Testing, WCAG Accessibility, AI Failover Resilience & PII Storage Sanitization)
+  - `docs/adr/ADR-016-ci-cd-quality-hardening-operational-blindspot-remediation.md` (Operational Blind Spot Remediation, Playwright Auth Seeding, CI Gate Decoupling & PII Error Sanitization)
 
 ## Active Invariants & Boundaries
 1. **Email Whitelist Registration Gate**: Account registration is strictly restricted to pre-approved corporate emails (`allowed_registration_emails`), preventing unauthorized public signups ([`ADR-013`](docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)).

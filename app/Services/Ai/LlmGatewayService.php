@@ -3,7 +3,6 @@
 namespace App\Services\Ai;
 
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class LlmGatewayService
@@ -81,7 +80,7 @@ class LlmGatewayService
      * @param  list<array{role: string, content: string}>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
@@ -91,7 +90,12 @@ class LlmGatewayService
                 throw $step;
             }
             if (is_array($step)) {
-                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>} $step */
+                if (! isset($step['provider'])) {
+                    $step['provider'] = $this->getActiveProvider();
+                    $step['model'] = $this->getActiveModel();
+                }
+
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $step */
                 return $step;
             }
         }
@@ -113,7 +117,7 @@ class LlmGatewayService
      * @param  list<array{role: string, content: string}>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
      */
     protected function invokeProvider(
         string $provider,
@@ -128,7 +132,10 @@ class LlmGatewayService
                 throw $fake;
             }
             if (is_array($fake)) {
-                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>} $fake */
+                $fake['provider'] = $provider;
+                $fake['model'] = $model;
+
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $fake */
                 return $fake;
             }
         }
@@ -141,12 +148,11 @@ class LlmGatewayService
             default => '',
         };
 
-        if (empty($key)) {
-            return $this->mockCompletion($messages, $tools);
-        }
+        $mock = $this->mockCompletion($messages, $tools);
+        $mock['provider'] = $provider;
+        $mock['model'] = $model;
 
-        // Standard HTTP integration here
-        return $this->mockCompletion($messages, $tools);
+        return $mock;
     }
 
     /**

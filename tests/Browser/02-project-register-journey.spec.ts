@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('E2E Journey 2: Project Register & Responsive Table Toolbar QA', () => {
-  test('renders project register table with responsive action toolbar layout', async ({ page }) => {
-    // Navigate to admin panel
+  test('renders project register table with seeded records and responsive layout', async ({ page }) => {
     await page.goto('/admin/project-registers');
     await page.waitForLoadState('domcontentloaded');
 
-    // On unauthenticated session, redirected to login with return intent
-    if (page.url().includes('/admin/login')) {
-      const loginSurface = page.locator('input[type="email"], input[name*="email"], form, .fi-simple-main, .fi-simple-page');
-      await expect(loginSurface.first()).toBeVisible({ timeout: 10000 });
-      return;
-    }
+    // Confirm authenticated session remained active (no redirect to login)
+    await expect(page).toHaveURL(/.*admin\/project-registers/);
 
-    // When session is active:
-    await expect(page.locator('.fi-ta-header, .fi-ta-table, [data-filament-table]')).toBeVisible();
+    // Verify table structure is rendered
+    const tableElement = page.locator('.fi-ta, .fi-ta-table, [data-filament-table], table');
+    await expect(tableElement.first()).toBeVisible({ timeout: 15000 });
+
+    // Assert seeded record exists in the table view
+    const seededRecord = page.locator('text=PC-2023-011, text="Jambatan Sungai Udang"');
+    await expect(seededRecord.first()).toBeVisible({ timeout: 10000 });
 
     // Verify search input & filter action buttons
     const searchInput = page.locator('input[type="search"], input[placeholder*="Search"]');
@@ -22,10 +22,9 @@ test.describe('E2E Journey 2: Project Register & Responsive Table Toolbar QA', (
       await expect(searchInput.first()).toBeEnabled();
     }
 
-    // Verify toolbar actions do not overflow viewport
+    // Verify toolbar actions do not overflow viewport on mobile screens
     const viewport = page.viewportSize();
     if (viewport && viewport.width < 768) {
-      // Mobile screen: assert no horizontal scrollbar on body
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
       expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 5);
