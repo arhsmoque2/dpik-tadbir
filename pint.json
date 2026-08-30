@@ -5,6 +5,9 @@
     "storage",
     "public"
   ],
+  "notPath": [
+    "rector.php"
+  ],
   "rules": {
     "no_unused_imports": true,
     "ordered_imports": {

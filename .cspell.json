@@ -267,7 +267,12 @@
     "visualbuilder",
     "WorkOps",
     "Zaaba",
-    "zricethezav"
+    "zricethezav",
+    "ComfyCodersBV",
+    "jordandalton",
+    "joshcirre",
+    "larascan",
+    "mjgapp"
   ],
   "ignorePaths": [
     "node_modules/**",
