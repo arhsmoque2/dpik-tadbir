@@ -31,10 +31,10 @@ test('action memory service logs receipts and generates rollups', function () {
     expect($receipt->action_type)->toBe('outlook_reply');
     expect($receipt->user())->toBeInstanceOf(BelongsTo::class);
 
-    $dailyJob = new GenerateDailyRollupJob;
+    $dailyJob = new GenerateDailyRollupJob($user->id);
     $dailyJob->handle();
 
-    $weeklyJob = new GenerateWeeklyRollupJob;
+    $weeklyJob = new GenerateWeeklyRollupJob($user->id);
     $weeklyJob->handle();
 
     expect(true)->toBeTrue();

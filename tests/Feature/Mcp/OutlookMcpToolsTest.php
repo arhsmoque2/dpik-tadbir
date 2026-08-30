@@ -54,7 +54,7 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $queryTool = new QueryProjectRegisterTool(app(MemoryRetrievalService::class));
     expect($queryTool->schema())->toHaveKey('properties');
     $queryRes = $queryTool->handle(['query' => 'Sungai Udang']);
-    expect($queryRes['results'])->toBeArray();
+    expect($queryRes['items'])->toBeArray();
 
     $noteTool = new CreatePersonalNoteTool;
     expect($noteTool->schema())->toHaveKey('properties');

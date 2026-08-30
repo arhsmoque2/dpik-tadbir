@@ -41,7 +41,7 @@ test('domain models instantiate relationships properly', function () {
         'role' => 'user',
         'content' => 'Hello Copilot',
     ]);
-    expect($message->session())->toBeInstanceOf(BelongsTo::class);
+    expect($message->chatSession())->toBeInstanceOf(BelongsTo::class);
 
     $entry = ProjectRegistryEntry::create([
         'project_code' => 'PC-2023-011',
@@ -63,6 +63,27 @@ test('domain models instantiate relationships properly', function () {
         'title' => 'Task 1',
     ]);
     expect($task->user())->toBeInstanceOf(BelongsTo::class);
+
+    $profile = UserPersonalizationProfile::create([
+        'user_id' => $user->id,
+        'persona_archetype' => 'Calm Executive',
+    ]);
+    expect($profile->user())->toBeInstanceOf(BelongsTo::class);
+
+    $preset = ExecutivePreset::create([
+        'user_id' => $user->id,
+        'name' => 'Briefing',
+        'trigger_phrase' => 'brief',
+        'prompt_template' => 'Brief me',
+    ]);
+    expect($preset->user())->toBeInstanceOf(BelongsTo::class);
+
+    $receipt = AiActionReceipt::create([
+        'user_id' => $user->id,
+        'action_type' => 'outlook_reply',
+        'description' => 'Reply sent',
+    ]);
+    expect($receipt->user())->toBeInstanceOf(BelongsTo::class);
 
     // User relationship helpers
     expect($user->chatSessions())->toBeInstanceOf(HasMany::class);
