@@ -3,6 +3,7 @@
 namespace App\Services\Mcp;
 
 use App\Models\User;
+use App\Settings\OutlookSettings;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -36,6 +37,24 @@ class OutlookMcpBridge
         $command = (string) Config::get('services.outlook_mcp.command', 'uv');
         $args = (string) Config::get('services.outlook_mcp.args', 'run python -m outlook_mcp.server');
         $timeout = (int) Config::get('services.outlook_mcp.timeout', 30);
+
+        try {
+            if (class_exists(OutlookSettings::class)) {
+                /** @var OutlookSettings $settings */
+                $settings = app(OutlookSettings::class);
+                if (! empty($settings->mcp_command)) {
+                    $command = $settings->mcp_command;
+                }
+                if (! empty($settings->mcp_args)) {
+                    $args = $settings->mcp_args;
+                }
+                if ($settings->timeout_seconds > 0) {
+                    $timeout = $settings->timeout_seconds;
+                }
+            }
+        } catch (\Throwable $e) {
+            // fallback to config values
+        }
 
         $payload = json_encode([
             'jsonrpc' => '2.0',
