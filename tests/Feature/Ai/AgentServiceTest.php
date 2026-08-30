@@ -1,13 +1,10 @@
 <?php
 
-use App\Mcp\ToolRegistry;
+use App\Models\AiRun;
 use App\Models\ChatSession;
 use App\Models\ProjectRegistryEntry;
 use App\Models\User;
 use App\Services\Ai\AgentService;
-use App\Services\Ai\AntiHallucinationGuard;
-use App\Services\Ai\LlmGatewayService;
-use App\Services\Memory\MemoryRetrievalService;
 
 test('agent service handles user turn and resumes tool interaction', function () {
     $user = User::create([
@@ -29,12 +26,7 @@ test('agent service handles user turn and resumes tool interaction', function ()
         'title' => 'Executive Chat',
     ]);
 
-    $gateway = new LlmGatewayService;
-    $registry = app(ToolRegistry::class);
-    $guard = new AntiHallucinationGuard;
-    $memory = app(MemoryRetrievalService::class);
-
-    $agent = new AgentService($gateway, $registry, $guard, $memory);
+    $agent = app(AgentService::class);
 
     // 1. Normal prompt
     $turn1 = $agent->handleUserTurn($session, 'Hello, what is the status of Sungai Udang?');
@@ -50,4 +42,12 @@ test('agent service handles user turn and resumes tool interaction', function ()
     // 3. Resume with tool result
     $turn3 = $agent->resumeWithToolResult($session, 'call_test_123', ['approved' => true]);
     expect($turn3->status)->toBe('completed');
+
+    // 4. Assert AiRun telemetry records were persisted
+    expect(AiRun::count())->toBeGreaterThanOrEqual(2);
+    $latestRun = AiRun::latest('id')->first();
+    expect($latestRun)->not->toBeNull();
+    expect($latestRun->total_tokens)->toBeGreaterThan(0);
+    expect($latestRun->cost_usd)->toBeGreaterThanOrEqual(0);
+    expect($latestRun->provider)->toBe('anthropic');
 });

@@ -1,16 +1,17 @@
 # DPIK Tadbir: Current State
 
 ## Verified Reality Snapshot
-- **Lifecycle Phase**: Livewire AI Copilot Drawer, Outlook MCP Bridge & Interactive Workstation Complete ✅
+- **Lifecycle Phase**: Livewire AI Copilot Drawer, Quality Gates & Observability Subsystem Complete ✅
 - **Quality Gates Status**:
   - **Gate 1 (Static Analysis & Hygiene)**:
     - Laravel Pint: `passed` (0 style violations)
-    - Larastan / PHPStan (Level 8): `[OK] No errors` across 98 files
+    - Larastan / PHPStan (Level 8): `[OK] No errors` across 103 files
+    - FilaCheck (Filament v4 AST rules): `17/17 rules passed` across all resources
     - markdownlint: `0 issues in 27 files`
     - cspell: `0 issues in 29 files`
     - composer-unused: `0 unused, 0 zombies`
-  - **Gate 2 & 3 (Security & Hermetic Tests)**:
-    - 45 Hermetic Pest Tests `passed` (247 assertions) across Livewire Copilot Drawer, Outlook MCP Bridge, Auth, Notes, Tasks, Chat, MCP, Memory, and AI Agent services
+  - **Gate 2 & 3 (Security, Telemetry & Hermetic Tests)**:
+    - 49 Hermetic Pest Tests `passed` (272 assertions) across Livewire Copilot Drawer, Outlook MCP Bridge, Email Interceptor, AI Run Observability, PII Detector, Cost Calculator, Auth, Notes, Tasks, Chat, MCP, Memory, and AI Agent services
 - **Governing ADRs (ADR-001 through ADR-013)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)

@@ -15,11 +15,13 @@ class AgentService
         protected LlmGatewayService $llmGateway,
         protected ToolRegistry $toolRegistry,
         protected AntiHallucinationGuard $guard,
-        protected MemoryRetrievalService $memory
+        protected MemoryRetrievalService $memory,
+        protected AiRunRecorder $recorder
     ) {}
 
     public function handleUserTurn(ChatSession $session, string $prompt): AiTurnResponse
     {
+        $startTime = microtime(true);
         // 1. Record User Message
         ChatMessage::create([
             'chat_session_id' => $session->id,
@@ -115,6 +117,22 @@ class AgentService
                 'executed_actions_count' => count($turnResponse->executedActions),
             ],
         ]);
+
+        // 8. Record Observability & Telemetry Run
+        $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+        $this->recorder->record(
+            session: $session,
+            provider: $this->llmGateway->getActiveProvider(),
+            model: $this->llmGateway->getActiveModel(),
+            prompt: $prompt,
+            responseContent: $turnResponse->content,
+            latencyMs: $latencyMs,
+            status: $turnResponse->status,
+            metadata: [
+                'executed_actions_count' => count($turnResponse->executedActions),
+                'has_suspended_tool' => $turnResponse->suspendedToolCall !== null,
+            ]
+        );
 
         return $turnResponse;
     }

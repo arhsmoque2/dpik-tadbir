@@ -1,5 +1,10 @@
 {
   "preset": "laravel",
+  "exclude": [
+    "vendor",
+    "storage",
+    "public"
+  ],
   "rules": {
     "no_unused_imports": true,
     "ordered_imports": {
