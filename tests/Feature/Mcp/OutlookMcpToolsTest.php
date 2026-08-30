@@ -70,7 +70,7 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $draftTool = new OutlookCreateDraftTool($bridge);
     expect($draftTool->schema())->toHaveKey('properties');
     $draftRes = $draftTool->handle(['subject' => 'Draft Subj', 'body' => 'Body', 'to_recipients' => ['test@example.com']]);
-    expect($draftRes['status'])->toBe('staged');
+    expect($draftRes['status'])->toBe('draft_created');
 
     $forwardTool = new OutlookForwardTool($bridge);
     expect($forwardTool->schema())->toHaveKey('properties');

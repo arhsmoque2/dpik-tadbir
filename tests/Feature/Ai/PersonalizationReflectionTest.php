@@ -13,10 +13,10 @@ test('personalization reflection service calculates and updates profile', functi
     ]);
 
     $service = new PersonalizationReflectionService;
-    $profile = $service->reflectOnUserHabits($user);
+    $profile = $service->reflectForUser($user);
 
     expect($profile)->toBeInstanceOf(UserPersonalizationProfile::class);
     expect($profile->user_id)->toBe($user->id);
-    expect($profile->persona_archetype)->not->toBeEmpty();
+    expect($profile->persona_summary)->not->toBeEmpty();
     expect($profile->user())->toBeInstanceOf(BelongsTo::class);
 });
