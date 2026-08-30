@@ -20,7 +20,10 @@ class AgentService
         protected PiiDetector $piiDetector
     ) {}
 
-    public function handleUserTurn(ChatSession $session, string $prompt): AiTurnResponse
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    public function handleUserTurn(ChatSession $session, string $prompt, array $options = []): AiTurnResponse
     {
         $startTime = microtime(true);
         // 1. Record User Message
@@ -57,7 +60,11 @@ class AgentService
         $completion = null;
 
         try {
-            $completion = $this->llmGateway->complete($messages, $tools, ['user' => $session->user]);
+            $completion = $this->llmGateway->complete(
+                $messages,
+                $tools,
+                array_merge(['user' => $session->user], $options)
+            );
         } catch (\Throwable $e) {
             $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
             $redactedError = $this->piiDetector->redact($e->getMessage());

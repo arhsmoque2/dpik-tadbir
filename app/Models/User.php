@@ -22,6 +22,10 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'anthropic_api_key',
         'gemini_api_key',
+        'openrouter_api_key',
+        'favorite_model_1',
+        'favorite_model_2',
+        'favorite_model_3',
         'microsoft_client_id',
         'microsoft_client_secret',
         'microsoft_tenant_id',
@@ -32,6 +36,7 @@ class User extends Authenticatable implements FilamentUser
         'remember_token',
         'anthropic_api_key',
         'gemini_api_key',
+        'openrouter_api_key',
         'microsoft_client_secret',
     ];
 
@@ -42,6 +47,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'anthropic_api_key' => 'encrypted',
             'gemini_api_key' => 'encrypted',
+            'openrouter_api_key' => 'encrypted',
             'microsoft_client_secret' => 'encrypted',
         ];
     }

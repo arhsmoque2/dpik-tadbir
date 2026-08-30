@@ -268,3 +268,143 @@ test('llm gateway prioritizes user configured keys over system config keys', fun
 
     expect($resWithoutUser['provider'])->toBe('anthropic');
 });
+
+test('user model encrypts openrouter api key and stores favorite model configurations', function () {
+    $user = User::create([
+        'name' => 'OpenRouter Exec',
+        'email' => 'openrouter_exec@dpik.com.my',
+        'password' => bcrypt('password'),
+        'openrouter_api_key' => 'sk-or-v1-test-mock-key-12345', // gitleaks:allow
+        'favorite_model_1' => 'anthropic:claude-3-7-sonnet-20250219',
+        'favorite_model_2' => 'openrouter:deepseek/deepseek-r1',
+        'favorite_model_3' => 'gemini:gemini-2.5-flash',
+    ]);
+
+    $fresh = $user->fresh();
+    expect($fresh->openrouter_api_key)->toBe('sk-or-v1-test-mock-key-12345');
+    expect($fresh->favorite_model_1)->toBe('anthropic:claude-3-7-sonnet-20250219');
+    expect($fresh->favorite_model_2)->toBe('openrouter:deepseek/deepseek-r1');
+    expect($fresh->favorite_model_3)->toBe('gemini:gemini-2.5-flash');
+});
+
+test('executive settings page allows user to configure openrouter key and top-3 favorite models', function () {
+    $user = User::create([
+        'name' => 'Settings Top3 Exec',
+        'email' => 'top3_exec@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->assertSet('openrouter_api_key', null)
+        ->assertSet('favorite_model_1', 'anthropic:claude-3-7-sonnet-20250219')
+        ->assertSet('favorite_model_2', 'openrouter:deepseek/deepseek-r1')
+        ->assertSet('favorite_model_3', 'gemini:gemini-2.5-flash')
+        ->set('openrouter_api_key', 'sk-or-v1-custom-mock-key') // gitleaks:allow
+        ->set('favorite_model_1', 'openrouter:anthropic/claude-3.7-sonnet')
+        ->set('favorite_model_2', 'openrouter:google/gemini-2.5-pro')
+        ->set('favorite_model_3', 'openrouter:openai/gpt-4o')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $fresh = $user->fresh();
+    expect($fresh->openrouter_api_key)->toBe('sk-or-v1-custom-mock-key');
+    expect($fresh->favorite_model_1)->toBe('openrouter:anthropic/claude-3.7-sonnet');
+    expect($fresh->favorite_model_2)->toBe('openrouter:google/gemini-2.5-pro');
+    expect($fresh->favorite_model_3)->toBe('openrouter:openai/gpt-4o');
+});
+
+test('probeOpenRouterKey handles all status and error conditions', function () {
+    $gateway = app(LlmGatewayService::class);
+
+    // 1. Unconfigured
+    $res = $gateway->probeOpenRouterKey(null);
+    expect($res['status'])->toBe('unconfigured');
+    expect($res['success'])->toBeFalse();
+
+    // 2. Invalid Key Format
+    $res = $gateway->probeOpenRouterKey('invalid-prefix-key');
+    expect($res['status'])->toBe('invalid_format');
+    expect($res['error_code'])->toBe('INVALID_KEY_FORMAT');
+
+    // 3. Setup mock sequence for OpenRouter auth key endpoint
+    $seq = Http::fakeSequence();
+    $seq->push(['data' => ['label' => 'Tadbir Key', 'limit' => 100]], 200);
+    $seq->push(['error' => ['message' => 'Invalid API key provided.', 'code' => 401]], 401);
+    $seq->push('Server Error', 500);
+
+    // 4. Successful probe
+    $res = $gateway->probeOpenRouterKey('sk-or-v1-valid-test-key'); // gitleaks:allow
+    expect($res['status'])->toBe('connected');
+    expect($res['success'])->toBeTrue();
+
+    // 5. Auth failed (401)
+    $res = $gateway->probeOpenRouterKey('sk-or-v1-invalid-mock'); // gitleaks:allow
+    expect($res['status'])->toBe('auth_failed');
+    expect($res['error_message'])->toContain('Invalid API key');
+
+    // 6. Upstream 500
+    $res = $gateway->probeOpenRouterKey('sk-or-v1-server-err'); // gitleaks:allow
+    expect($res['status'])->toBe('auth_failed');
+});
+
+test('executive settings page validates openrouter key format and connection probe', function () {
+    $user = User::create([
+        'name' => 'OpenRouter Probe Exec',
+        'email' => 'openrouter_probe@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    // Invalid format on save
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('openrouter_api_key', 'wrong-key-pattern')
+        ->call('save');
+
+    expect($user->fresh()->openrouter_api_key)->toBeNull();
+
+    // Probe valid
+    Http::fake([
+        'https://openrouter.ai/api/v1/auth/key' => Http::response(['data' => ['label' => 'Test Key']], 200),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('openrouter_api_key', 'sk-or-v1-live-probe-key') // gitleaks:allow
+        ->call('testOpenRouterConnection')
+        ->assertSet('openrouterProbeStatus', 'success');
+});
+
+test('executive settings testAiConnection catches invalid openrouter key format', function () {
+    $user = User::create([
+        'name' => 'Invalid OpenRouter AI Exec',
+        'email' => 'invalid_ai_or@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('openrouter_api_key', 'bad-openrouter-prefix')
+        ->call('testAiConnection')
+        ->assertSet('aiProbeStatus', 'error')
+        ->assertSet('aiProbeMessage', 'Format Error: OpenRouter API key must begin with "sk-or-v1-".');
+});
+
+test('executive settings testOpenRouterConnection handles failed probe notification', function () {
+    $user = User::create([
+        'name' => 'Failed Probe Exec',
+        'email' => 'failed_probe@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    Http::fake([
+        'https://openrouter.ai/api/v1/auth/key' => Http::response(['error' => ['message' => 'Invalid API key']], 401),
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('openrouter_api_key', 'sk-or-v1-invalid-probe') // gitleaks:allow
+        ->call('testOpenRouterConnection')
+        ->assertSet('openrouterProbeStatus', 'error')
+        ->assertSet('openrouterProbeMessage', 'HTTP 401: Invalid API key');
+});

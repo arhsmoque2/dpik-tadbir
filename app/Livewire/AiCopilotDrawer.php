@@ -50,12 +50,20 @@ class AiCopilotDrawer extends Component
 
     public string $statusMessage = '';
 
+    public string $activeProvider = 'anthropic';
+
+    public string $activeModel = 'claude-3-7-sonnet-20250219';
+
+    public bool $isModelSwapperOpen = false;
+
     public function mount(?int $sessionId = null): void
     {
         $user = Auth::user();
         if (! $user instanceof User) {
             return;
         }
+
+        $this->initializeActiveModel($user);
 
         if ($sessionId !== null) {
             $session = ChatSession::where('id', $sessionId)
@@ -151,7 +159,14 @@ class AiCopilotDrawer extends Component
 
         try {
             $agent = app(AgentService::class);
-            $turnResponse = $agent->handleUserTurn($session, $prompt);
+            $turnResponse = $agent->handleUserTurn(
+                session: $session,
+                prompt: $prompt,
+                options: [
+                    'provider' => $this->activeProvider,
+                    'model' => $this->activeModel,
+                ]
+            );
 
             /** @var array{id: string, name: string, arguments: array<string, mixed>, suspension_payload: array<string, mixed>}|null $suspended */
             $suspended = $turnResponse->suspendedToolCall;
@@ -447,6 +462,158 @@ class AiCopilotDrawer extends Component
             ->latest('updated_at')
             ->take(10)
             ->get();
+    }
+
+    public function initializeActiveModel(User $user): void
+    {
+        $tuple = (string) ($user->favorite_model_1 ?: 'anthropic:claude-3-7-sonnet-20250219');
+        [$provider, $model] = $this->parseModelTuple($tuple);
+        $this->activeProvider = $provider;
+        $this->activeModel = $model;
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    public function parseModelTuple(string $tuple): array
+    {
+        $clean = trim($tuple);
+
+        if (str_contains($clean, ':')) {
+            $parts = explode(':', $clean, 2);
+
+            return [trim($parts[0]), trim($parts[1])];
+        }
+
+        if (str_starts_with($clean, 'anthropic/')) {
+            $modelName = substr($clean, 10);
+            if ($modelName === 'claude-3.7-sonnet') {
+                $modelName = 'claude-3-7-sonnet-20250219';
+            }
+
+            return ['anthropic', $modelName];
+        }
+
+        if (str_starts_with($clean, 'google/') || str_starts_with($clean, 'gemini/')) {
+            $parts = explode('/', $clean, 2);
+
+            return ['gemini', $parts[1]];
+        }
+
+        if (str_starts_with($clean, 'openrouter/')) {
+            return ['openrouter', substr($clean, 11)];
+        }
+
+        if (str_contains($clean, '/')) {
+            return ['openrouter', $clean];
+        }
+
+        return ['anthropic', $clean];
+    }
+
+    public function toggleModelSwapper(): void
+    {
+        $this->isModelSwapperOpen = ! $this->isModelSwapperOpen;
+    }
+
+    public function selectModel(string $modelTuple): void
+    {
+        [$provider, $model] = $this->parseModelTuple($modelTuple);
+        $this->activeProvider = $provider;
+        $this->activeModel = $model;
+        $this->isModelSwapperOpen = false;
+
+        $this->dispatch('copilot-model-changed', provider: $provider, model: $model);
+    }
+
+    public function getActiveModelBadgeLabel(): string
+    {
+        $labels = [
+            'claude-3-7-sonnet-20250219' => 'Claude 3.7 Sonnet',
+            'claude-3.7-sonnet' => 'Claude 3.7 Sonnet',
+            'deepseek/deepseek-r1' => 'DeepSeek R1',
+            'gemini-2.5-flash' => 'Gemini 2.5 Flash',
+            'gemini-2.5-pro' => 'Gemini 2.5 Pro',
+            'anthropic/claude-3.7-sonnet' => 'Claude 3.7 Sonnet',
+            'google/gemini-2.5-pro' => 'Gemini 2.5 Pro',
+            'openai/gpt-4o' => 'GPT-4o',
+            'meta-llama/llama-3.3-70b-instruct' => 'Llama 3.3 70B',
+        ];
+
+        $providerName = match ($this->activeProvider) {
+            'anthropic' => 'Anthropic',
+            'gemini' => 'Google',
+            'openrouter' => 'OpenRouter',
+            default => ucfirst($this->activeProvider),
+        };
+
+        $modelName = $labels[$this->activeModel] ?? $this->activeModel;
+
+        return "{$providerName} · {$modelName}";
+    }
+
+    /**
+     * @return list<array{slot: int, tuple: string, provider: string, model: string, label: string, is_active: bool}>
+     */
+    #[Computed]
+    public function favoriteModels(): array
+    {
+        $user = Auth::user();
+        if (! $user instanceof User) {
+            return [];
+        }
+
+        $slots = [
+            1 => (string) ($user->favorite_model_1 ?: 'anthropic:claude-3-7-sonnet-20250219'),
+            2 => (string) ($user->favorite_model_2 ?: 'openrouter:deepseek/deepseek-r1'),
+            3 => (string) ($user->favorite_model_3 ?: 'gemini:gemini-2.5-flash'),
+        ];
+
+        $labels = [
+            'anthropic:claude-3-7-sonnet-20250219' => 'Anthropic · Claude 3.7 Sonnet',
+            'anthropic/claude-3.7-sonnet' => 'Anthropic · Claude 3.7 Sonnet',
+            'openrouter:deepseek/deepseek-r1' => 'OpenRouter · DeepSeek R1',
+            'deepseek/deepseek-r1' => 'OpenRouter · DeepSeek R1',
+            'gemini:gemini-2.5-flash' => 'Google · Gemini 2.5 Flash',
+            'google/gemini-2.5-pro' => 'Google · Gemini 2.5 Pro',
+            'gemini:gemini-2.5-pro' => 'Google · Gemini 2.5 Pro',
+            'openrouter:anthropic/claude-3.7-sonnet' => 'OpenRouter · Claude 3.7 Sonnet',
+            'openrouter:google/gemini-2.5-pro' => 'OpenRouter · Gemini 2.5 Pro',
+            'openrouter:openai/gpt-4o' => 'OpenRouter · GPT-4o',
+            'openrouter:meta-llama/llama-3.3-70b-instruct' => 'OpenRouter · Llama 3.3 70B',
+        ];
+
+        $result = [];
+        foreach ($slots as $slot => $tuple) {
+            [$provider, $model] = $this->parseModelTuple($tuple);
+            $label = $labels[$tuple] ?? (ucfirst($provider).' · '.$model);
+            $isActive = ($this->activeProvider === $provider && $this->activeModel === $model);
+
+            $result[] = [
+                'slot' => $slot,
+                'tuple' => $tuple,
+                'provider' => $provider,
+                'model' => $model,
+                'label' => $label,
+                'is_active' => $isActive,
+            ];
+        }
+
+        return $result;
+    }
+
+    #[On('copilot-model-changed')]
+    public function onModelChanged(?string $provider = null, ?string $model = null): void
+    {
+        if ($provider !== null && $model !== null) {
+            $this->activeProvider = $provider;
+            $this->activeModel = $model;
+        } else {
+            $user = Auth::user();
+            if ($user instanceof User) {
+                $this->initializeActiveModel($user);
+            }
+        }
     }
 
     public function render(): View
