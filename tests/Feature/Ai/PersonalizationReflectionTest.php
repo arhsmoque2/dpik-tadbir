@@ -1,0 +1,21 @@
+<?php
+
+use App\Models\User;
+use App\Models\UserPersonalizationProfile;
+use App\Services\Ai\PersonalizationReflectionService;
+
+test('personalization reflection service calculates and updates profile', function () {
+    $user = User::create([
+        'name' => 'Reflecting User',
+        'email' => 'reflect@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    $service = new PersonalizationReflectionService;
+    $profile = $service->reflectOnUserHabits($user);
+
+    expect($profile)->toBeInstanceOf(UserPersonalizationProfile::class);
+    expect($profile->user_id)->toBe($user->id);
+    expect($profile->persona_archetype)->not->toBeEmpty();
+    expect($profile->user())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+});
