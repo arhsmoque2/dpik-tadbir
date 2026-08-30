@@ -544,7 +544,7 @@ Every surface described in [`UI.md`](UI.md) maps to a concrete Filament v4 const
 | **Project Register (detail)** | Resource `view` page infolist + **Relation Managers** (register entries, linked notes, action receipts) | **Standard** |
 | **Personal Notes / Tasks** | User-scoped resources with policies, table tabs, and slide-over create/edit forms | **Standard** |
 | **Activity Rollups** | Read-only `ActivityRollupResource` with infolist detail | **Standard** |
-| **Executive Settings** | Custom Filament page wrapping Spatie Settings form schema | **Standard (light custom)** |
+| **Executive Settings** | Custom Filament page with sovereign encrypted key storage & live probe testing | **Standard (light custom)** |
 | **Global Search (`Cmd+K`)** | Filament global search: `getGloballySearchableAttributes()`, result details + result actions | **Standard** |
 | **Notifications / Bell** | Filament **database notifications** with unread badge and polling | **Standard** |
 | **Navigation & Badges** | Panel navigation groups + `getNavigationBadge()` counts (pending cards, unsynced items) | **Standard** |
@@ -553,3 +553,20 @@ Every surface described in [`UI.md`](UI.md) maps to a concrete Filament v4 const
 | **Mobile bottom nav & bottom sheets** | Custom Blade/Alpine layer over the panel (mobile breakpoints only) | **Custom** |
 
 **Layout rule**: the "3-column adaptive" desktop shell in [`UI-03`](UI.md) is realized as *Filament sidebar (column 1) + resource list page (column 2) + record detail / slide-over + docked Copilot drawer (column 3)* — **not** a bespoke replacement of the panel layout. A fully custom shell forfeits Filament's free functionality (search, notifications, responsive tables, accessibility) and is explicitly out of scope for Phase 1.
+
+---
+
+## [DESIGN-08] Runtime Integration Settings & Graceful Error Diagnostics (ADR-017)
+
+Governed by [`ADR-017`](adr/ADR-017-runtime-integrations-and-graceful-error-fallback-guards.md) and [`docs/CONFIGURABLES.md`](CONFIGURABLES.md), all external integration credentials and runtime parameters are managed via the web UI with strict error guards:
+
+1. **Sovereign User Encryption**:
+   - `anthropic_api_key`, `gemini_api_key`, and `microsoft_client_secret` are encrypted at rest per-executive in the `users` table via AES-256 (`encrypted` Eloquent cast).
+2. **Instant Reflection & Preflight Probes**:
+   - Saving settings immediately evicts stale Spatie cache (`SettingsContainer::clearCache()`) and rehydrates authenticated user models.
+   - Interactive **Test Connection** actions perform non-blocking 1-token / OAuth probes against Anthropic, Gemini, and Microsoft Graph.
+3. **Provider-Direct Error Diagnostics & Remediation Cards**:
+   - Upstream error payloads (e.g. `invalid_x_api_key`, `API_KEY_INVALID`, `AADSTS7000215: Invalid client secret`, `ErrorAccessDenied`) are intercepted, sanitized of sensitive tokens, and rendered alongside step-by-step fix guides.
+4. **Graceful Degradation Boundary**:
+   - Missing or misconfigured Microsoft Graph credentials trigger non-blocking degraded mode where all non-email features (FTS5 Project Register, Personal Notes, Tasks, AI reasoning) remain 100% operational.
+

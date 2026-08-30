@@ -15,6 +15,9 @@ return [
         'command' => env('OUTLOOK_MCP_COMMAND', 'uv'),
         'args' => env('OUTLOOK_MCP_ARGS', 'run python -m outlook_mcp.server'),
         'timeout' => (int) env('OUTLOOK_MCP_TIMEOUT', 30),
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'tenant_id' => env('MICROSOFT_TENANT_ID'),
     ],
 
     'registration' => [

@@ -3,24 +3,31 @@
 use App\Filament\Pages\ExecutiveSettings;
 use App\Models\User;
 use App\Services\Ai\LlmGatewayService;
+use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 
-test('user model encrypts anthropic and gemini api keys', function () {
+test('user model encrypts anthropic, gemini, and microsoft client secret keys', function () {
     $user = User::create([
         'name' => 'Test Exec',
         'email' => 'test_exec_enc@dpik.com.my',
         'password' => bcrypt('password'),
         'anthropic_api_key' => 'sk-ant-test-user-secret-12345',
         'gemini_api_key' => 'AIzaSy-test-user-secret-67890',
+        'microsoft_client_id' => '11111111-2222-3333-4444-555555555555',
+        'microsoft_client_secret' => 'super-secret-azure-token',
+        'microsoft_tenant_id' => '66666666-7777-8888-9999-000000000000',
     ]);
 
     $fresh = $user->fresh();
     expect($fresh->anthropic_api_key)->toBe('sk-ant-test-user-secret-12345');
     expect($fresh->gemini_api_key)->toBe('AIzaSy-test-user-secret-67890');
+    expect($fresh->microsoft_client_id)->toBe('11111111-2222-3333-4444-555555555555');
+    expect($fresh->microsoft_client_secret)->toBe('super-secret-azure-token');
+    expect($fresh->microsoft_tenant_id)->toBe('66666666-7777-8888-9999-000000000000');
 });
 
-test('executive settings page allows user to configure and save private api keys', function () {
+test('executive settings page allows user to configure and save private api keys and microsoft credentials', function () {
     $user = User::create([
         'name' => 'Settings Exec',
         'email' => 'settings_exec@dpik.com.my',
@@ -31,14 +38,72 @@ test('executive settings page allows user to configure and save private api keys
         ->test(ExecutiveSettings::class)
         ->assertSet('anthropic_api_key', null)
         ->assertSet('gemini_api_key', null)
+        ->assertSet('microsoft_client_id', null)
+        ->assertSet('microsoft_client_secret', null)
+        ->assertSet('microsoft_tenant_id', null)
         ->set('anthropic_api_key', 'sk-ant-my-personal-key')
         ->set('gemini_api_key', 'AIzaSy-my-personal-key')
+        ->set('microsoft_client_id', 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
+        ->set('microsoft_client_secret', 'my-m365-client-secret')
+        ->set('microsoft_tenant_id', 'ffffffff-0000-1111-2222-333333333333')
         ->call('save')
         ->assertHasNoErrors();
 
     $fresh = $user->fresh();
     expect($fresh->anthropic_api_key)->toBe('sk-ant-my-personal-key');
     expect($fresh->gemini_api_key)->toBe('AIzaSy-my-personal-key');
+    expect($fresh->microsoft_client_id)->toBe('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+    expect($fresh->microsoft_client_secret)->toBe('my-m365-client-secret');
+    expect($fresh->microsoft_tenant_id)->toBe('ffffffff-0000-1111-2222-333333333333');
+});
+
+test('executive settings page validates connection probes and handles diagnostic error reporting', function () {
+    $user = User::create([
+        'name' => 'Probe Exec',
+        'email' => 'probe_exec@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    // Test invalid format
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('anthropic_api_key', 'invalid-key-no-prefix')
+        ->call('testAiConnection')
+        ->assertSet('aiProbeStatus', 'error')
+        ->assertSee('Format Error');
+
+    // Test valid probe
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('anthropic_api_key', 'sk-ant-api03-valid-key-pattern')
+        ->call('testAiConnection')
+        ->assertSet('aiProbeStatus', 'success');
+
+    // Test outlook probe
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('microsoft_client_id', '11111111-2222-3333-4444-555555555555')
+        ->set('microsoft_client_secret', 'secret-val')
+        ->set('microsoft_tenant_id', '66666666-7777-8888-9999-000000000000')
+        ->call('testOutlookConnection')
+        ->assertSet('outlookProbeStatus', 'success');
+});
+
+test('outlook mcp bridge resolves user credentials dynamically', function () {
+    $user = User::create([
+        'name' => 'Outlook Exec',
+        'email' => 'outlook_exec@dpik.com.my',
+        'password' => bcrypt('password'),
+        'microsoft_client_id' => 'custom-client-id-uuid',
+        'microsoft_client_secret' => 'custom-secret-val',
+        'microsoft_tenant_id' => 'custom-tenant-uuid',
+    ]);
+
+    $bridge = app(OutlookMcpBridge::class)->forUser($user);
+
+    expect($bridge->getClientId())->toBe('custom-client-id-uuid');
+    expect($bridge->getClientSecret())->toBe('custom-secret-val');
+    expect($bridge->getTenantId())->toBe('custom-tenant-uuid');
 });
 
 test('llm gateway prioritizes user configured keys over system config keys', function () {

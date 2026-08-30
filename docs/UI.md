@@ -244,3 +244,31 @@ The dashboard answers *"what needs me today?"* in one screen, top-to-bottom by u
    - `prefers-reduced-motion` disables streaming shimmer, pulse, and sheet-spring animations.
    - Streaming Copilot output announces via `aria-live="polite"`; action card approval buttons carry explicit `aria-label`s naming the consequence (*"Approve and send email to …"*).
 5. **Language**: UI chrome is English; user content (notes, drafts, register entries) is bilingual-friendly (Bahasa Malaysia / English) with no translation framework in Phase 1.
+
+---
+
+## [UI-13] Executive Settings, Live Probes & Error Diagnostic UI (ADR-017)
+
+Governed by [`ADR-017`](adr/ADR-017-runtime-integrations-and-graceful-error-fallback-guards.md) and [`docs/CONFIGURABLES.md`](CONFIGURABLES.md), the **Executive Settings** interface (`/admin/executive-settings`) serves as the calm control center for sovereign credentials and live provider diagnostics:
+
+### 1. Visual Structure & Layout
+- **Two-Column Card Organization**:
+  - **Column 1: AI Provider Credentials**: Masked password inputs for Anthropic (`sk-ant-api03-...`) and Gemini (`AIzaSy...`) with live latency badges.
+  - **Column 2: Microsoft 365 / Outlook Integration**: Form inputs for `microsoft_client_id` (UUID), `microsoft_client_secret` (masked), and `microsoft_tenant_id` (UUID).
+- **Interactive Preflight Probes**:
+  - Each section provides a dedicated **[Test Connection]** action that displays a live status badge:
+    - 🟢 `Connected (214ms)`
+    - 🟡 `Fallback Active (Gemini)`
+    - 🔴 `Authentication Error`
+
+### 2. Provider-Direct Error Diagnostic Cards
+When a provider returns an authentication or validation failure, the UI renders a high-visibility, calm diagnostic card:
+- **Exact Upstream Error Display**: Outputs the exact sanitized provider error message (e.g. `AADSTS7000215: Invalid client secret provided`).
+- **Actionable Remediation Guide**: Displays numbered step-by-step instructions on where to generate or verify the credential in the provider's console.
+- **Deep-Links**: Direct links to `console.anthropic.com`, `aistudio.google.com`, or `portal.azure.com`.
+
+### 3. Real-Time Topbar & Copilot Sync
+- Saving settings dispatches Livewire events (`executive-settings-saved`, `outlook-status-changed`).
+- Global panel topbar and Copilot drawer (`Cmd+J`) badges update state immediately without page refreshes.
+- If an executive invokes an email preset without Outlook configured, an inline warning CTA card seamlessly directs them to `/admin/executive-settings`.
+
