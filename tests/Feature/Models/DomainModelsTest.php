@@ -70,7 +70,7 @@ test('domain models instantiate relationships properly', function () {
 
     $profile = UserPersonalizationProfile::create([
         'user_id' => $user->id,
-        'persona_archetype' => 'Calm Executive',
+        'persona_summary' => 'Calm Executive',
     ]);
     expect($profile->user())->toBeInstanceOf(BelongsTo::class);
 

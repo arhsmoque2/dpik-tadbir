@@ -10,6 +10,8 @@ use App\Filament\Resources\PersonalTaskResource;
 use App\Filament\Resources\ProjectRegisterResource;
 use App\Filament\Widgets\ExecutiveStatsOverview;
 use App\Mcp\ToolRegistry;
+use App\Models\PersonalNote;
+use App\Models\ProjectRegistryEntry;
 use App\Models\User;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -125,4 +127,47 @@ test('filament resources and pages provide valid forms and tables configurations
     expect($registry->has('non_existent_tool'))->toBeFalse();
     expect($registry->all())->toBeArray()->toHaveCount(12);
     expect(fn () => $registry->get('invalid_tool'))->toThrow(InvalidArgumentException::class);
+});
+
+test('filament resource listings prevent N+1 queries using assertMaxQueries', function () {
+    $user = User::create([
+        'name' => 'N+1 Auditor',
+        'email' => 'nplusone@dpik.com.my',
+        'password' => bcrypt('password'),
+        'role' => 'super_admin',
+    ]);
+    test()->actingAs($user);
+
+    for ($i = 1; $i <= 10; $i++) {
+        ProjectRegistryEntry::create([
+            'project_code' => "PC-2026-00{$i}",
+            'project_name' => "Project Alpha {$i}",
+            'summary' => "Summary for project {$i}",
+            'user_id' => $user->id,
+        ]);
+
+        PersonalNote::create([
+            'user_id' => $user->id,
+            'title' => "Note {$i}",
+            'content' => "Content {$i}",
+        ]);
+    }
+
+    // 1. Assert ProjectRegister query runs in constant O(1) bounded queries
+    test()->assertMaxQueries(3, function () {
+        $records = ProjectRegisterResource::getEloquentQuery()->with('user')->get();
+        expect($records)->toHaveCount(10);
+        foreach ($records as $record) {
+            expect($record->user?->name)->not->toBeEmpty();
+        }
+    });
+
+    // 2. Assert PersonalNote query runs in constant O(1) bounded queries
+    test()->assertMaxQueries(3, function () {
+        $notes = PersonalNoteResource::getEloquentQuery()->with('user')->get();
+        expect($notes)->toHaveCount(10);
+        foreach ($notes as $note) {
+            expect($note->user?->name)->not->toBeEmpty();
+        }
+    });
 });

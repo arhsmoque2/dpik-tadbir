@@ -3,7 +3,6 @@
 namespace App\Services\Ai;
 
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class LlmGatewayService
@@ -16,22 +15,63 @@ class LlmGatewayService
 
     protected string $fallbackModel;
 
+    protected ?string $activeProvider = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    protected static ?array $fakeProviders = null;
+
+    /**
+     * @var list<mixed>|null
+     */
+    protected static ?array $fakeSequence = null;
+
     public function __construct()
     {
         $this->primaryProvider = (string) Config::get('services.ai.default_provider', 'anthropic');
         $this->primaryModel = (string) Config::get('services.ai.default_model', 'claude-3-7-sonnet-20250219');
         $this->fallbackProvider = (string) Config::get('services.ai.fallback_provider', 'gemini');
         $this->fallbackModel = (string) Config::get('services.ai.fallback_model', 'gemini-2.5-flash');
+        $this->activeProvider = $this->primaryProvider;
     }
 
     public function getActiveProvider(): string
     {
-        return $this->primaryProvider;
+        return $this->activeProvider ?? $this->primaryProvider;
     }
 
     public function getActiveModel(): string
     {
-        return $this->primaryModel;
+        return ($this->activeProvider ?? $this->primaryProvider) === $this->fallbackProvider
+            ? $this->fallbackModel
+            : $this->primaryModel;
+    }
+
+    /**
+     * Set fake responses or exceptions keyed by provider name.
+     *
+     * @param  array<string, mixed>  $fakes
+     */
+    public static function fake(array $fakes): void
+    {
+        self::$fakeProviders = $fakes;
+    }
+
+    /**
+     * Set an ordered sequence of responses or exceptions.
+     *
+     * @param  list<mixed>  $sequence
+     */
+    public static function fakeSequence(array $sequence): void
+    {
+        self::$fakeSequence = $sequence;
+    }
+
+    public static function resetFakes(): void
+    {
+        self::$fakeProviders = null;
+        self::$fakeSequence = null;
     }
 
     /**
@@ -40,18 +80,34 @@ class LlmGatewayService
      * @param  list<array{role: string, content: string}>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
-        if (app()->environment('testing')) {
-            return $this->mockCompletion($messages, $tools);
+        if (self::$fakeSequence !== null && count(self::$fakeSequence) > 0) {
+            $step = array_shift(self::$fakeSequence);
+            if ($step instanceof \Throwable) {
+                throw $step;
+            }
+            if (is_array($step)) {
+                if (! isset($step['provider'])) {
+                    $step['provider'] = $this->getActiveProvider();
+                    $step['model'] = $this->getActiveModel();
+                }
+
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $step */
+                return $step;
+            }
         }
 
         try {
+            $this->activeProvider = $this->primaryProvider;
+
             return $this->invokeProvider($this->primaryProvider, $this->primaryModel, $messages, $tools, $options);
         } catch (\Throwable $e) {
             Log::warning("Primary LLM provider [{$this->primaryProvider}] failed: {$e->getMessage()}. Triggering fallback to [{$this->fallbackProvider}].");
+
+            $this->activeProvider = $this->fallbackProvider;
 
             return $this->invokeProvider($this->fallbackProvider, $this->fallbackModel, $messages, $tools, $options);
         }
@@ -61,7 +117,7 @@ class LlmGatewayService
      * @param  list<array{role: string, content: string}>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
      */
     protected function invokeProvider(
         string $provider,
@@ -70,6 +126,20 @@ class LlmGatewayService
         array $tools,
         array $options
     ): array {
+        if (self::$fakeProviders !== null && array_key_exists($provider, self::$fakeProviders)) {
+            $fake = self::$fakeProviders[$provider];
+            if ($fake instanceof \Throwable) {
+                throw $fake;
+            }
+            if (is_array($fake)) {
+                $fake['provider'] = $provider;
+                $fake['model'] = $model;
+
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $fake */
+                return $fake;
+            }
+        }
+
         // Fallback simulation or mock if no external key is configured
         $key = match ($provider) {
             'anthropic' => (string) Config::get('services.ai.anthropic_api_key'),
@@ -78,12 +148,11 @@ class LlmGatewayService
             default => '',
         };
 
-        if (empty($key)) {
-            return $this->mockCompletion($messages, $tools);
-        }
+        $mock = $this->mockCompletion($messages, $tools);
+        $mock['provider'] = $provider;
+        $mock['model'] = $model;
 
-        // Standard HTTP integration here
-        return $this->mockCompletion($messages, $tools);
+        return $mock;
     }
 
     /**

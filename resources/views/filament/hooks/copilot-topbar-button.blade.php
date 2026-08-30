@@ -3,6 +3,7 @@
         x-data
         @click="$dispatch('toggle-copilot-drawer')"
         type="button"
+        data-copilot-trigger
         class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#18191E] hover:bg-[#21232B] text-zinc-200 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/50 text-xs font-medium transition-all shadow-sm group"
         title="Toggle AI Executive Copilot (Cmd+J)"
     >

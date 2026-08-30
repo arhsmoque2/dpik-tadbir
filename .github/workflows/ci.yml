@@ -68,6 +68,28 @@ jobs:
       - name: Run Gitleaks Secret Scanner
         run: gitleaks detect --source=. --verbose --redact
 
+      - name: Setup PHP for Security Preflight
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Execute Security & Policy Preflight Tests
+        run: |
+          ./vendor/bin/pest \
+            tests/Feature/Auth \
+            tests/Feature/Policies \
+            tests/Feature/Mcp/WriteSafetyProposalTest.php \
+            tests/Feature/Ai/PiiStorageSanitizationTest.php
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          APP_ENV: testing
+
   static-analysis:
     name: "Gate 1: PHP Lint, Typecheck & Unused Audit"
     runs-on: ubuntu-latest
@@ -105,6 +127,15 @@ jobs:
       - name: Run Larastan / PHPStan (Level 8)
         if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/phpstan analyse --level=8 --memory-limit=1G
+
+      - name: Run Filament v4 Static Analysis (FilaCheck)
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: |
+          if [ -f "./vendor/bin/filacheck" ]; then
+            ./vendor/bin/filacheck app/Filament
+          else
+            php vendor/laraveldaily/filacheck/bin/filacheck app/Filament
+          fi
 
       - name: Run Composer Unused Audit
         if: steps.check_composer.outputs.has_composer == 'true'
@@ -145,7 +176,7 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Execute Hermetic Pest Suite (Unit, Integration, Security Policies)
+      - name: Execute Hermetic Pest Suite (Unit, Integration, AI Resilience)
         if: steps.check_composer.outputs.has_composer == 'true'
         run: ./vendor/bin/pest --coverage-clover coverage.xml --parallel
         env:
@@ -165,24 +196,61 @@ jobs:
             --fail-under 90
 
   ui-layout-audit:
-    name: "Gate 4: Playwright UI & Layout Audit"
+    name: "Gate 4: Playwright E2E, Visual & Accessibility QA"
     runs-on: ubuntu-latest
     needs: [static-analysis, test-and-coverage]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Check if application and tests are scaffolded
-        id: check_ui
-        run: |
-          if [ -f "composer.json" ] && [ -d "tests/Browser" ]; then
-            echo "has_ui_tests=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_ui_tests=false" >> $GITHUB_OUTPUT
-            echo "UI and browser test suite not yet scaffolded (specifications phase) — skipping Playwright layout audit."
-          fi
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
+          coverage: none
 
-      - name: Run Playwright Layout & State Auditor
-        if: steps.check_ui.outputs.has_ui_tests == 'true'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Install Node Dependencies
+        run: pnpm install
+
+      - name: Install Playwright Browsers with OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Bootstrap Test Environment & File-Backed Database
         run: |
-          npx playwright test --config=playwright.config.ts
+          cp .env.example .env.testing
+          sed -i 's|DB_DATABASE=.*|DB_DATABASE=database/testing.sqlite|g' .env.testing
+          sed -i 's|SESSION_DRIVER=.*|SESSION_DRIVER=database|g' .env.testing
+          sed -i 's|CACHE_STORE=.*|CACHE_STORE=database|g' .env.testing
+          php artisan key:generate --env=testing
+          touch database/testing.sqlite
+          php artisan migrate:fresh --seed --env=testing --force
+
+      - name: Run Playwright E2E & Visual Regression Suite
+        run: npx playwright test --config=playwright.config.ts
+        env:
+          CI: true
+          APP_ENV: testing
+
+      - name: Upload Playwright Test Artifacts & Visual Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

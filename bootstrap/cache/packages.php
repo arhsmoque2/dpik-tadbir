@@ -6,42 +6,6 @@
       'EloquentSerialize' => 'AnourValar\\EloquentSerialize\\Facades\\EloquentSerializeFacade',
     ),
   ),
-  'barryvdh/laravel-debugbar' => 
-  array (
-    'aliases' => 
-    array (
-      'Debugbar' => 'Fruitcake\\LaravelDebugbar\\Facades\\Debugbar',
-    ),
-    'providers' => 
-    array (
-      0 => 'Fruitcake\\LaravelDebugbar\\ServiceProvider',
-    ),
-  ),
-  'barryvdh/laravel-ide-helper' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Barryvdh\\LaravelIdeHelper\\IdeHelperServiceProvider',
-    ),
-  ),
-  'bezhansalleh/filament-plugin-essentials' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'BezhanSalleh\\PluginEssentials\\PluginEssentialsServiceProvider',
-    ),
-  ),
-  'bezhansalleh/filament-shield' => 
-  array (
-    'aliases' => 
-    array (
-      'FilamentShield' => 'BezhanSalleh\\FilamentShield\\Facades\\FilamentShield',
-    ),
-    'providers' => 
-    array (
-      0 => 'BezhanSalleh\\FilamentShield\\FilamentShieldServiceProvider',
-    ),
-  ),
   'blade-ui-kit/blade-heroicons' => 
   array (
     'providers' => 
@@ -126,11 +90,18 @@
       0 => 'Filament\\Widgets\\WidgetsServiceProvider',
     ),
   ),
-  'jibaymcs/filament-tour' => 
+  'gsferro/generate-tests-easy' => 
   array (
     'providers' => 
     array (
-      0 => 'JibayMcs\\FilamentTour\\FilamentTourServiceProvider',
+      0 => 'Gsferro\\GenerateTestsEasy\\Providers\\GenerateTestsEasyServiceProvider',
+    ),
+  ),
+  'joshcirre/laravel-doctor' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Josh\\LaravelDoctor\\LaravelDoctorServiceProvider',
     ),
   ),
   'kirschbaum-development/eloquent-power-joins' => 
@@ -140,33 +111,29 @@
       0 => 'Kirschbaum\\PowerJoins\\PowerJoinsServiceProvider',
     ),
   ),
-  'laravel/octane' => 
+  'laravel/boost' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Laravel\\Boost\\BoostServiceProvider',
+    ),
+  ),
+  'laravel/mcp' => 
   array (
     'aliases' => 
     array (
-      'Octane' => 'Laravel\\Octane\\Facades\\Octane',
+      'Mcp' => 'Laravel\\Mcp\\Facades\\Mcp',
     ),
     'providers' => 
     array (
-      0 => 'Laravel\\Octane\\OctaneServiceProvider',
+      0 => 'Laravel\\Mcp\\Server\\McpServiceProvider',
     ),
   ),
-  'laravel/pail' => 
+  'laravel/roster' => 
   array (
     'providers' => 
     array (
-      0 => 'Laravel\\Pail\\PailServiceProvider',
-    ),
-  ),
-  'laravel/pulse' => 
-  array (
-    'aliases' => 
-    array (
-      'Pulse' => 'Laravel\\Pulse\\Facades\\Pulse',
-    ),
-    'providers' => 
-    array (
-      0 => 'Laravel\\Pulse\\PulseServiceProvider',
+      0 => 'Laravel\\Roster\\RosterServiceProvider',
     ),
   ),
   'laravel/sail' => 
@@ -176,36 +143,18 @@
       0 => 'Laravel\\Sail\\SailServiceProvider',
     ),
   ),
-  'laravel/sentinel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Sentinel\\SentinelServiceProvider',
-    ),
-  ),
-  'laravel/socialite' => 
-  array (
-    'aliases' => 
-    array (
-      'Socialite' => 'Laravel\\Socialite\\Facades\\Socialite',
-    ),
-    'providers' => 
-    array (
-      0 => 'Laravel\\Socialite\\SocialiteServiceProvider',
-    ),
-  ),
-  'laravel/telescope' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Telescope\\TelescopeServiceProvider',
-    ),
-  ),
   'laravel/tinker' => 
   array (
     'providers' => 
     array (
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    ),
+  ),
+  'laraveldaily/filacheck' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Filacheck\\FilacheckServiceProvider',
     ),
   ),
   'livewire/livewire' => 
@@ -219,15 +168,10 @@
       0 => 'Livewire\\LivewireServiceProvider',
     ),
   ),
-  'maatwebsite/excel' => 
+  'lukaszzychal/phpstan-fixer' => 
   array (
-    'aliases' => 
+    'dont-discover' => 
     array (
-      'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
-    ),
-    'providers' => 
-    array (
-      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     ),
   ),
   'nesbot/carbon' => 
@@ -251,17 +195,6 @@
       0 => 'Termwind\\Laravel\\TermwindServiceProvider',
     ),
   ),
-  'offload-project/laravel-invite-only' => 
-  array (
-    'aliases' => 
-    array (
-      'InviteOnly' => 'OffloadProject\\InviteOnly\\Facades\\InviteOnly',
-    ),
-    'providers' => 
-    array (
-      0 => 'OffloadProject\\InviteOnly\\InviteOnlyServiceProvider',
-    ),
-  ),
   'pestphp/pest-plugin-laravel' => 
   array (
     'providers' => 
@@ -280,11 +213,11 @@
       0 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
     ),
   ),
-  'solution-forest/tab-layout-plugin' => 
+  'sophireak/laracheck' => 
   array (
     'providers' => 
     array (
-      0 => 'SolutionForest\\TabLayoutPlugin\\TabLayoutPluginServiceProvider',
+      0 => 'Sophireak\\Laracheck\\LaracheckServiceProvider',
     ),
   ),
   'spatie/laravel-activitylog' => 
@@ -294,18 +227,25 @@
       0 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
     ),
   ),
-  'spatie/laravel-permission' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Spatie\\Permission\\PermissionServiceProvider',
-    ),
-  ),
   'spatie/laravel-settings' => 
   array (
     'providers' => 
     array (
       0 => 'Spatie\\LaravelSettings\\LaravelSettingsServiceProvider',
+    ),
+  ),
+  'tranquil-tools/laravel-pest-recorder' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'TranquilTools\\PestRecorder\\PestRecorderServiceProvider',
+    ),
+  ),
+  'webcrafts-studio/lens-for-laravel' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'LensForLaravel\\LensForLaravel\\LensForLaravelServiceProvider',
     ),
   ),
 );

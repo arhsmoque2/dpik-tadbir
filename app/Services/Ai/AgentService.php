@@ -15,11 +15,14 @@ class AgentService
         protected LlmGatewayService $llmGateway,
         protected ToolRegistry $toolRegistry,
         protected AntiHallucinationGuard $guard,
-        protected MemoryRetrievalService $memory
+        protected MemoryRetrievalService $memory,
+        protected AiRunRecorder $recorder,
+        protected PiiDetector $piiDetector
     ) {}
 
     public function handleUserTurn(ChatSession $session, string $prompt): AiTurnResponse
     {
+        $startTime = microtime(true);
         // 1. Record User Message
         ChatMessage::create([
             'chat_session_id' => $session->id,
@@ -49,9 +52,47 @@ class AgentService
             ];
         }
 
-        // 4. Query LLM with Tool Schemas
+        // 4. Query LLM with Tool Schemas & Resilient Error Handling
         $tools = $this->toolRegistry->getLlmToolDefinitions();
-        $completion = $this->llmGateway->complete($messages, $tools);
+        $completion = null;
+
+        try {
+            $completion = $this->llmGateway->complete($messages, $tools);
+        } catch (\Throwable $e) {
+            $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+            $redactedError = $this->piiDetector->redact($e->getMessage());
+            Log::error("Upstream AI provider error: {$redactedError}");
+
+            // Persist failed run with error details and PII redaction
+            $this->recorder->recordFailure(
+                session: $session,
+                provider: $this->llmGateway->getActiveProvider(),
+                model: $this->llmGateway->getActiveModel(),
+                prompt: $prompt,
+                exception: $e,
+                latencyMs: $latencyMs
+            );
+
+            $friendlyMessage = 'DPIK Tadbir AI is experiencing high upstream traffic or temporary rate limits. Please try again in a few moments.';
+
+            // Record Assistant Message with failure notice and sanitized error
+            ChatMessage::create([
+                'chat_session_id' => $session->id,
+                'role' => 'assistant',
+                'content' => $friendlyMessage,
+                'metadata' => [
+                    'status' => 'failed',
+                    'error' => $redactedError,
+                ],
+            ]);
+
+            return new AiTurnResponse(
+                content: $friendlyMessage,
+                status: 'failed',
+                suspendedToolCall: null,
+                executedActions: []
+            );
+        }
 
         // 5. Handle Tool Calls
         $executedActions = [];
@@ -115,6 +156,25 @@ class AgentService
                 'executed_actions_count' => count($turnResponse->executedActions),
             ],
         ]);
+
+        // 8. Record Observability & Telemetry Run
+        $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+        $actualProvider = $completion['provider'];
+        $actualModel = $completion['model'];
+
+        $this->recorder->record(
+            session: $session,
+            provider: $actualProvider,
+            model: $actualModel,
+            prompt: $prompt,
+            responseContent: $turnResponse->content,
+            latencyMs: $latencyMs,
+            status: $turnResponse->status,
+            metadata: [
+                'executed_actions_count' => count($turnResponse->executedActions),
+                'has_suspended_tool' => $turnResponse->suspendedToolCall !== null,
+            ]
+        );
 
         return $turnResponse;
     }

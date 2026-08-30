@@ -12,6 +12,7 @@ use App\Policies\ChatSessionPolicy;
 use App\Policies\ExecutivePresetPolicy;
 use App\Policies\PersonalNotePolicy;
 use App\Policies\PersonalTaskPolicy;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Model::preventLazyLoading(! $this->app->isProduction());
+        Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
+
         Gate::policy(PersonalNote::class, PersonalNotePolicy::class);
         Gate::policy(PersonalTask::class, PersonalTaskPolicy::class);
         Gate::policy(ExecutivePreset::class, ExecutivePresetPolicy::class);

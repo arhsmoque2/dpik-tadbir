@@ -58,7 +58,7 @@ class AllowedRegistrationEmailResource extends Resource
             ->actions([
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

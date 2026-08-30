@@ -9,9 +9,13 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint:doc": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#vendor\"",
-    "lint:spell": "cspell --no-progress \"**/*.md\" \"docs/**/*.json\""
+    "lint:spell": "cspell --no-progress \"**/*.md\" \"docs/**/*.json\"",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test tests/Browser/04-visual-and-accessibility.spec.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.0.0",
     "laravel-vite-plugin": "^1.2.0",
     "prettier": "3.9.6",
