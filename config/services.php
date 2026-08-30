@@ -8,6 +8,7 @@ return [
         'fallback_model' => env('AI_FALLBACK_MODEL', 'gemini-2.5-flash'),
         'anthropic_api_key' => env('ANTHROPIC_API_KEY'),
         'gemini_api_key' => env('GEMINI_API_KEY'),
+        'openrouter_api_key' => env('OPENROUTER_API_KEY'),
         'openai_api_key' => env('OPENAI_API_KEY'),
     ],
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\User;
+use App\Services\Ai\LlmGatewayService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -26,6 +27,14 @@ class ExecutiveSettings extends Page
 
     public ?string $gemini_api_key = null;
 
+    public ?string $openrouter_api_key = null;
+
+    public ?string $favorite_model_1 = 'anthropic:claude-3-7-sonnet-20250219';
+
+    public ?string $favorite_model_2 = 'openrouter:deepseek/deepseek-r1';
+
+    public ?string $favorite_model_3 = 'gemini:gemini-2.5-flash';
+
     public ?string $microsoft_client_id = null;
 
     public ?string $microsoft_client_secret = null;
@@ -39,6 +48,14 @@ class ExecutiveSettings extends Page
     public ?string $aiProbeRemediation = null;
 
     public int $aiLatencyMs = 0;
+
+    public ?string $openrouterProbeStatus = null;
+
+    public ?string $openrouterProbeMessage = null;
+
+    public ?string $openrouterProbeRemediation = null;
+
+    public int $openrouterLatencyMs = 0;
 
     public ?string $outlookProbeStatus = null;
 
@@ -56,21 +73,43 @@ class ExecutiveSettings extends Page
         if ($user) {
             $this->anthropic_api_key = $user->anthropic_api_key;
             $this->gemini_api_key = $user->gemini_api_key;
+            $this->openrouter_api_key = $user->openrouter_api_key;
+            $this->favorite_model_1 = $user->favorite_model_1 ?? 'anthropic:claude-3-7-sonnet-20250219';
+            $this->favorite_model_2 = $user->favorite_model_2 ?? 'openrouter:deepseek/deepseek-r1';
+            $this->favorite_model_3 = $user->favorite_model_3 ?? 'gemini:gemini-2.5-flash';
             $this->microsoft_client_id = $user->microsoft_client_id;
             $this->microsoft_client_secret = $user->microsoft_client_secret;
             $this->microsoft_tenant_id = $user->microsoft_tenant_id;
         }
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function getAvailableModelOptions(): array
+    {
+        return [
+            'anthropic:claude-3-7-sonnet-20250219' => 'Anthropic · Claude 3.7 Sonnet (Hybrid Reasoning)',
+            'openrouter:deepseek/deepseek-r1' => 'OpenRouter · DeepSeek R1 (Complex Logic & Math)',
+            'gemini:gemini-2.5-flash' => 'Google · Gemini 2.5 Flash (Ultra High-Speed Summaries)',
+            'openrouter:anthropic/claude-3.7-sonnet' => 'OpenRouter · Claude 3.7 Sonnet (Reasoning)',
+            'openrouter:google/gemini-2.5-pro' => 'OpenRouter · Gemini 2.5 Pro (Deep Research)',
+            'openrouter:openai/gpt-4o' => 'OpenRouter · GPT-4o (Multimodal Omni)',
+            'openrouter:meta-llama/llama-3.3-70b-instruct' => 'OpenRouter · Llama 3.3 70B Instruct',
+            'gemini:gemini-2.5-pro' => 'Google · Gemini 2.5 Pro (Native Direct)',
+        ];
+    }
+
     public function testAiConnection(): void
     {
         $anthropicKey = trim((string) $this->anthropic_api_key);
         $geminiKey = trim((string) $this->gemini_api_key);
+        $openrouterKey = trim((string) $this->openrouter_api_key);
 
-        if (empty($anthropicKey) && empty($geminiKey)) {
+        if (empty($anthropicKey) && empty($geminiKey) && empty($openrouterKey)) {
             $this->aiProbeStatus = 'error';
             $this->aiProbeMessage = 'No personal AI API keys provided. The system will fall back to central environment credentials.';
-            $this->aiProbeRemediation = 'Provide an Anthropic API key (starting with sk-ant-api03-) or Google Gemini key (starting with AIzaSy).';
+            $this->aiProbeRemediation = 'Provide an Anthropic API key (starting with sk-ant-api03-), Google Gemini key (starting with AIzaSy), or OpenRouter key (starting with sk-or-v1-).';
 
             return;
         }
@@ -91,6 +130,14 @@ class ExecutiveSettings extends Page
             return;
         }
 
+        if (! empty($openrouterKey) && ! str_starts_with($openrouterKey, 'sk-or-v1-')) {
+            $this->aiProbeStatus = 'error';
+            $this->aiProbeMessage = 'Format Error: OpenRouter API key must begin with "sk-or-v1-".';
+            $this->aiProbeRemediation = 'Copy your OpenRouter API key from https://openrouter.ai/keys.';
+
+            return;
+        }
+
         $this->aiProbeStatus = 'success';
         $this->aiLatencyMs = 180;
         $this->aiProbeMessage = 'AI Provider preflight probe succeeded. Primary reasoning and fallback routing active.';
@@ -101,6 +148,37 @@ class ExecutiveSettings extends Page
             ->body('Your sovereign AI API keys validated successfully.')
             ->success()
             ->send();
+    }
+
+    public function testOpenRouterConnection(): void
+    {
+        /** @var LlmGatewayService $gateway */
+        $gateway = app(LlmGatewayService::class);
+
+        $result = $gateway->probeOpenRouterKey($this->openrouter_api_key);
+        $this->openrouterLatencyMs = $result['latency_ms'];
+
+        if ($result['success']) {
+            $this->openrouterProbeStatus = 'success';
+            $this->openrouterProbeMessage = 'OpenRouter multi-model catalog probe connected successfully.';
+            $this->openrouterProbeRemediation = null;
+
+            Notification::make()
+                ->title('OpenRouter Connection Verified')
+                ->body('Unified gateway credentials validated. Top-3 model swapper active.')
+                ->success()
+                ->send();
+        } else {
+            $this->openrouterProbeStatus = 'error';
+            $this->openrouterProbeMessage = $result['error_message'] ?? 'Authentication failed.';
+            $this->openrouterProbeRemediation = $result['remediation'] ?? 'Verify credentials at openrouter.ai/keys.';
+
+            Notification::make()
+                ->title('OpenRouter Probe Failed')
+                ->body($this->openrouterProbeMessage)
+                ->danger()
+                ->send();
+        }
     }
 
     public function testOutlookConnection(): void
@@ -152,6 +230,17 @@ class ExecutiveSettings extends Page
         $uuidRegex = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
         $clientId = filled($this->microsoft_client_id) ? trim((string) $this->microsoft_client_id) : null;
         $tenantId = filled($this->microsoft_tenant_id) ? trim((string) $this->microsoft_tenant_id) : null;
+        $openrouterKey = filled($this->openrouter_api_key) ? trim((string) $this->openrouter_api_key) : null;
+
+        if ($openrouterKey && ! str_starts_with($openrouterKey, 'sk-or-v1-')) {
+            Notification::make()
+                ->title('Invalid OpenRouter API Key Format')
+                ->body('OpenRouter API key must begin with "sk-or-v1-".')
+                ->danger()
+                ->send();
+
+            return;
+        }
 
         if ($clientId && ! preg_match($uuidRegex, $clientId)) {
             Notification::make()
@@ -176,6 +265,10 @@ class ExecutiveSettings extends Page
         $user->update([
             'anthropic_api_key' => filled($this->anthropic_api_key) ? trim((string) $this->anthropic_api_key) : null,
             'gemini_api_key' => filled($this->gemini_api_key) ? trim((string) $this->gemini_api_key) : null,
+            'openrouter_api_key' => $openrouterKey,
+            'favorite_model_1' => filled($this->favorite_model_1) ? trim((string) $this->favorite_model_1) : 'anthropic:claude-3-7-sonnet-20250219',
+            'favorite_model_2' => filled($this->favorite_model_2) ? trim((string) $this->favorite_model_2) : 'openrouter:deepseek/deepseek-r1',
+            'favorite_model_3' => filled($this->favorite_model_3) ? trim((string) $this->favorite_model_3) : 'gemini:gemini-2.5-flash',
             'microsoft_client_id' => $clientId,
             'microsoft_client_secret' => filled($this->microsoft_client_secret) ? trim((string) $this->microsoft_client_secret) : null,
             'microsoft_tenant_id' => $tenantId,
@@ -191,10 +284,11 @@ class ExecutiveSettings extends Page
 
         $this->dispatch('executive-settings-saved');
         $this->dispatch('outlook-status-changed');
+        $this->dispatch('copilot-model-changed');
 
         Notification::make()
             ->title('Settings Saved Successfully')
-            ->body('Your sovereign AI API keys and Microsoft Graph credentials have been saved securely.')
+            ->body('Your sovereign AI API keys, favorite models, and Microsoft Graph credentials have been saved securely.')
             ->success()
             ->send();
     }

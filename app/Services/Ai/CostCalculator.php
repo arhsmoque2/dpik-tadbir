@@ -15,8 +15,13 @@ class CostCalculator
         'claude-3-5-haiku-20241022' => ['input' => 0.80, 'output' => 4.00],
         'gemini-2.5-flash' => ['input' => 0.15, 'output' => 0.60],
         'gemini-2.0-pro' => ['input' => 1.25, 'output' => 5.00],
+        'gemini-2.5-pro' => ['input' => 1.25, 'output' => 5.00],
         'gpt-4o' => ['input' => 2.50, 'output' => 10.00],
         'gpt-4o-mini' => ['input' => 0.15, 'output' => 0.60],
+        'deepseek/deepseek-r1' => ['input' => 0.55, 'output' => 2.19],
+        'anthropic/claude-3.7-sonnet' => ['input' => 3.00, 'output' => 15.00],
+        'google/gemini-2.5-pro' => ['input' => 1.25, 'output' => 5.00],
+        'meta-llama/llama-3.3-70b-instruct' => ['input' => 0.40, 'output' => 0.40],
     ];
 
     protected float $myrExchangeRate = 4.45;

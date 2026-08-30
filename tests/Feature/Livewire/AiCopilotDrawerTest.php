@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\AiCopilotDrawer;
+use App\Models\AiRun;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\ExecutivePreset;
@@ -169,4 +170,80 @@ test('copilot drawer creates new session and switches session', function () {
 
     $component->call('switchSession', $initialSessionId);
     expect($component->get('activeSessionId'))->toBe($initialSessionId);
+});
+
+test('copilot drawer supports runtime 3-favorites model swapping and passes active model to turns', function () {
+    $this->user->update([
+        'favorite_model_1' => 'anthropic:claude-3-7-sonnet-20250219',
+        'favorite_model_2' => 'openrouter:deepseek/deepseek-r1',
+        'favorite_model_3' => 'gemini:gemini-2.5-flash',
+    ]);
+
+    $component = Livewire::actingAs($this->user)
+        ->test(AiCopilotDrawer::class)
+        ->assertSet('activeProvider', 'anthropic')
+        ->assertSet('activeModel', 'claude-3-7-sonnet-20250219')
+        ->assertSee('Anthropic · Claude 3.7 Sonnet')
+        // Toggle popover
+        ->call('toggleModelSwapper')
+        ->assertSet('isModelSwapperOpen', true)
+        // Select slot 2 (OpenRouter DeepSeek R1)
+        ->call('selectModel', 'openrouter:deepseek/deepseek-r1')
+        ->assertSet('activeProvider', 'openrouter')
+        ->assertSet('activeModel', 'deepseek/deepseek-r1')
+        ->assertSet('isModelSwapperOpen', false)
+        ->assertSee('OpenRouter · DeepSeek R1');
+
+    // Send turn with swapped model
+    $component->set('inputPrompt', 'Deep mathematical breakdown of project variance')
+        ->call('sendMessage')
+        ->assertSet('isProcessing', false);
+
+    // Verify AiRun records openrouter provider and deepseek model
+    $latestRun = AiRun::latest('id')->first();
+    expect($latestRun)->not->toBeNull();
+    expect($latestRun->provider)->toBe('openrouter');
+    expect($latestRun->model)->toBe('deepseek/deepseek-r1');
+});
+
+test('copilot drawer parses various model tuple formats and renders correct labels', function () {
+    $component = Livewire::actingAs($this->user)->test(AiCopilotDrawer::class);
+
+    // slash formats
+    $component->call('selectModel', 'anthropic/claude-3.7-sonnet');
+    expect($component->get('activeProvider'))->toBe('anthropic');
+    expect($component->get('activeModel'))->toBe('claude-3-7-sonnet-20250219');
+    expect($component->instance()->getActiveModelBadgeLabel())->toBe('Anthropic · Claude 3.7 Sonnet');
+
+    $component->call('selectModel', 'google/gemini-2.5-pro');
+    expect($component->get('activeProvider'))->toBe('gemini');
+    expect($component->get('activeModel'))->toBe('gemini-2.5-pro');
+    expect($component->instance()->getActiveModelBadgeLabel())->toBe('Google · Gemini 2.5 Pro');
+
+    $component->call('selectModel', 'openrouter/deepseek/deepseek-r1');
+    expect($component->get('activeProvider'))->toBe('openrouter');
+    expect($component->get('activeModel'))->toBe('deepseek/deepseek-r1');
+
+    $component->call('selectModel', 'meta-llama/llama-3.3-70b-instruct');
+    expect($component->get('activeProvider'))->toBe('openrouter');
+
+    $component->call('selectModel', 'custom-raw-model');
+    expect($component->get('activeProvider'))->toBe('anthropic');
+    expect($component->get('activeModel'))->toBe('custom-raw-model');
+
+    // custom provider badge label
+    $component->set('activeProvider', 'custom-llm');
+    expect($component->instance()->getActiveModelBadgeLabel())->toContain('Custom-llm');
+});
+
+test('copilot drawer responds to copilot-model-changed event', function () {
+    $component = Livewire::actingAs($this->user)->test(AiCopilotDrawer::class);
+
+    $component->dispatch('copilot-model-changed', provider: 'gemini', model: 'gemini-2.5-flash');
+    expect($component->get('activeProvider'))->toBe('gemini');
+    expect($component->get('activeModel'))->toBe('gemini-2.5-flash');
+
+    // dispatched without args re-initializes from user
+    $component->dispatch('copilot-model-changed');
+    expect($component->get('activeProvider'))->toBe('anthropic');
 });

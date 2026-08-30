@@ -61,7 +61,76 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2.5">
+                <!-- Two-Tier Model Selector (ADR-018 / UI-14) -->
+                <div class="relative" x-data="{ open: @entangle('isModelSwapperOpen') }">
+                    <button
+                        type="button"
+                        @click="open = !open"
+                        class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-all font-mono"
+                        title="Runtime Model Swapper (ADR-018)"
+                    >
+                        <svg class="w-3.5 h-3.5 text-[#C9A36D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                        <span class="truncate max-w-[170px]">{{ $this->getActiveModelBadgeLabel() }}</span>
+                        <svg class="w-3 h-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Ephemeral 3-Favorites Quick-Switcher Popover -->
+                    <div
+                        x-show="open"
+                        @click.outside="open = false"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 translate-y-1"
+                        class="absolute right-0 mt-2 w-72 bg-[#18191E] border border-[#2C2F38] rounded-xl shadow-2xl z-50 p-2 space-y-1"
+                        style="display: none;"
+                    >
+                        <div class="px-2 py-1.5 border-b border-[#2C2F38] flex items-center justify-between">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Top-3 Favorites</span>
+                            <span class="text-[10px] text-zinc-500 font-mono">1-Click Swap</span>
+                        </div>
+
+                        <div class="space-y-1 py-1">
+                            @foreach($this->favoriteModels as $fav)
+                                <button
+                                    type="button"
+                                    wire:click="selectModel('{{ $fav['tuple'] }}')"
+                                    class="w-full text-left px-2.5 py-2 rounded-lg text-xs transition-colors flex items-center justify-between {{ $fav['is_active'] ? 'bg-[#21232B] text-white border border-[#429A6A]/40' : 'text-zinc-300 hover:bg-[#21232B] hover:text-white border border-transparent' }}"
+                                >
+                                    <div class="flex items-center space-x-2 truncate">
+                                        <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $fav['is_active'] ? 'bg-[#429A6A]' : 'bg-zinc-600' }}"></span>
+                                        <span class="truncate">{{ $fav['label'] }}</span>
+                                    </div>
+                                    @if($fav['is_active'])
+                                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#429A6A]/20 text-[#429A6A] shrink-0 font-medium">Active</span>
+                                    @else
+                                        <span class="text-[10px] text-zinc-500 hover:text-zinc-300 shrink-0 font-mono">Slot {{ $fav['slot'] }}</span>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="pt-1.5 border-t border-[#2C2F38] px-2 py-1">
+                            <a
+                                href="/admin/executive-settings"
+                                class="text-[11px] text-zinc-400 hover:text-[#C9A36D] transition-colors flex items-center justify-between group"
+                            >
+                                <span>Configure Favorites in Settings</span>
+                                <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#C9A36D] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <button
                     wire:click="newSession"
                     type="button"
