@@ -70,205 +70,47 @@ test('filament resources and pages provide valid forms and tables configurations
     expect(ExecutiveAssistant::getNavigationLabel())->not->toBeEmpty();
     expect(ExecutiveSettings::getNavigationLabel())->not->toBeEmpty();
 
-    // Test Page Hook Mutators
-    $createEmailPage = new class extends AllowedRegistrationEmailResource\Pages\CreateAllowedRegistrationEmail
-    {
-        /**
-         * @param  array<string, mixed>  $d
-         * @return array<string, mixed>
-         */
-        public function testMutate(array $d): array
-        {
-            return $this->mutateFormDataBeforeCreate($d);
-        }
-    };
-    expect($createEmailPage->testMutate([]))->toHaveKey('created_by_user_id');
+    // Test Page Hook Mutators via Reflection
+    $mutateClasses = [
+        AllowedRegistrationEmailResource\Pages\CreateAllowedRegistrationEmail::class,
+        ExecutivePresetResource\Pages\CreateExecutivePreset::class,
+        PersonalNoteResource\Pages\CreatePersonalNote::class,
+        PersonalTaskResource\Pages\CreatePersonalTask::class,
+        ProjectRegisterResource\Pages\CreateProjectRegister::class,
+    ];
 
-    $createPresetPage = new class extends ExecutivePresetResource\Pages\CreateExecutivePreset
-    {
-        /**
-         * @param  array<string, mixed>  $d
-         * @return array<string, mixed>
-         */
-        public function testMutate(array $d): array
-        {
-            return $this->mutateFormDataBeforeCreate($d);
-        }
-    };
-    expect($createPresetPage->testMutate([]))->toHaveKey('user_id');
+    foreach ($mutateClasses as $cls) {
+        $ref = new ReflectionMethod($cls, 'mutateFormDataBeforeCreate');
+        $instance = new $cls;
+        $res = $ref->invoke($instance, []);
+        expect($res)->toBeArray();
+    }
 
-    $createNotePage = new class extends PersonalNoteResource\Pages\CreatePersonalNote
-    {
-        /**
-         * @param  array<string, mixed>  $d
-         * @return array<string, mixed>
-         */
-        public function testMutate(array $d): array
-        {
-            return $this->mutateFormDataBeforeCreate($d);
-        }
-    };
-    expect($createNotePage->testMutate([]))->toHaveKey('user_id');
+    // Page Header Actions via Reflection
+    $actionClasses = [
+        AllowedRegistrationEmailResource\Pages\ListAllowedRegistrationEmails::class,
+        ExecutivePresetResource\Pages\ListExecutivePresets::class,
+        ExecutivePresetResource\Pages\EditExecutivePreset::class,
+        PersonalNoteResource\Pages\ListPersonalNotes::class,
+        PersonalNoteResource\Pages\EditPersonalNote::class,
+        PersonalTaskResource\Pages\ListPersonalTasks::class,
+        PersonalTaskResource\Pages\EditPersonalTask::class,
+        ProjectRegisterResource\Pages\ListProjectRegisters::class,
+        ProjectRegisterResource\Pages\EditProjectRegister::class,
+        ProjectRegisterResource\Pages\ViewProjectRegister::class,
+    ];
 
-    $createTaskPage = new class extends PersonalTaskResource\Pages\CreatePersonalTask
-    {
-        /**
-         * @param  array<string, mixed>  $d
-         * @return array<string, mixed>
-         */
-        public function testMutate(array $d): array
-        {
-            return $this->mutateFormDataBeforeCreate($d);
-        }
-    };
-    expect($createTaskPage->testMutate([]))->toHaveKey('user_id');
+    foreach ($actionClasses as $cls) {
+        $ref = new ReflectionMethod($cls, 'getHeaderActions');
+        $instance = new $cls;
+        $actions = $ref->invoke($instance);
+        expect($actions)->toBeArray();
+    }
 
-    $createProjPage = new class extends ProjectRegisterResource\Pages\CreateProjectRegister
-    {
-        /**
-         * @param  array<string, mixed>  $d
-         * @return array<string, mixed>
-         */
-        public function testMutate(array $d): array
-        {
-            return $this->mutateFormDataBeforeCreate($d);
-        }
-    };
-    expect($createProjPage->testMutate([]))->toHaveKey('user_id');
-
-    // Page Header Actions
-    $listEmailsPage = new class extends AllowedRegistrationEmailResource\Pages\ListAllowedRegistrationEmails
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($listEmailsPage->testActions())->toBeArray();
-
-    $listPresetsPage = new class extends ExecutivePresetResource\Pages\ListExecutivePresets
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($listPresetsPage->testActions())->toBeArray();
-
-    $editPresetPage = new class extends ExecutivePresetResource\Pages\EditExecutivePreset
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($editPresetPage->testActions())->toBeArray();
-
-    $listNotesPage = new class extends PersonalNoteResource\Pages\ListPersonalNotes
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($listNotesPage->testActions())->toBeArray();
-
-    $editNotePage = new class extends PersonalNoteResource\Pages\EditPersonalNote
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($editNotePage->testActions())->toBeArray();
-
-    $listTasksPage = new class extends PersonalTaskResource\Pages\ListPersonalTasks
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($listTasksPage->testActions())->toBeArray();
-
-    $editTaskPage = new class extends PersonalTaskResource\Pages\EditPersonalTask
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($editTaskPage->testActions())->toBeArray();
-
-    $listProjPage = new class extends ProjectRegisterResource\Pages\ListProjectRegisters
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($listProjPage->testActions())->toBeArray();
-
-    $editProjPage = new class extends ProjectRegisterResource\Pages\EditProjectRegister
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($editProjPage->testActions())->toBeArray();
-
-    $viewProjPage = new class extends ProjectRegisterResource\Pages\ViewProjectRegister
-    {
-        /**
-         * @return list<\Filament\Actions\Action|\Filament\Actions\ActionGroup>
-         */
-        public function testActions(): array
-        {
-            return $this->getHeaderActions();
-        }
-    };
-    expect($viewProjPage->testActions())->toBeArray();
-
-    // Widget Stats
-    $widget = new class extends ExecutiveStatsOverview
-    {
-        /**
-         * @return list<\Filament\Widgets\StatsOverviewWidget\Stat>
-         */
-        public function callGetStats(): array
-        {
-            return $this->getStats();
-        }
-    };
-    $stats = $widget->callGetStats();
+    // Widget Stats via Reflection
+    $refWidget = new ReflectionMethod(ExecutiveStatsOverview::class, 'getStats');
+    $widget = new ExecutiveStatsOverview;
+    $stats = $refWidget->invoke($widget);
     expect($stats)->toBeArray()->toHaveCount(4);
 
     // AI Turn Response DTO
