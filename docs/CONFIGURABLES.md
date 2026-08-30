@@ -170,13 +170,13 @@ Invalid or malformed inputs must never crash the workstation or result in generi
 When an error occurs on any configured integration, Tadbir executes a non-blocking graceful fallback:
 
 1. **AI Gateway Failover**:
-   * If the user's configured Anthropic key returns `401`, `429`, or `500`, the AI gateway logs the incident, redacts any PII, displays the exact provider error toast, and **automatically routes the turn to Google Gemini 2.5 Flash** without dropping the user's prompt.
+   - If the user's configured Anthropic key returns `401`, `429`, or `500`, the AI gateway logs the incident, redacts any PII, displays the exact provider error toast, and **automatically routes the turn to Google Gemini 2.5 Flash** without dropping the user's prompt.
 2. **Outlook MCP Degraded Mode**:
-   * If Microsoft Graph credentials fail authentication, the AI Copilot continues executing general reasoning, note-taking, task planning, and project register searches.
-   * When asked an email-specific question, the copilot responds with:
+   - If Microsoft Graph credentials fail authentication, the AI Copilot continues executing general reasoning, note-taking, task planning, and project register searches.
+   - When asked an email-specific question, the copilot responds with:
      > *"I cannot access your Outlook mailbox due to a Microsoft Graph authentication error (`AADSTS7000215: Invalid client secret`). All other project and workspace features remain active. You can update your secret in [Executive Settings](/admin/executive-settings)."*
 3. **Zero Plaintext Error Leakage**:
-   * All raw error messages from upstream providers are sanitized to redact authorization headers, bearer tokens, and sensitive email addresses before rendering in UI notifications.
+   - All raw error messages from upstream providers are sanitized to redact authorization headers, bearer tokens, and sensitive email addresses before rendering in UI notifications.
 
 ---
 
