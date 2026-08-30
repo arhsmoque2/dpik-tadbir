@@ -312,7 +312,10 @@
     "failover",
     "Failover",
     "corugda",
-    "andrecorugda"
+    "andrecorugda",
+    "CONFIGURABLES",
+    "configurables",
+    "referer"
   ],
   "ignorePaths": [
     "node_modules/**",
