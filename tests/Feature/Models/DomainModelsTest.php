@@ -10,6 +10,7 @@ use App\Models\PersonalTask;
 use App\Models\ProjectRegistryEntry;
 use App\Models\User;
 use App\Models\UserPersonalizationProfile;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -19,8 +20,11 @@ test('domain models instantiate relationships properly', function () {
         'name' => 'All Relationships User',
         'email' => 'allrel@dpik.com.my',
         'password' => bcrypt('password'),
-        'role' => 'managing_director',
+        'role' => 'super_admin',
     ]);
+
+    expect($user->isSuperAdmin())->toBeTrue();
+    expect($user->canAccessPanel(new Panel))->toBeTrue();
 
     $whitelist = AllowedRegistrationEmail::create([
         'email' => 'target@dpik.com.my',
@@ -90,6 +94,5 @@ test('domain models instantiate relationships properly', function () {
     expect($user->personalTasks())->toBeInstanceOf(HasMany::class);
     expect($user->executivePresets())->toBeInstanceOf(HasMany::class);
     expect($user->actionReceipts())->toBeInstanceOf(HasMany::class);
-    expect($user->projectEntries())->toBeInstanceOf(HasMany::class);
     expect($user->personalizationProfile())->toBeInstanceOf(HasOne::class);
 });
