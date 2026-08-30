@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
 use App\Services\Memory\DecisionMarkerExtractor;
 use App\Services\Memory\MemoryRetrievalService;
+use Illuminate\Auth\Access\AuthorizationException;
 
 test('all MCP tools return valid schemas and execute expected methods', function () {
     $user = User::create([
@@ -74,18 +75,48 @@ test('all MCP tools return valid schemas and execute expected methods', function
 
     $forwardTool = new OutlookForwardTool($bridge);
     expect($forwardTool->schema())->toHaveKey('properties');
+    $forwardRes = $forwardTool->handle([
+        'message_id' => 'msg_001',
+        'to_recipients' => ['eng@dpik.com.my'],
+        'approval_token' => 'act_tok_123',
+    ]);
+    expect($forwardRes['status'])->toBe('forwarded');
 
     $deltaTool = new OutlookListInboxDeltaTool($bridge);
     expect($deltaTool->schema())->toHaveKey('properties');
+    $deltaRes = $deltaTool->handle(['lookback_hours' => 12]);
+    expect($deltaRes)->toHaveKey('messages');
 
     $readTool = new OutlookReadMessageTool($bridge);
     expect($readTool->schema())->toHaveKey('properties');
+    $readRes = $readTool->handle(['message_id' => 'msg_001']);
+    expect($readRes)->toHaveKey('subject');
 
     $replyTool = new OutlookReplyTool($bridge);
     expect($replyTool->schema())->toHaveKey('properties');
+    $replyRes = $replyTool->handle([
+        'message_id' => 'msg_001',
+        'body' => 'Confirmed.',
+        'approval_token' => 'act_tok_123',
+    ]);
+    expect($replyRes['status'])->toBe('sent');
 
     $searchTool = new OutlookSearchMailTool($bridge);
     expect($searchTool->schema())->toHaveKey('properties');
+    $searchRes = $searchTool->handle(['query' => 'FT264']);
+    expect($searchRes)->toHaveKey('messages');
+});
+
+test('outlook forward and reply tools enforce write-safety tokens', function () {
+    $bridge = new OutlookMcpBridge;
+
+    $forwardTool = new OutlookForwardTool($bridge);
+    expect(fn () => $forwardTool->handle(['message_id' => '1', 'approval_token' => 'invalid']))
+        ->toThrow(AuthorizationException::class);
+
+    $replyTool = new OutlookReplyTool($bridge);
+    expect(fn () => $replyTool->handle(['message_id' => '1', 'approval_token' => 'invalid']))
+        ->toThrow(AuthorizationException::class);
 });
 
 test('outlook mcp bridge provides fluent methods for user', function () {
