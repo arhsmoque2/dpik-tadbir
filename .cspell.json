@@ -315,7 +315,10 @@
     "andrecorugda",
     "CONFIGURABLES",
     "configurables",
-    "referer"
+    "referer",
+    "Konsult",
+    "Bintulu",
+    "cutover"
   ],
   "ignorePaths": [
     "node_modules/**",
