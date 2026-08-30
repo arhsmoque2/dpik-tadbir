@@ -22,6 +22,9 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'anthropic_api_key',
         'gemini_api_key',
+        'microsoft_client_id',
+        'microsoft_client_secret',
+        'microsoft_tenant_id',
     ];
 
     protected $hidden = [
@@ -29,6 +32,7 @@ class User extends Authenticatable implements FilamentUser
         'remember_token',
         'anthropic_api_key',
         'gemini_api_key',
+        'microsoft_client_secret',
     ];
 
     protected function casts(): array
@@ -38,6 +42,7 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'anthropic_api_key' => 'encrypted',
             'gemini_api_key' => 'encrypted',
+            'microsoft_client_secret' => 'encrypted',
         ];
     }
 
