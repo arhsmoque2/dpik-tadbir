@@ -45,11 +45,11 @@ test('domain models instantiate relationships properly', function () {
 
     $entry = ProjectRegistryEntry::create([
         'project_code' => 'PC-2023-011',
-        'project_title' => 'Sungai Udang',
-        'content' => 'Progress summary',
-        'author_user_id' => $user->id,
+        'project_name' => 'Sungai Udang',
+        'summary' => 'Progress summary',
+        'user_id' => $user->id,
     ]);
-    expect($entry->author())->toBeInstanceOf(BelongsTo::class);
+    expect($entry->user())->toBeInstanceOf(BelongsTo::class);
 
     $note = PersonalNote::create([
         'user_id' => $user->id,

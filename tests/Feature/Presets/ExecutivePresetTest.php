@@ -59,7 +59,7 @@ test('preset execution service compiles templates with variables', function () {
         'prompt_template' => 'Review claim for project {project_code} submitted by {contractor}.',
     ]);
 
-    $compiled = $service->compilePrompt($preset, [
+    $compiled = $service->renderPrompt($preset, [
         'project_code' => 'PC-2023-011',
         'contractor' => 'Minco Perunding',
     ]);
