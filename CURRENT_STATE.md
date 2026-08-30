@@ -1,15 +1,16 @@
 # DPIK Tadbir: Current State
 
 ## Verified Reality Snapshot
-- **Lifecycle Phase**: Laravel 12 + Filament v4 Application Skeleton Scaffolding & 5-Tier Quality Gates Complete ✅
+- **Lifecycle Phase**: Livewire AI Copilot Drawer, Outlook MCP Bridge & Interactive Workstation Complete ✅
 - **Quality Gates Status**:
   - **Gate 1 (Static Analysis & Hygiene)**:
     - Laravel Pint: `passed` (0 style violations)
-    - Larastan / PHPStan (Level 8): `[OK] No errors` across 96 files
+    - Larastan / PHPStan (Level 8): `[OK] No errors` across 98 files
     - markdownlint: `0 issues in 27 files`
     - cspell: `0 issues in 29 files`
+    - composer-unused: `0 unused, 0 zombies`
   - **Gate 2 & 3 (Security & Hermetic Tests)**:
-    - 17 Hermetic Pest Tests `passed` (36 assertions) across Auth, Notes, Tasks, Chat, MCP, Memory, and AI Agent services
+    - 45 Hermetic Pest Tests `passed` (247 assertions) across Livewire Copilot Drawer, Outlook MCP Bridge, Auth, Notes, Tasks, Chat, MCP, Memory, and AI Agent services
 - **Governing ADRs (ADR-001 through ADR-013)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
@@ -33,6 +34,7 @@
 5. **ARH Session Reader Memory Engine**: SQLite FTS5 full-text indexing + RRF fusion + decision markers (`dm:decision`, `dm:commitment`) across project registers and action receipts.
 6. **Explicit Write Confirmation**: AI generates interactive Action Cards for drafting, replying, and forwarding; execution requires human approval with signed one-time tokens before Graph API dispatch.
 7. **High-Density Memory Output**: Token-efficient pipe-delimited context formatting to inject decades of project memory into <500 tokens.
+8. **Livewire AI Copilot Drawer**: Docks gracefully via Filament panel render hooks (`PanelsRenderHook::BODY_END` and `PanelsRenderHook::GLOBAL_SEARCH_AFTER`), providing keyboard-driven (`Cmd+J`) executive assistance, preset ribbon execution, and interactive HITL modals.
 
 ## Single Next Entry Point
-- Wire Livewire AI Copilot drawer component into Filament Panel render hook and connect real Outlook Graph API MCP bridge client.
+- Conduct end-to-end sandbox walkthrough and deployment verification via Shawl / PM2 daemon service.
