@@ -192,18 +192,6 @@ class OutlookMcpBridge
             ];
         }
 
-        // In test/mock environment, validate syntax and return successful probe
-        if (app()->environment('testing')) {
-            return [
-                'success' => true,
-                'status' => 'connected',
-                'latency_ms' => 45,
-                'error_code' => null,
-                'error_message' => null,
-                'remediation' => null,
-            ];
-        }
-
         // Live probe against Microsoft Entra token endpoint
         $startTime = microtime(true);
         try {

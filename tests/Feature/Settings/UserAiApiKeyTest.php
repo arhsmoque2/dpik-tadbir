@@ -72,14 +72,49 @@ test('executive settings page validates connection probes and handles diagnostic
         ->assertSet('aiProbeStatus', 'error')
         ->assertSee('Format Error');
 
+    // Test invalid gemini format
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('gemini_api_key', 'invalid-gemini-prefix')
+        ->call('testAiConnection')
+        ->assertSet('aiProbeStatus', 'error')
+        ->assertSee('Format Error');
+
     // Test valid probe
     Livewire::actingAs($user)
         ->test(ExecutiveSettings::class)
         ->set('anthropic_api_key', 'sk-ant-api03-valid-key-pattern')
+        ->set('gemini_api_key', 'AIzaSy-valid-gemini-key-1234567890123456789')
         ->call('testAiConnection')
         ->assertSet('aiProbeStatus', 'success');
 
-    // Test outlook probe
+    // Test outlook probe invalid client id format
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('microsoft_client_id', 'not-a-uuid')
+        ->set('microsoft_client_secret', 'secret-val')
+        ->set('microsoft_tenant_id', '66666666-7777-8888-9999-000000000000')
+        ->call('testOutlookConnection')
+        ->assertSet('outlookProbeStatus', 'error')
+        ->assertSee('Client Error');
+
+    // Test outlook probe invalid tenant id format
+    Livewire::actingAs($user)
+        ->test(ExecutiveSettings::class)
+        ->set('microsoft_client_id', '11111111-2222-3333-4444-555555555555')
+        ->set('microsoft_client_secret', 'secret-val')
+        ->set('microsoft_tenant_id', 'invalid-tenant')
+        ->call('testOutlookConnection')
+        ->assertSet('outlookProbeStatus', 'error');
+
+    // Test outlook probe valid
+    \Illuminate\Support\Facades\Http::fake([
+        'https://login.microsoftonline.com/*' => \Illuminate\Support\Facades\Http::response([
+            'token_type' => 'Bearer',
+            'access_token' => 'mock-jwt-token',
+        ], 200),
+    ]);
+
     Livewire::actingAs($user)
         ->test(ExecutiveSettings::class)
         ->set('microsoft_client_id', '11111111-2222-3333-4444-555555555555')
@@ -87,6 +122,62 @@ test('executive settings page validates connection probes and handles diagnostic
         ->set('microsoft_tenant_id', '66666666-7777-8888-9999-000000000000')
         ->call('testOutlookConnection')
         ->assertSet('outlookProbeStatus', 'success');
+});
+
+test('probeOutlookCredentials handles all status and error conditions', function () {
+    $bridge = app(OutlookMcpBridge::class);
+
+    // 1. Unconfigured
+    $res = $bridge->probeOutlookCredentials(null, null, null);
+    expect($res['status'])->toBe('unconfigured');
+    expect($res['success'])->toBeFalse();
+
+    // 2. Invalid Client ID UUID
+    $res = $bridge->probeOutlookCredentials('invalid-id', 'secret', 'common');
+    expect($res['status'])->toBe('invalid_format');
+    expect($res['error_code'])->toBe('INVALID_CLIENT_ID_FORMAT');
+
+    // 3. Invalid Tenant ID
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'secret', 'invalid-tenant');
+    expect($res['status'])->toBe('invalid_format');
+    expect($res['error_code'])->toBe('INVALID_TENANT_ID_FORMAT');
+
+    // 4. Missing Secret
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', '', 'organizations');
+    expect($res['status'])->toBe('missing_secret');
+    expect($res['error_code'])->toBe('MISSING_CLIENT_SECRET');
+
+    // 5-9. Setup mock sequence for token responses
+    $seq = \Illuminate\Support\Facades\Http::fakeSequence();
+    $seq->push(['token_type' => 'Bearer', 'access_token' => 'mock-jwt-token'], 200);
+    $seq->push(['error' => 'invalid_client', 'error_description' => 'AADSTS7000215: Invalid client secret provided.'], 401);
+    $seq->push(['error' => 'invalid_client', 'error_description' => 'AADSTS700016: Application not found in directory.'], 400);
+    $seq->push(['error' => 'unauthorized_client', 'error_description' => 'General error message.'], 403);
+    $seq->push('Server crashed', 500);
+
+    // 5. Successful Token response
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'valid-secret', 'organizations');
+    expect($res['status'])->toBe('connected');
+    expect($res['success'])->toBeTrue();
+
+    // 6. AADSTS7000215 invalid client secret
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'bad-secret', 'organizations');
+    expect($res['status'])->toBe('auth_failed');
+    expect($res['remediation'])->toContain('Certificates & secrets');
+
+    // 7. AADSTS700016 application not found
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'secret', 'organizations');
+    expect($res['status'])->toBe('auth_failed');
+    expect($res['remediation'])->toContain('App Registration');
+
+    // 8. General OAuth error
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'secret', 'organizations');
+    expect($res['status'])->toBe('auth_failed');
+
+    // 9. HTTP 500 error
+    $res = $bridge->probeOutlookCredentials('11111111-2222-3333-4444-555555555555', 'secret', 'organizations');
+    expect($res['status'])->toBe('auth_failed');
+    expect($res['error_message'])->toContain('HTTP 500');
 });
 
 test('outlook mcp bridge resolves user credentials dynamically', function () {
