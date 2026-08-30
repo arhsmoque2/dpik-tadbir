@@ -72,8 +72,7 @@ test('domain models instantiate relationships properly', function () {
 
     $preset = ExecutivePreset::create([
         'user_id' => $user->id,
-        'name' => 'Briefing',
-        'trigger_phrase' => 'brief',
+        'title' => 'Briefing',
         'prompt_template' => 'Brief me',
     ]);
     expect($preset->user())->toBeInstanceOf(BelongsTo::class);

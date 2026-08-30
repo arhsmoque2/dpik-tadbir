@@ -23,18 +23,18 @@ test('executive preset policy allows owner and super admin access', function () 
 
     $systemPreset = ExecutivePreset::create([
         'user_id' => null,
-        'name' => 'Morning Delta Briefing',
-        'trigger_phrase' => 'morning delta',
+        'title' => 'Morning Delta Briefing',
+        'description' => 'Analyze unread emails',
         'prompt_template' => 'Analyze all unread emails since yesterday.',
-        'target_tools' => ['outlook_list_inbox_delta'],
+        'category' => 'inbox',
     ]);
 
     $userPreset = ExecutivePreset::create([
         'user_id' => $user->id,
-        'name' => 'Client Review',
-        'trigger_phrase' => 'review client',
+        'title' => 'Client Review',
+        'description' => 'Review client emails',
         'prompt_template' => 'Review client {client} emails.',
-        'target_tools' => ['outlook_search_mail'],
+        'category' => 'review',
     ]);
 
     $policy = new ExecutivePresetPolicy;
@@ -55,7 +55,7 @@ test('executive preset policy allows owner and super admin access', function () 
 test('preset execution service compiles templates with variables', function () {
     $service = new PresetExecutionService;
     $preset = new ExecutivePreset([
-        'name' => 'Claim Validator',
+        'title' => 'Claim Validator',
         'prompt_template' => 'Review claim for project {project_code} submitted by {contractor}.',
     ]);
 
