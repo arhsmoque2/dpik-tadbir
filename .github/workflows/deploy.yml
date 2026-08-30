@@ -1,6 +1,8 @@
 name: Deploy to Cloud Run
 
 on:
+  push:
+    branches: [main]
   workflow_run:
     workflows: ["Quality Gate CI"]
     types: [completed]
@@ -26,6 +28,7 @@ jobs:
     timeout-minutes: 35
     if: >-
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     steps:
@@ -119,6 +122,7 @@ jobs:
           flags: '--allow-unauthenticated'
           env_vars: |
             APP_ENV=production
+            APP_DEBUG=${{ vars.APP_DEBUG || 'true' }}
             DB_CONNECTION=pgsql
             DATABASE_URL=${{ steps.neon.outputs.pooled }}
             DB_URL=${{ steps.neon.outputs.pooled }}

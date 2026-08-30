@@ -24,7 +24,7 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 # ---- Stage 2: Production Runtime ----
 FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
 
-# Install production PHP extensions for Neon Postgres, SQLite, and Filament
+# Install production PHP extensions for Neon Postgres, SQLite, Filament, and Octane
 RUN install-php-extensions \
     pdo_pgsql \
     pgsql \
@@ -36,13 +36,21 @@ RUN install-php-extensions \
     opcache \
     pcntl
 
+# Production PHP & OPcache tuning for Laravel Octane + FrankenPHP on Cloud Run
+COPY php/local.ini /usr/local/etc/php/conf.d/local.ini
+COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
 WORKDIR /app
 
 COPY --from=vendor /app /app
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh \
+    && chmod +x /app/docker-entrypoint.sh \
+    && chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["frankenphp", "php-server", "--listen", ":8080", "--root", "/app/public"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD []
