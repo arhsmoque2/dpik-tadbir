@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use function Pest\Livewire\livewire;
 
 test('superadmin can login with remember me and session persists with remember cookie', function () {
+    config(['auth.enabled' => true]);
+
     $user = User::firstOrCreate(
         ['email' => 'admin@dpik.com.my'],
         [

@@ -124,6 +124,7 @@ jobs:
             DB_URL=${{ steps.neon.outputs.pooled }}
             APP_KEY=${{ secrets.APP_KEY }}
             APP_URL=${{ vars.APP_URL }}
+            AUTH_ENABLED=${{ vars.AUTH_ENABLED || 'false' }}
             ALLOWED_REGISTRATION_EMAILS=${{ vars.ALLOWED_REGISTRATION_EMAILS }}
             ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
@@ -139,16 +140,16 @@ jobs:
           echo "Verifying health probe on ${DEPLOYED_URL}/up (with cold-start retry) ..."
           curl --fail --silent --show-error --retry 5 --retry-connrefused --retry-delay 5 --max-time 30 "${DEPLOYED_URL}/up"
 
-      - name: Post-deploy admin login endpoint probe
+      - name: Post-deploy admin endpoint probe
         if: steps.check_scaffold.outputs.is_scaffolded == 'true'
         shell: bash
         run: |
           DEPLOYED_URL="${{ steps.deploy.outputs.url }}"
-          echo "Verifying admin login endpoint on ${DEPLOYED_URL}/admin/login ..."
-          LOGIN_HTML=$(curl --fail --silent --show-error --location --retry 5 --retry-connrefused --retry-delay 5 --max-time 30 "${DEPLOYED_URL}/admin/login")
-          if echo "$LOGIN_HTML" | grep -Eiq '(src|href|action)=["'\'']http://|url\(["'\'']?http://'; then
-            echo "::error::Mixed content detected in deployed login HTML output"
-            echo "$LOGIN_HTML" | grep -Ei '(src|href|action)=["'\'']http://|url\(["'\'']?http://' | head -n 5
+          echo "Verifying admin endpoint on ${DEPLOYED_URL}/admin ..."
+          ADMIN_HTML=$(curl --fail --silent --show-error --location --retry 5 --retry-connrefused --retry-delay 5 --max-time 30 "${DEPLOYED_URL}/admin")
+          if echo "$ADMIN_HTML" | grep -Eiq '(src|href|action)=["'\'']http://|url\(["'\'']?http://'; then
+            echo "::error::Mixed content detected in deployed admin HTML output"
+            echo "$ADMIN_HTML" | grep -Ei '(src|href|action)=["'\'']http://|url\(["'\'']?http://' | head -n 5
             exit 1
           fi
-          echo "Admin login rendered cleanly with 0 mixed-content http:// asset references."
+          echo "Admin endpoint rendered cleanly with 0 mixed-content http:// asset references."

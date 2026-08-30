@@ -8,6 +8,8 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'enabled' => env('AUTH_ENABLED', false),
+
     'guards' => [
         'web' => [
             'driver' => 'session',
