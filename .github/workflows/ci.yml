@@ -28,7 +28,7 @@ jobs:
           node-version: 22
 
       - name: Validate Markdown Structure (markdownlint)
-        run: npx --yes markdownlint-cli2 "**/*.md" "#node_modules"
+        run: npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc
 
       - name: Validate JSON Schemas
         run: |

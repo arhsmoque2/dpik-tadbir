@@ -10,7 +10,7 @@ DPIK Tadbir supports a dual-tier configuration architecture:
 1. **Executive-Tier (User Scoped)**: Stored per-executive in the `users` database table with at-rest AES-256-CBC encryption (`encrypted` cast via `APP_KEY`). Enables sovereign credentials and isolated workspaces per [ADR-013](adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md).
 2. **System-Tier (Tenant / Global)**: Stored via Spatie Laravel Settings in PostgreSQL or `.env` fallback.
 
-```
+```text
 +----------------------------------------------------------------------------------------------------+
 |                                    CONFIGURATION ARCHITECTURE                                      |
 +----------------------------------------------------------------------------------------------------+
@@ -59,7 +59,7 @@ DPIK Tadbir supports a dual-tier configuration architecture:
 
 Configurations must seamlessly connect to the operational workspace without requiring full page refreshes or manual server restarts.
 
-```
+```text
 +----------------------------------------------------------------------------------------------------+
 |                                    UI LINKING & REACTIVE FLOW                                      |
 +----------------------------------------------------------------------------------------------------+
@@ -121,7 +121,7 @@ When the executive saves their settings or clicks **Test Connection**, the syste
 
 Invalid or malformed inputs must never crash the workstation or result in generic "500 Internal Server Error" messages. The system intercepts validation failures, captures exact upstream provider error payloads, and presents clear remediation steps.
 
-```
+```text
 +----------------------------------------------------------------------------------------------------+
 |                                  GUARD & ERROR DIAGNOSTIC PIPELINE                                 |
 +----------------------------------------------------------------------------------------------------+

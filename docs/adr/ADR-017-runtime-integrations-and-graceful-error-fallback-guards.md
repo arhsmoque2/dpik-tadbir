@@ -8,7 +8,7 @@
 
 ## Context
 
-DPIK Tadbir previously required setting Microsoft Graph credentials (`MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID`) as static cloud environment variables during container deployment, while AI API keys were configured per-executive in `ExecutiveSettings`. 
+DPIK Tadbir previously required setting Microsoft Graph credentials (`MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID`) as static cloud environment variables during container deployment, while AI API keys were configured per-executive in `ExecutiveSettings`.
 
 This asymmetric configuration approach created several operational issues:
 1. **Deployment Friction**: If an executive or administrator did not yet have an Azure Entra ID App Registration, deployment was blocked or required container rebuilds when credentials became available.
