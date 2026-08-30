@@ -5,6 +5,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 ---
 
 ## Gate 1: Static Analysis, Typing & Documentation Hygiene
+
 - **Code Style (Laravel Pint)**: Zero formatting errors (`./vendor/bin/pint --test`).
 - **Static Typing (Larastan / PHPStan)**: Level 8 strictness (`./vendor/bin/phpstan analyse --level=8 --memory-limit=1G`).
 - **Filament v4 AST Linter (FilaCheck)**: 17/17 rules passed across `app/Filament`, preventing deprecated v3 methods (`./vendor/bin/filacheck app/Filament`).
@@ -15,6 +16,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 ---
 
 ## Gate 2: Security, Privacy & Write-Safety Preflight
+
 - **Secret Preflight Scanner (`gitleaks`)**: Automated preflight scan ensuring zero API keys, Graph tokens, or SSH credentials exist in committed code, fixtures, or environment examples.
 - **Environment & Variable Contract Verification**: Verifies compliance with [`docs/ENVIRONMENT.md`](ENVIRONMENT.md), ensuring all cloud run variables, database endpoints, and AI provider credentials conform to the zero-leak storage tiering model.
 - **Fail-Closed Security Preflight Test Suite**: Executed directly inside the Gate 2 CI job before static analysis or feature testing:
@@ -26,6 +28,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 ---
 
 ## Gate 3: Hermetic Test Suite, AI Resilience & Diff-Cover
+
 - **Hermetic SQLite Sandbox**: 100% passing tests under in-memory SQLite (`./vendor/bin/pest --coverage-clover coverage.xml --parallel`).
 - **Incremental Diff-Cover Gate**: Minimum **90% branch coverage** on modified lines in all PRs (`uvx diff-cover coverage.xml --compare-branch origin/main --fail-under=90`).
 - **Multi-Provider AI Resilience (`AgentServiceResilienceTest`)**: 100% test verification asserting that primary provider rate limits automatically trigger fallback to secondary models (Anthropic $\to$ Gemini), and complete provider failures degrade gracefully into user-friendly notices without throwing HTTP 500 errors.
@@ -56,7 +59,12 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 
 ---
 
-## Gate 4: Playwright E2E, Visual & Accessibility QA
+## Gate 4: Playwright E2E, Visual & Accessibility QA (Proportionate Execution — ADR-019)
+
+- **Proportionate Change Classification (`scripts/classify-ci-changes.mjs`)**:
+  - Automatically identifies whether modified paths touch UI surfaces (`app/Filament/**`, `resources/**`, `public/**`, `tests/Browser/**`, `playwright.config.*`).
+  - PRs touching UI surfaces execute full Gate 4 Playwright browser rehearsals, WCAG AA accessibility, and visual snapshot regressions.
+  - Docs-only or non-UI PRs bypass Gate 4 browser container spins while Gate 1 (Docs & Spec Hygiene, schema checks), Gate 2 (Security Preflight), and Gate 3 (Tests & Diff-Cover) run unconditionally to ensure zero architectural drift.
 - **Headless Playwright Chromium & Mobile Runner**: Configured via `playwright.config.ts` running against a dedicated, persistent file-backed testing server (`php artisan serve --env=testing --port=8000`):
   - **Global Auth Setup (`auth.setup.ts`)**: Seeds deterministic test user (`DatabaseSeeder`) and generates reusable `playwright/.auth/user.json` session state.
   - **Auth & Session Journey (`01-auth-journey.spec.ts`)**: Asserts login form, CSRF token validation, invalid credentials rejection, and successful authenticated redirection.
@@ -70,6 +78,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 ---
 
 ## Gate 5: Safe Deployment Gating (`workflow_run`)
+
 - **Zero Race Conditions**: Production deployment is **never** triggered directly by raw branch push.
 - **Workflow Run Trigger**: Deploys execute strictly via `.github/workflows/deploy.yml` on `on: workflow_run: workflows: ["Quality Gate CI"]: types: [completed]` and assert `github.event.workflow_run.conclusion == 'success'` on the `main` branch.
 - **Ordered Execution**: Neon unpooled direct connection executes `php artisan migrate --force` as an isolated Cloud Run job before traffic is routed to the new service revision.

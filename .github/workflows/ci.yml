@@ -15,8 +15,34 @@ permissions:
   pull-requests: read
 
 jobs:
+  changes:
+    name: "Classify changed paths"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      php: ${{ steps.classify.outputs.php }}
+      ui: ${{ steps.classify.outputs.ui }}
+      docs: ${{ steps.classify.outputs.docs }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - id: classify
+        name: Classify modified surfaces
+        env:
+          QUALITY_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          QUALITY_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/classify-ci-changes.mjs
+
   doc-and-spec-hygiene:
-    name: "Gate 1: Docs, Lexicon & Spec Hygiene"
+    name: "Gate 1: Docs, Lexicon & Spec Hygiene (Declared vs Built)"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -30,7 +56,7 @@ jobs:
       - name: Validate Markdown Structure (markdownlint)
         run: npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc
 
-      - name: Validate JSON Schemas
+      - name: Validate JSON Schemas & Spec Contracts
         run: |
           node -e '
             const fs = require("fs");
@@ -71,7 +97,7 @@ jobs:
       - name: Setup PHP for Security Preflight
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: none
 
@@ -87,7 +113,7 @@ jobs:
             tests/Feature/Ai/PiiStorageSanitizationTest.php
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_DATABASE: ":memory:"
           APP_ENV: testing
 
   static-analysis:
@@ -112,7 +138,7 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: none
 
@@ -168,7 +194,7 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: xdebug
 
@@ -181,7 +207,7 @@ jobs:
         run: ./vendor/bin/pest --coverage-clover coverage.xml --parallel
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
+          DB_DATABASE: ":memory:"
           APP_ENV: testing
 
       - name: Setup uv for diff-cover
@@ -198,7 +224,12 @@ jobs:
   ui-layout-audit:
     name: "Gate 4: Playwright E2E, Visual & Accessibility QA"
     runs-on: ubuntu-latest
-    needs: [static-analysis, test-and-coverage]
+    needs: [changes, static-analysis, test-and-coverage]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || needs.changes.outputs.ui == 'true')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -206,7 +237,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: none
 
