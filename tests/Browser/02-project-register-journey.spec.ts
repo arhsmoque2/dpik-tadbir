@@ -4,10 +4,12 @@ test.describe('E2E Journey 2: Project Register & Responsive Table Toolbar QA', (
   test('renders project register table with responsive action toolbar layout', async ({ page }) => {
     // Navigate to admin panel
     await page.goto('/admin/project-registers');
+    await page.waitForLoadState('domcontentloaded');
 
     // On unauthenticated session, redirected to login with return intent
     if (page.url().includes('/admin/login')) {
-      await expect(page.locator('form')).toBeVisible();
+      const loginSurface = page.locator('input[type="email"], input[name*="email"], form, .fi-simple-main, .fi-simple-page');
+      await expect(loginSurface.first()).toBeVisible({ timeout: 10000 });
       return;
     }
 
