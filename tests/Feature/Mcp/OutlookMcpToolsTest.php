@@ -14,6 +14,7 @@ use App\Mcp\Tools\Outlook\OutlookReplyTool;
 use App\Mcp\Tools\Outlook\OutlookSearchMailTool;
 use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Memory\DecisionMarkerExtractor;
 use App\Services\Memory\MemoryRetrievalService;
 
 test('all MCP tools return valid schemas and execute expected methods', function () {
@@ -40,7 +41,7 @@ test('all MCP tools return valid schemas and execute expected methods', function
     expect($propRes['status'])->toBe('suspended');
     expect($propRes['approval_token'])->not->toBeEmpty();
 
-    $commitTool = new CommitProjectRegisterTool;
+    $commitTool = new CommitProjectRegisterTool(new DecisionMarkerExtractor);
     expect($commitTool->schema())->toHaveKey('properties');
     $commitRes = $commitTool->handle([
         'project_code' => 'PC-2023-011',

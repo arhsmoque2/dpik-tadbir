@@ -24,10 +24,10 @@ test('domain models instantiate relationships properly', function () {
 
     $whitelist = AllowedRegistrationEmail::create([
         'email' => 'target@dpik.com.my',
-        'added_by_user_id' => $user->id,
+        'created_by_user_id' => $user->id,
         'notes' => 'Invited Director',
     ]);
-    expect($whitelist->addedBy())->toBeInstanceOf(BelongsTo::class);
+    expect($whitelist->createdBy())->toBeInstanceOf(BelongsTo::class);
 
     $session = ChatSession::create([
         'user_id' => $user->id,
