@@ -103,7 +103,7 @@ jobs:
             --image="${{ env.IMAGE }}" \
             --region="${{ vars.GCP_REGION }}" \
             --set-env-vars="DATABASE_URL=${DATABASE_URL},DB_URL=${DATABASE_URL},DB_CONNECTION=pgsql,APP_ENV=production,APP_KEY=${{ secrets.APP_KEY }}" \
-            --args="sh,-c,php artisan migrate --force" \
+            --args="sh,-c,php artisan migrate --force --seed" \
             --max-retries=0 \
             --quiet
           gcloud run jobs execute dpik-tadbir-migrate --region="${{ vars.GCP_REGION }}" --wait --quiet
