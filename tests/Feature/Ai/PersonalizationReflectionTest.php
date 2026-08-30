@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Models\UserPersonalizationProfile;
 use App\Services\Ai\PersonalizationReflectionService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 test('personalization reflection service calculates and updates profile', function () {
     $user = User::create([
@@ -17,5 +18,5 @@ test('personalization reflection service calculates and updates profile', functi
     expect($profile)->toBeInstanceOf(UserPersonalizationProfile::class);
     expect($profile->user_id)->toBe($user->id);
     expect($profile->persona_archetype)->not->toBeEmpty();
-    expect($profile->user())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+    expect($profile->user())->toBeInstanceOf(BelongsTo::class);
 });

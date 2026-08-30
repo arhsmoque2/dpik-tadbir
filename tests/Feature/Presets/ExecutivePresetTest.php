@@ -4,6 +4,7 @@ use App\Models\ExecutivePreset;
 use App\Models\User;
 use App\Policies\ExecutivePresetPolicy;
 use App\Services\Presets\PresetExecutionService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 test('executive preset policy allows owner and super admin access', function () {
     $admin = User::create([
@@ -65,5 +66,5 @@ test('preset execution service compiles templates with variables', function () {
 
     expect($compiled)->toContain('PC-2023-011');
     expect($compiled)->toContain('Minco Perunding');
-    expect($preset->user())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+    expect($preset->user())->toBeInstanceOf(BelongsTo::class);
 });

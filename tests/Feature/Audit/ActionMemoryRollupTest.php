@@ -5,6 +5,7 @@ use App\Jobs\GenerateWeeklyRollupJob;
 use App\Models\AiActionReceipt;
 use App\Models\User;
 use App\Services\Audit\ActionMemoryService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 test('action memory service logs receipts and generates rollups', function () {
     $user = User::create([
@@ -18,16 +19,17 @@ test('action memory service logs receipts and generates rollups', function () {
     $receipt = $service->logReceipt(
         user: $user,
         actionType: 'outlook_reply',
-        targetEntity: 'JKR Johor',
+        description: 'Reply to JKR Johor on Site Valuation',
+        targetRecipients: ['director@jkr.gov.my'],
         payload: ['subject' => 'Approval Notice'],
         status: 'executed',
-        actionToken: 'tok_12345'
+        approvalToken: 'tok_12345'
     );
 
     expect($receipt)->toBeInstanceOf(AiActionReceipt::class);
     expect($receipt->user_id)->toBe($user->id);
     expect($receipt->action_type)->toBe('outlook_reply');
-    expect($receipt->user())->toBeInstanceOf(Illuminate\Database\Eloquent\Relations\BelongsTo::class);
+    expect($receipt->user())->toBeInstanceOf(BelongsTo::class);
 
     $dailyJob = new GenerateDailyRollupJob;
     $dailyJob->handle();
