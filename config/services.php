@@ -1,0 +1,23 @@
+<?php
+
+return [
+    'ai' => [
+        'default_provider' => env('AI_DEFAULT_PROVIDER', 'anthropic'),
+        'default_model' => env('AI_DEFAULT_MODEL', 'claude-3-7-sonnet-20250219'),
+        'fallback_provider' => env('AI_FALLBACK_PROVIDER', 'gemini'),
+        'fallback_model' => env('AI_FALLBACK_MODEL', 'gemini-2.5-flash'),
+        'anthropic_api_key' => env('ANTHROPIC_API_KEY'),
+        'gemini_api_key' => env('GEMINI_API_KEY'),
+        'openai_api_key' => env('OPENAI_API_KEY'),
+    ],
+
+    'outlook_mcp' => [
+        'command' => env('OUTLOOK_MCP_COMMAND', 'uv'),
+        'args' => env('OUTLOOK_MCP_ARGS', 'run python -m outlook_mcp.server'),
+        'timeout' => (int) env('OUTLOOK_MCP_TIMEOUT', 30),
+    ],
+
+    'registration' => [
+        'allowed_emails' => array_filter(array_map('trim', explode(',', (string) env('ALLOWED_REGISTRATION_EMAILS', 'abdulrahman@dpik.com.my')))),
+    ],
+];
