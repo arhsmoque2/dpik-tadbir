@@ -5,9 +5,11 @@ namespace App\Services\Mcp;
 use App\Models\User;
 use App\Settings\OutlookSettings;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 class OutlookMcpBridge
 {
@@ -52,7 +54,7 @@ class OutlookMcpBridge
                     $timeout = $settings->timeout_seconds;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // fallback to config values
         }
 
@@ -206,7 +208,7 @@ class OutlookMcpBridge
         $startTime = microtime(true);
         try {
             $tokenUrl = "https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token";
-            $response = \Illuminate\Support\Facades\Http::asForm()
+            $response = Http::asForm()
                 ->timeout(8)
                 ->post($tokenUrl, [
                     'client_id' => $clientId,
@@ -247,7 +249,7 @@ class OutlookMcpBridge
                 'error_message' => "HTTP {$response->status()}: {$errorDesc}",
                 'remediation' => $remediation,
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
 
             return [
