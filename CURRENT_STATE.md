@@ -32,6 +32,8 @@
   - `docs/adr/ADR-011-interactive-ui-modals-and-human-in-the-loop-tools.md` (Interactive Modals, Choice Pickers & State Machine)
   - `docs/adr/ADR-012-scope-reduction-defer-project-staff-oversight.md` (Scope Reduction: Defer Project/Staff Oversight & Ticketing)
   - `docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md` (Email Whitelist Registration Gate & Multi-Executive Sovereign Workspaces)
+  - `docs/adr/ADR-014-agent-devtooling-quality-automation-and-auto-fix-cascade.md` (Agent Devtooling, Quality Automation & Auto-Fix Cascade)
+  - `docs/adr/ADR-015-quality-gates-e2e-testing-and-ai-observability-resilience.md` (E2E Browser Testing, WCAG Accessibility, AI Failover Resilience & PII Storage Sanitization)
 
 ## Active Invariants & Boundaries
 1. **Email Whitelist Registration Gate**: Account registration is strictly restricted to pre-approved corporate emails (`allowed_registration_emails`), preventing unauthorized public signups ([`ADR-013`](docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)).
