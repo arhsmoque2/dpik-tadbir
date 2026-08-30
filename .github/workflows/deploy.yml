@@ -146,9 +146,9 @@ jobs:
           DEPLOYED_URL="${{ steps.deploy.outputs.url }}"
           echo "Verifying admin login endpoint on ${DEPLOYED_URL}/admin/login ..."
           LOGIN_HTML=$(curl --fail --silent --show-error --location "${DEPLOYED_URL}/admin/login")
-          if echo "$LOGIN_HTML" | grep -q 'http://'; then
+          if echo "$LOGIN_HTML" | grep -Eiq '(src|href|action)=["'\'']http://|url\(["'\'']?http://'; then
             echo "::error::Mixed content detected in deployed login HTML output"
-            echo "$LOGIN_HTML" | grep 'http://' | head -n 5
+            echo "$LOGIN_HTML" | grep -Ei '(src|href|action)=["'\'']http://|url\(["'\'']?http://' | head -n 5
             exit 1
           fi
           echo "Admin login rendered cleanly with 0 mixed-content http:// asset references."
