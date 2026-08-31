@@ -54,11 +54,16 @@ class AgentService
             'content' => $prompt,
         ]);
 
+        $user = $session->user;
+        if ($user === null) {
+            throw new \RuntimeException("Chat session {$session->id} has no associated user.");
+        }
+
         $memories = $this->memory->search($prompt, limit: 3);
         $denseContext = $this->memory->formatAsDenseContext($memories);
 
         $tools = $this->toolRegistry->getLlmToolDefinitions();
-        $systemPrompt = $this->buildSystemPrompt($session->user, $tools, $denseContext);
+        $systemPrompt = $this->buildSystemPrompt($user, $tools, $denseContext);
 
         $history = $session->messages()
             ->orderBy('id', 'desc')
@@ -79,12 +84,12 @@ class AgentService
                 $completion = $this->llmGateway->complete(
                     $messages,
                     $tools,
-                    array_merge(['user' => $session->user, 'system' => $systemPrompt], $options)
+                    array_merge(['user' => $user, 'system' => $systemPrompt], $options)
                 );
                 $lastCompletion = $completion;
 
                 $toolCalls = $completion['tool_calls'] ?? [];
-                $stopReason = $completion['stop_reason'] ?? (empty($toolCalls) ? 'end_turn' : 'tool_use');
+                $stopReason = $completion['stop_reason'];
 
                 if ($stopReason !== 'tool_use' || empty($toolCalls)) {
                     $finalText = $completion['content'];
@@ -169,10 +174,11 @@ class AgentService
                 }
             }
 
-            if ($status === 'completed' && $finalText === '' && $lastCompletion !== null) {
+            if ($status === 'completed' && $finalText === '') {
                 // Exhausted MAX_ITERATIONS without the model ever reaching
                 // end_turn — tell the executive rather than persisting an
-                // empty assistant message.
+                // empty assistant message. (The loop always runs at least
+                // once, so $lastCompletion is always set by this point.)
                 $finalText = "I wasn't able to complete your request — it required too many steps. Try breaking it into smaller requests.";
             }
         } catch (\Throwable $e) {
@@ -248,8 +254,11 @@ class AgentService
         ]);
 
         $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
-        $actualProvider = $lastCompletion['provider'] ?? $this->llmGateway->getActiveProvider();
-        $actualModel = $lastCompletion['model'] ?? $this->llmGateway->getActiveModel();
+        // The loop always runs at least once (self::MAX_ITERATIONS > 0), so
+        // $lastCompletion is always set by this point — same reasoning as
+        // the exhausted-iterations check above.
+        $actualProvider = $lastCompletion['provider'];
+        $actualModel = $lastCompletion['model'];
 
         $this->recorder->record(
             session: $session,
@@ -387,6 +396,7 @@ PROMPT;
             }
 
             if ($msg->role === 'tool') {
+                /** @var array<string, mixed> $metadata */
                 $metadata = (array) ($msg->metadata ?? []);
                 $messages[] = [
                     'role' => 'tool',

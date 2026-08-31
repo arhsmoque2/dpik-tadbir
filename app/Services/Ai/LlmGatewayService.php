@@ -94,10 +94,17 @@ class LlmGatewayService
     /**
      * Completes a conversation turn with optional tool schemas.
      *
-     * @param  list<array{role: string, content: string}>  $messages
+     * $messages carries the gateway's neutral shape
+     * ({role, content, tool_calls?, tool_call_id?, is_error?}) — AgentService's
+     * tool loop needs the wider shape (not just {role, content}) once a turn
+     * has more than one round-trip, so this and every method it delegates to
+     * accept the general array<string, mixed> per message rather than the
+     * old plain-text-only shape.
+     *
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason?: string, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
@@ -142,10 +149,16 @@ class LlmGatewayService
      * contract) — carries a stop_reason AgentService's tool loop can rely
      * on without every call site needing to know which path was taken.
      *
-     * @template T of array<string, mixed>
+     * The input is loosely typed (each of complete()'s branches — a
+     * developer fake, mockCompletion(), a live provider call — has its own
+     * shape) but every path is known to already carry content/provider/model
+     * by the time it reaches here, so the post-mutation @var below asserts
+     * the shape complete() actually promises rather than trying to thread a
+     * PHPStan generic template through a key-adding array mutation (which
+     * loses the template correlation regardless).
      *
-     * @param  T  $result
-     * @return T
+     * @param  array<string, mixed>  $result
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
      */
     private function normalizeStopReason(array $result): array
     {
@@ -153,11 +166,12 @@ class LlmGatewayService
             $result['stop_reason'] = empty($result['tool_calls']) ? 'end_turn' : 'tool_use';
         }
 
+        /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string} $result */
         return $result;
     }
 
     /**
-     * @param  list<array{role: string, content: string}>  $messages
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
      * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason?: string, provider: string, model: string}
@@ -218,7 +232,7 @@ class LlmGatewayService
     /**
      * Invoke OpenRouter OpenAI-compatible completions endpoint.
      *
-     * @param  list<array{role: string, content: string}>  $messages
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
      * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason?: string, provider: string, model: string}
@@ -259,7 +273,7 @@ class LlmGatewayService
             throw new RuntimeException("OpenRouter API error (HTTP {$response->status()}): {$errorDesc}");
         }
 
-        /** @var array{choices?: list<array{message?: array{content?: string, tool_calls?: list<array{id?: string, function?: array{name?: string, arguments?: string}}>}}>} $data */
+        /** @var array{choices?: list<array{message?: array{content?: string, tool_calls?: list<array{id?: string, function?: array{name?: string, arguments?: string}}>}, finish_reason?: string}>} $data */
         $data = $response->json() ?? [];
         $choice = $data['choices'][0]['message'] ?? [];
         $content = (string) ($choice['content'] ?? '');
@@ -429,7 +443,8 @@ class LlmGatewayService
                 $lastIsToolResultTurn = $lastIndex !== null
                     && $out[$lastIndex]['role'] === 'user'
                     && is_array($out[$lastIndex]['content'])
-                    && ($out[$lastIndex]['content'][0]['type'] ?? null) === 'tool_result';
+                    && $out[$lastIndex]['content'] !== []
+                    && $out[$lastIndex]['content'][0]['type'] === 'tool_result';
 
                 if ($lastIsToolResultTurn) {
                     $out[$lastIndex]['content'][] = $block;
@@ -620,7 +635,7 @@ class LlmGatewayService
     }
 
     /**
-     * @param  list<array{role: string, content: string}>  $messages
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string}
      */
@@ -628,8 +643,8 @@ class LlmGatewayService
     {
         $lastUserMsg = '';
         foreach (array_reverse($messages) as $m) {
-            if ($m['role'] === 'user') {
-                $lastUserMsg = $m['content'];
+            if (($m['role'] ?? '') === 'user') {
+                $lastUserMsg = (string) ($m['content'] ?? '');
                 break;
             }
         }
