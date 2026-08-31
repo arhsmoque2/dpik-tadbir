@@ -6,13 +6,13 @@
     class="space-y-6"
 >
     <!-- Top Action Bar & Status -->
-    <div class="p-6 bg-[#18191E] rounded-xl shadow-sm border border-[#2C2F38] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="p-6 bg-[#212631] rounded-xl shadow-sm border border-[#323946] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <div class="flex items-center space-x-2.5">
                 <span class="w-3 h-3 rounded-full bg-[#C9A36D]"></span>
                 <h2 class="text-xl font-bold text-white tracking-wide">DPIK TADBIR — Executive Management</h2>
             </div>
-            <p class="text-xs text-zinc-400 mt-1 max-w-2xl">
+            <p class="text-xs text-zinc-300 mt-1 max-w-2xl">
                 Daily management console for DPIK project registers, task tracking, and Microsoft Outlook correspondence.
             </p>
         </div>
@@ -35,7 +35,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
             @click="$dispatch('ask-copilot-about', { subject: 'Today\'s Updates', context: 'Scan recent unread Outlook communications and summarize urgent deliverables for today' })"
-            class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-[#C9A36D]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
+            class="p-4 bg-[#212631] hover:bg-[#282E3C] border border-[#323946] hover:border-[#C9A36D]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
             <div class="w-9 h-9 rounded-lg bg-[#C9A36D]/15 text-[#C9A36D] flex items-center justify-center shrink-0">
                 <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,13 +44,13 @@
             </div>
             <div>
                 <h3 class="text-sm font-semibold text-white group-hover:text-[#C9A36D] transition-colors">Today's Updates</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Check unread emails and urgent messages for today.</p>
+                <p class="text-xs text-zinc-300 mt-0.5">Check unread emails and urgent messages for today.</p>
             </div>
         </div>
 
         <div
             @click="$dispatch('ask-copilot-about', { subject: 'Project Records & Tenders', context: 'Search active project notes, contracts, and engineering records' })"
-            class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-[#429A6A]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
+            class="p-4 bg-[#212631] hover:bg-[#282E3C] border border-[#323946] hover:border-[#429A6A]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
             <div class="w-9 h-9 rounded-lg bg-[#429A6A]/15 text-[#429A6A] flex items-center justify-center shrink-0">
                 <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -59,29 +59,29 @@
             </div>
             <div>
                 <h3 class="text-sm font-semibold text-white group-hover:text-[#429A6A] transition-colors">Project Records</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Search project notes, tenders, and contracts.</p>
+                <p class="text-xs text-zinc-300 mt-0.5">Search project notes, tenders, and contracts.</p>
             </div>
         </div>
 
         <div
-            @click="$dispatch('ask-copilot-about', { subject: 'Overdue Tasks & Pending Approvals', context: 'List all overdue tasks, pending submittals, and blocked milestones' })"
-            class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-rose-500/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
+            @click="$dispatch('ask-copilot-about', { subject: 'Overdue & Pending Tasks', context: 'List all overdue tasks, pending submittals, and delayed approvals' })"
+            class="p-4 bg-[#212631] hover:bg-[#282E3C] border border-[#323946] hover:border-amber-500/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
-            <div class="w-9 h-9 rounded-lg bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
                 <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors">Overdue & Blockers</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">View pending approvals and delayed tasks.</p>
+                <h3 class="text-sm font-semibold text-white group-hover:text-amber-400 transition-colors">Overdue & Pending</h3>
+                <p class="text-xs text-zinc-300 mt-0.5">View pending approvals and delayed tasks.</p>
             </div>
         </div>
     </div>
 
     <!-- Live DPIK Tugas Action Register -->
-    <div class="bg-[#18191E] rounded-xl border border-[#2C2F38] overflow-hidden shadow-sm">
-        <div class="px-6 py-4 border-b border-[#2C2F38] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="bg-[#212631] rounded-xl border border-[#323946] overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-[#323946] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
                     <svg style="width: 18px; height: 18px; min-width: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,39 +90,39 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-semibold text-white">DPIK Tugas — Task List</h3>
-                    <p class="text-xs text-zinc-400">Live operational task tracking across active projects</p>
+                    <p class="text-xs text-zinc-300">Live operational task tracking across active projects</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2">
                 <a
                     href="/admin/personal-tasks/create"
-                    class="px-3 py-1.5 rounded-lg bg-[#21232B] hover:bg-[#2C2F38] text-xs text-zinc-200 hover:text-white border border-[#2C2F38] transition-colors"
+                    class="px-3 py-1.5 rounded-lg bg-[#282E3C] hover:bg-[#323946] text-xs text-zinc-200 hover:text-white border border-[#323946] transition-colors"
                 >
                     + New Task
                 </a>
                 <button
                     wire:click="$refresh"
                     type="button"
-                    class="px-3 py-1.5 rounded-lg bg-[#21232B] hover:bg-[#2C2F38] text-xs text-zinc-200 hover:text-white border border-[#2C2F38] transition-colors"
+                    class="px-3 py-1.5 rounded-lg bg-[#282E3C] hover:bg-[#323946] text-xs text-zinc-200 hover:text-white border border-[#323946] transition-colors"
                 >
                     Refresh
                 </button>
             </div>
         </div>
 
-        <div class="divide-y divide-[#2C2F38]">
+        <div class="divide-y divide-[#323946]">
             @php
                 $tasks = \App\Models\PersonalTask::where('user_id', auth()->id())->latest()->take(6)->get();
             @endphp
 
             @forelse($tasks as $task)
-                <div class="p-4 hover:bg-[#21232B]/50 transition-colors flex items-center justify-between gap-4">
+                <div class="p-4 hover:bg-[#282E3C]/60 transition-colors flex items-center justify-between gap-4">
                     <div class="flex items-center space-x-3 min-w-0">
                         <button
                             wire:click="toggleTaskStatus({{ $task->id }})"
                             type="button"
-                            class="w-5 h-5 rounded-full border {{ $task->status === 'completed' ? 'bg-[#429A6A] border-[#429A6A] text-white' : 'border-zinc-600 hover:border-[#C9A36D]' }} flex items-center justify-center transition-colors shrink-0"
+                            class="w-5 h-5 rounded-full border {{ $task->status === 'completed' ? 'bg-[#429A6A] border-[#429A6A] text-white' : 'border-zinc-500 hover:border-[#C9A36D]' }} flex items-center justify-center transition-colors shrink-0"
                             title="Toggle status"
                         >
                             @if($task->status === 'completed')
@@ -136,14 +136,14 @@
                                 {{ $task->title }}
                             </p>
                             @if($task->description)
-                                <p class="text-xs text-zinc-400 truncate">{{ $task->description }}</p>
+                                <p class="text-xs text-zinc-300 truncate">{{ $task->description }}</p>
                             @endif
                         </div>
                     </div>
 
                     <div class="flex items-center space-x-3 shrink-0">
                         @if($task->project_code)
-                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">
                                 {{ $task->project_code }}
                             </span>
                         @endif
@@ -153,7 +153,7 @@
                         <button
                             @click="$dispatch('ask-copilot-about', { subject: 'Task: {{ addslashes($task->title) }}', context: 'Project: {{ $task->project_code ?? 'General' }}. Status: {{ $task->status }}' })"
                             type="button"
-                            class="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-[#C9A36D] transition-colors"
+                            class="p-1.5 rounded-lg hover:bg-zinc-700 text-zinc-300 hover:text-[#C9A36D] transition-colors"
                             title="Analyze with AI"
                         >
                             <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,9 +163,9 @@
                     </div>
                 </div>
             @empty
-                <div class="p-8 text-center text-zinc-500">
-                    <p class="text-sm font-medium text-zinc-400">No active tasks in your DPIK Tugas workspace</p>
-                    <p class="text-xs text-zinc-600 mt-1">Create a task or ask the AI Assistant to extract action items from emails.</p>
+                <div class="p-8 text-center text-zinc-400">
+                    <p class="text-sm font-medium text-zinc-300">No active tasks in your DPIK Tugas workspace</p>
+                    <p class="text-xs text-zinc-400 mt-1">Create a task or ask the AI Assistant to extract action items from emails.</p>
                 </div>
             @endforelse
         </div>

@@ -26,6 +26,8 @@ class ExecutiveAssistantPageTest extends TestCase
             ->assertSuccessful()
             ->assertSee('DPIK TADBIR — Executive Management')
             ->assertSee('Today\'s Updates', false)
+            ->assertSee('Overdue')
+            ->assertSee('Pending')
             ->assertSee('DPIK Tugas — Task List');
     }
 
