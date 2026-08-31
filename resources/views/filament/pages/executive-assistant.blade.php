@@ -10,10 +10,10 @@
         <div>
             <div class="flex items-center space-x-2.5">
                 <span class="w-3 h-3 rounded-full bg-[#C9A36D]"></span>
-                <h2 class="text-xl font-bold text-white tracking-wide">DPIK Executive Copilot & Tugas Command Center</h2>
+                <h2 class="text-xl font-bold text-white tracking-wide">DPIK TADBIR — Executive Management</h2>
             </div>
             <p class="text-xs text-zinc-400 mt-1 max-w-2xl">
-                Sovereign executive workstation synchronizing live DPIK Tugas task registers, corporate commitments, and on-demand Microsoft Outlook AI intelligence.
+                Daily management console for DPIK project registers, task tracking, and Microsoft Outlook correspondence.
             </p>
         </div>
 
@@ -26,15 +26,15 @@
                 <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Launch Assistant (⌘J)</span>
+                <span>AI Assistant (⌘J)</span>
             </button>
         </div>
     </div>
 
-    <!-- Quick Start Preset Inquiry Ribbon -->
+    <!-- Quick Start Preset Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
-            @click="$dispatch('ask-copilot-about', { subject: 'Daily Morning Delta Briefing', context: 'Scan recent unread Outlook communications and surface high-priority blockers' })"
+            @click="$dispatch('ask-copilot-about', { subject: 'Today\'s Updates', context: 'Scan recent unread Outlook communications and summarize urgent deliverables for today' })"
             class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-[#C9A36D]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
             <div class="w-9 h-9 rounded-lg bg-[#C9A36D]/15 text-[#C9A36D] flex items-center justify-center shrink-0">
@@ -43,13 +43,13 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-white group-hover:text-[#C9A36D] transition-colors">Morning Delta Briefing</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Scan unread Outlook messages in past 24h for urgent deliverables.</p>
+                <h3 class="text-sm font-semibold text-white group-hover:text-[#C9A36D] transition-colors">Today's Updates</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Check unread emails and urgent messages for today.</p>
             </div>
         </div>
 
         <div
-            @click="$dispatch('ask-copilot-about', { subject: 'Project Register Commitments', context: 'Extract recent project decisions and update shared domain registers' })"
+            @click="$dispatch('ask-copilot-about', { subject: 'Project Records & Tenders', context: 'Search active project notes, contracts, and engineering records' })"
             class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-[#429A6A]/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
             <div class="w-9 h-9 rounded-lg bg-[#429A6A]/15 text-[#429A6A] flex items-center justify-center shrink-0">
@@ -58,13 +58,13 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-white group-hover:text-[#429A6A] transition-colors">Project Memory Query</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Query FTS5 BM25 knowledge index across engineering contracts.</p>
+                <h3 class="text-sm font-semibold text-white group-hover:text-[#429A6A] transition-colors">Project Records</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Search project notes, tenders, and contracts.</p>
             </div>
         </div>
 
         <div
-            @click="$dispatch('ask-copilot-about', { subject: 'Delivery Blockers & Pending Inquiries', context: 'Analyze overdue tasks and stalled project milestones' })"
+            @click="$dispatch('ask-copilot-about', { subject: 'Overdue Tasks & Pending Approvals', context: 'List all overdue tasks, pending submittals, and blocked milestones' })"
             class="p-4 bg-[#18191E] hover:bg-[#21232B] border border-[#2C2F38] hover:border-rose-500/50 rounded-xl cursor-pointer transition-all flex items-start space-x-3.5 group"
         >
             <div class="w-9 h-9 rounded-lg bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0">
@@ -73,8 +73,8 @@
                 </svg>
             </div>
             <div>
-                <h3 class="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors">Delivery Bottlenecks</h3>
-                <p class="text-xs text-zinc-400 mt-0.5">Isolate overdue action items and stalled submittals.</p>
+                <h3 class="text-sm font-semibold text-white group-hover:text-rose-400 transition-colors">Overdue & Blockers</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">View pending approvals and delayed tasks.</p>
             </div>
         </div>
     </div>
@@ -89,8 +89,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-white">DPIK Tugas — Active Action Registry</h3>
-                    <p class="text-xs text-zinc-400">Live operational tasks, commitments, and executive sign-offs</p>
+                    <h3 class="text-sm font-semibold text-white">DPIK Tugas — Task List</h3>
+                    <p class="text-xs text-zinc-400">Live operational task tracking across active projects</p>
                 </div>
             </div>
 
@@ -154,7 +154,7 @@
                             @click="$dispatch('ask-copilot-about', { subject: 'Task: {{ addslashes($task->title) }}', context: 'Project: {{ $task->project_code ?? 'General' }}. Status: {{ $task->status }}' })"
                             type="button"
                             class="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-[#C9A36D] transition-colors"
-                            title="Analyze with Copilot"
+                            title="Analyze with AI"
                         >
                             <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -165,7 +165,7 @@
             @empty
                 <div class="p-8 text-center text-zinc-500">
                     <p class="text-sm font-medium text-zinc-400">No active tasks in your DPIK Tugas workspace</p>
-                    <p class="text-xs text-zinc-600 mt-1">Create your first task or let the AI Copilot extract commitments from incoming Outlook emails.</p>
+                    <p class="text-xs text-zinc-600 mt-1">Create a task or ask the AI Assistant to extract action items from emails.</p>
                 </div>
             @endforelse
         </div>

@@ -24,9 +24,9 @@ class ExecutiveAssistantPageTest extends TestCase
         $this->actingAs($user)
             ->get('/admin/executive-assistant')
             ->assertSuccessful()
-            ->assertSee('DPIK Executive Copilot')
-            ->assertSee('Tugas Command Center')
-            ->assertSee('DPIK Tugas — Active Action Registry');
+            ->assertSee('DPIK TADBIR — Executive Management')
+            ->assertSee('Today\'s Updates', false)
+            ->assertSee('DPIK Tugas — Task List');
     }
 
     public function test_toggle_task_status_updates_task(): void
