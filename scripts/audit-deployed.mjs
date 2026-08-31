@@ -17,10 +17,11 @@
  *   pnpm audit:deployed https://<deployed-domain>/admin
  */
 
-import { chromium } from 'playwright';
+import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { chromiumLaunchOptions } from './lib/playwright-launch.mjs';
 
 const TARGET_URL = (
   process.argv[2] ||
@@ -52,13 +53,15 @@ async function runAudit() {
 
   let browser;
   try {
-    browser = await chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
+    browser = await chromium.launch(
+      chromiumLaunchOptions({
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      }),
+    );
   } catch (err) {
     console.error('❌ Failed to launch Chromium:', err.message);
     console.error('--> Ensure Playwright browsers are installed: npx playwright install chromium');
+    console.error('--> Or set PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH to a pre-installed binary.');
     process.exit(1);
   }
 

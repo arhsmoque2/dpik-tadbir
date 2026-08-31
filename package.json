@@ -12,7 +12,8 @@
     "lint:spell": "cspell --no-progress \"**/*.md\" \"docs/**/*.json\"",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/Browser/04-visual-and-accessibility.spec.ts",
-    "audit:deployed": "node scripts/audit-deployed.mjs"
+    "audit:deployed": "node scripts/audit-deployed.mjs",
+    "rehearse:ai-chat": "node scripts/rehearse-ai-chat.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

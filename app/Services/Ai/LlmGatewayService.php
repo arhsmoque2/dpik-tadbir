@@ -222,6 +222,24 @@ class LlmGatewayService
             return $this->invokeAnthropic($model, $messages, $tools, $key, $options);
         }
 
+        // 'gemini' (the configured fallback_provider) and any other
+        // provider name have no live invoke path at all — there is no
+        // invokeGemini(). Previously this fell straight through to
+        // mockCompletion() even when $liveGate was true, so a missing/bad
+        // anthropic key silently degraded every executive's chat to a
+        // canned keyword-matched reply recorded as a normal 'completed'
+        // AiRun (rehearsed live: real HTTP request, real drawer send, real
+        // response — "DPIK Tadbir Copilot ready..." for any question,
+        // telemetry showing success). Only mock silently when genuinely
+        // testing (matches every existing Pest fixture, which relies on
+        // this path); otherwise throw so AgentService's existing
+        // upstream-failure handling (friendly message, PII-redacted
+        // recordFailure, status: 'failed') takes over instead of a false
+        // "completed" response with fabricated content.
+        if ($liveGate) {
+            throw new RuntimeException("No live integration configured for provider '{$provider}' — configure an API key in Executive Settings.");
+        }
+
         $mock = $this->mockCompletion($messages, $tools);
         $mock['provider'] = $provider;
         $mock['model'] = $model;

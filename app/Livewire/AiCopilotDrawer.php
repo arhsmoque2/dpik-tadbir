@@ -126,13 +126,25 @@ class AiCopilotDrawer extends Component
         }
     }
 
-    #[On('toggle-copilot-drawer')]
+    /**
+     * Deliberately not #[On('toggle-copilot-drawer')] — both trigger buttons
+     * (topbar, hero page) dispatch that same event via a raw
+     * $dispatch('toggle-copilot-drawer'), which the drawer's own Alpine
+     * x-data already listens for directly (@toggle-copilot-drawer.window="isOpen
+     * = !isOpen", entangled with $isOpen). Livewire auto-binds #[On(...)]
+     * methods to window-dispatched events too, so with both listeners active
+     * one click fired an instant client-side flip AND a server round-trip
+     * that flipped it back on sync — the drawer would silently no-op or
+     * flicker depending on timing. Alpine is now the sole owner of the
+     * toggle; this method is reachable only via ⌘J's direct
+     * $wire.toggleDrawer() call (a real Livewire method invocation, not the
+     * window event), which was never part of the race. mount() already
+     * unconditionally establishes activeSessionId, so the old re-init guard
+     * here was dead code in practice.
+     */
     public function toggleDrawer(): void
     {
         $this->isOpen = ! $this->isOpen;
-        if ($this->isOpen && $this->activeSessionId === null) {
-            $this->mount();
-        }
     }
 
     public function closeDrawer(): void

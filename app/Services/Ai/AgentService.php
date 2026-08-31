@@ -195,7 +195,19 @@ class AgentService
                 latencyMs: $latencyMs
             );
 
-            $friendlyMessage = 'DPIK Tadbir AI is experiencing high upstream traffic or temporary rate limits. Please try again in a few moments.';
+            // Distinguish "nobody has configured an AI provider yet" (a
+            // config problem the executive can fix themselves, right now,
+            // in Settings) from a genuine transient upstream failure (rate
+            // limit, timeout) — conflating the two as one generic "high
+            // traffic, try again later" message told an executive to wait
+            // out an outage that was actually just a missing API key,
+            // which no amount of retrying would ever resolve.
+            $isConfigurationError = str_contains($e->getMessage(), 'API key is missing')
+                || str_contains($e->getMessage(), 'No live integration configured');
+
+            $friendlyMessage = $isConfigurationError
+                ? 'DPIK Tadbir AI has no AI provider configured yet. Add an Anthropic (or OpenRouter) API key in Executive Settings to enable real responses.'
+                : 'DPIK Tadbir AI is experiencing high upstream traffic or temporary rate limits. Please try again in a few moments.';
 
             ChatMessage::create([
                 'chat_session_id' => $session->id,
