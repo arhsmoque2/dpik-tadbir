@@ -3,13 +3,18 @@
 namespace App\Mcp\Tools\Interactive;
 
 use App\Mcp\BaseTool;
-use Illuminate\Support\Str;
+use App\Services\Ai\ActionApprovalService;
+use RuntimeException;
 
 class ProposeActionCardTool extends BaseTool
 {
     protected string $name = 'propose_action_card';
 
     protected string $description = 'Stages an actionable proposal (email draft, reply, forward) requiring human confirmation with a cryptographic one-time token.';
+
+    public function __construct(
+        protected ActionApprovalService $approvals
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -34,7 +39,15 @@ class ProposeActionCardTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
-        $token = 'act_tok_'.Str::random(32);
+        $user = auth()->user();
+        if (! $user) {
+            throw new RuntimeException('Cannot propose an action card outside an authenticated executive session.');
+        }
+
+        $actionType = (string) ($arguments['action_type'] ?? 'unknown');
+        $payload = (array) ($arguments['payload'] ?? []);
+
+        $token = $this->approvals->issue($actionType, $payload, $user);
 
         return [
             'status' => 'suspended',

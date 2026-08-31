@@ -3,17 +3,22 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
+use App\Services\Ai\ActionApprovalService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class OutlookReplyTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_reply';
 
     protected string $description = 'Dispatches a contextual reply to an existing Outlook thread. Requires human confirmation.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge
+        protected OutlookMcpBridge $bridge,
+        protected ActionApprovalService $approvals
     ) {}
 
     /**
@@ -41,9 +46,10 @@ class OutlookReplyTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
+        $user = auth()->user();
         $token = (string) ($arguments['approval_token'] ?? '');
-        if (empty($token) || ! str_starts_with($token, 'act_tok_')) {
-            throw new AuthorizationException('Write-safety invariant violation: Missing or invalid approval token for email reply.');
+        if (! $user || ! $this->approvals->consume($token, 'outlook_reply', $user)) {
+            throw new AuthorizationException('Write-safety invariant violation: Missing, invalid, expired, or already-used approval token for email reply.');
         }
 
         $messageId = (string) ($arguments['message_id'] ?? '');
@@ -51,7 +57,7 @@ class OutlookReplyTool extends BaseTool
         /** @var list<string> $attachments */
         $attachments = (array) ($arguments['attachments'] ?? []);
 
-        $success = $this->bridge->sendReply($messageId, $body, $attachments);
+        $success = $this->scopedBridge($this->bridge)->sendReply($messageId, $body, $attachments);
 
         return [
             'status' => $success ? 'sent' : 'failed',

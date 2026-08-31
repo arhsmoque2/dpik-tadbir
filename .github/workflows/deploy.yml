@@ -1,8 +1,17 @@
 name: Deploy to Cloud Run
 
 on:
-  push:
-    branches: [main]
+  # No `push` trigger here on purpose. Quality Gate CI's own `push` handler
+  # already covers every push to main, and this workflow's `workflow_run`
+  # trigger fires right after it completes — a `push` trigger here ran a
+  # second full deploy for the same commit, in parallel with the CI-gated
+  # one, for every push that landed on main outside a PR merge (confirmed
+  # in this repo's own Actions history: run #22/#23 and #20/#21, same SHA,
+  # same ~4min duration each, queued back-to-back under the shared
+  # deploy-production concurrency group). It also bypassed the CI gate
+  # entirely — the job's `if:` below unconditionally allowed
+  # `github.event_name == 'push'` through regardless of whether Quality
+  # Gate CI passed, contradicting this workflow's own documented intent.
   workflow_run:
     workflows: ["Quality Gate CI"]
     types: [completed]
@@ -28,7 +37,6 @@ jobs:
     timeout-minutes: 35
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     steps:

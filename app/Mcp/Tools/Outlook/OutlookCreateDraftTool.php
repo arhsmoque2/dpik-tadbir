@@ -3,10 +3,13 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Mcp\OutlookMcpBridge;
 
 class OutlookCreateDraftTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_create_draft';
 
     protected string $description = 'Stages a new email draft in Outlook via Microsoft Graph API.';
@@ -46,6 +49,6 @@ class OutlookCreateDraftTool extends BaseTool
         /** @var list<string> $ccRecipients */
         $ccRecipients = (array) ($arguments['cc_recipients'] ?? []);
 
-        return $this->bridge->createDraft($subject, $body, $toRecipients, $ccRecipients);
+        return $this->scopedBridge($this->bridge)->createDraft($subject, $body, $toRecipients, $ccRecipients);
     }
 }

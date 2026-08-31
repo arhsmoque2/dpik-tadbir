@@ -94,10 +94,17 @@ class LlmGatewayService
     /**
      * Completes a conversation turn with optional tool schemas.
      *
-     * @param  list<array{role: string, content: string}>  $messages
+     * $messages carries the gateway's neutral shape
+     * ({role, content, tool_calls?, tool_call_id?, is_error?}) — AgentService's
+     * tool loop needs the wider shape (not just {role, content}) once a turn
+     * has more than one round-trip, so this and every method it delegates to
+     * accept the general array<string, mixed> per message rather than the
+     * old plain-text-only shape.
+     *
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
@@ -116,7 +123,7 @@ class LlmGatewayService
                 }
 
                 /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $step */
-                return $step;
+                return $this->normalizeStopReason($step);
             }
         }
 
@@ -124,22 +131,50 @@ class LlmGatewayService
             $this->activeProvider = $targetProvider;
             $this->activeModel = $targetModel;
 
-            return $this->invokeProvider($targetProvider, $targetModel, $messages, $tools, $options);
+            return $this->normalizeStopReason($this->invokeProvider($targetProvider, $targetModel, $messages, $tools, $options));
         } catch (Throwable $e) {
             Log::warning("Primary LLM provider [{$targetProvider}] failed: {$e->getMessage()}. Triggering fallback to [{$this->fallbackProvider}].");
 
             $this->activeProvider = $this->fallbackProvider;
             $this->activeModel = $this->fallbackModel;
 
-            return $this->invokeProvider($this->fallbackProvider, $this->fallbackModel, $messages, $tools, $options);
+            return $this->normalizeStopReason($this->invokeProvider($this->fallbackProvider, $this->fallbackModel, $messages, $tools, $options));
         }
     }
 
     /**
-     * @param  list<array{role: string, content: string}>  $messages
+     * Ensures every completion — whatever path produced it (a real
+     * provider call, mockCompletion(), or a developer-supplied ::fake()/
+     * ::fakeSequence() fixture that predates stop_reason existing on this
+     * contract) — carries a stop_reason AgentService's tool loop can rely
+     * on without every call site needing to know which path was taken.
+     *
+     * The input is loosely typed (each of complete()'s branches — a
+     * developer fake, mockCompletion(), a live provider call — has its own
+     * shape) but every path is known to already carry content/provider/model
+     * by the time it reaches here, so the post-mutation @var below asserts
+     * the shape complete() actually promises rather than trying to thread a
+     * PHPStan generic template through a key-adding array mutation (which
+     * loses the template correlation regardless).
+     *
+     * @param  array<string, mixed>  $result
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
+     */
+    private function normalizeStopReason(array $result): array
+    {
+        if (! isset($result['stop_reason'])) {
+            $result['stop_reason'] = empty($result['tool_calls']) ? 'end_turn' : 'tool_use';
+        }
+
+        /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string} $result */
+        return $result;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason?: string, provider: string, model: string}
      */
     protected function invokeProvider(
         string $provider,
@@ -177,8 +212,14 @@ class LlmGatewayService
             default => '',
         };
 
-        if ($provider === 'openrouter' && (! app()->environment('testing') || ! empty($options['live']))) {
+        $liveGate = ! app()->environment('testing') || ! empty($options['live']);
+
+        if ($provider === 'openrouter' && $liveGate) {
             return $this->invokeOpenRouter($model, $messages, $tools, $key, $options);
+        }
+
+        if ($provider === 'anthropic' && $liveGate) {
+            return $this->invokeAnthropic($model, $messages, $tools, $key, $options);
         }
 
         $mock = $this->mockCompletion($messages, $tools);
@@ -191,10 +232,10 @@ class LlmGatewayService
     /**
      * Invoke OpenRouter OpenAI-compatible completions endpoint.
      *
-     * @param  list<array{role: string, content: string}>  $messages
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason?: string, provider: string, model: string}
      */
     protected function invokeOpenRouter(
         string $model,
@@ -209,11 +250,11 @@ class LlmGatewayService
 
         $payload = [
             'model' => $model,
-            'messages' => $messages,
+            'messages' => $this->toOpenAiMessages($messages, (string) ($options['system'] ?? '')),
         ];
 
         if (! empty($tools)) {
-            $payload['tools'] = $tools;
+            $payload['tools'] = $this->toOpenAiTools($tools);
         }
 
         $response = Http::withHeaders([
@@ -232,7 +273,7 @@ class LlmGatewayService
             throw new RuntimeException("OpenRouter API error (HTTP {$response->status()}): {$errorDesc}");
         }
 
-        /** @var array{choices?: list<array{message?: array{content?: string, tool_calls?: list<array{id?: string, function?: array{name?: string, arguments?: string}}>}}>} $data */
+        /** @var array{choices?: list<array{message?: array{content?: string, tool_calls?: list<array{id?: string, function?: array{name?: string, arguments?: string}}>}, finish_reason?: string}>} $data */
         $data = $response->json() ?? [];
         $choice = $data['choices'][0]['message'] ?? [];
         $content = (string) ($choice['content'] ?? '');
@@ -249,12 +290,261 @@ class LlmGatewayService
             }
         }
 
+        $finishReason = (string) ($data['choices'][0]['finish_reason'] ?? '');
+
         return [
             'content' => $content,
             'tool_calls' => $toolCalls,
+            'stop_reason' => ($finishReason === 'tool_calls' || $toolCalls !== []) ? 'tool_use' : 'end_turn',
             'provider' => 'openrouter',
             'model' => $model,
         ];
+    }
+
+    /**
+     * Invoke Anthropic's native Messages API. Primary provider per ADR-002 —
+     * previously the 'anthropic' branch of invokeProvider() fell straight
+     * through to mockCompletion() in every environment (see
+     * docs/handoffs history: an executive could configure a real
+     * anthropic_api_key and the assistant would still never call it).
+     *
+     * The Messages API has real shape differences from the OpenAI-compatible
+     * format invokeOpenRouter() speaks — system prompt is a top-level field,
+     * not a role:system message; tool schemas use input_schema, not
+     * parameters; and tool_use/tool_result are typed content blocks, not a
+     * separate 'tool' message role — hence the dedicated toAnthropicMessages()
+     * translation rather than reusing invokeOpenRouter()'s payload shape.
+     *
+     * @param  list<array<string, mixed>>  $messages
+     * @param  list<array<string, mixed>>  $tools
+     * @param  array<string, mixed>  $options
+     * @return array{content: string, tool_calls: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens: int, output_tokens: int}
+     */
+    protected function invokeAnthropic(
+        string $model,
+        array $messages,
+        array $tools,
+        string $key,
+        array $options
+    ): array {
+        if (empty($key)) {
+            throw new RuntimeException('Anthropic API key is missing or unconfigured. Please configure your key in Executive Settings.');
+        }
+
+        $payload = [
+            'model' => $model,
+            'max_tokens' => (int) ($options['max_tokens'] ?? 4096),
+            'messages' => $this->toAnthropicMessages($messages),
+        ];
+
+        $systemPrompt = (string) ($options['system'] ?? '');
+        if ($systemPrompt !== '') {
+            $payload['system'] = $systemPrompt;
+        }
+
+        if (! empty($tools)) {
+            $payload['tools'] = $this->toAnthropicTools($tools);
+        }
+
+        $response = Http::withHeaders([
+            'x-api-key' => $key,
+            'anthropic-version' => '2023-06-01',
+            'content-type' => 'application/json',
+        ])->timeout(60)->post('https://api.anthropic.com/v1/messages', $payload);
+
+        if (! $response->successful()) {
+            $body = $response->json() ?? [];
+            $errorDesc = is_array($body['error'] ?? null)
+                ? (string) ($body['error']['message'] ?? $response->body())
+                : (string) ($body['error'] ?? $response->body());
+
+            throw new RuntimeException("Anthropic API error (HTTP {$response->status()}): {$errorDesc}");
+        }
+
+        /** @var array{content?: list<array<string, mixed>>, stop_reason?: string, usage?: array{input_tokens?: int, output_tokens?: int}} $data */
+        $data = $response->json() ?? [];
+        $blocks = $data['content'] ?? [];
+
+        $textParts = [];
+        $toolCalls = [];
+        foreach ($blocks as $block) {
+            if (($block['type'] ?? '') === 'text') {
+                $textParts[] = (string) ($block['text'] ?? '');
+            } elseif (($block['type'] ?? '') === 'tool_use') {
+                $toolCalls[] = [
+                    'id' => (string) ($block['id'] ?? uniqid('call_')),
+                    'name' => (string) ($block['name'] ?? ''),
+                    'arguments' => (array) ($block['input'] ?? []),
+                ];
+            }
+        }
+
+        return [
+            'content' => implode("\n", $textParts),
+            'tool_calls' => $toolCalls,
+            'stop_reason' => ((string) ($data['stop_reason'] ?? '') === 'tool_use' || $toolCalls !== []) ? 'tool_use' : 'end_turn',
+            'provider' => 'anthropic',
+            'model' => $model,
+            'input_tokens' => (int) ($data['usage']['input_tokens'] ?? 0),
+            'output_tokens' => (int) ($data['usage']['output_tokens'] ?? 0),
+        ];
+    }
+
+    /**
+     * Translate the gateway's neutral message shape
+     * ({role, content, tool_calls?, tool_call_id?, is_error?}) into
+     * Anthropic's typed content-block format. Anthropic requires tool
+     * results as user-role tool_result blocks (not a separate 'tool' role)
+     * — consecutive 'tool' turns from one agent-loop iteration are merged
+     * into a single user turn carrying multiple tool_result blocks, which
+     * is what the API expects when more than one tool was called in the
+     * same assistant turn.
+     *
+     * @param  list<array<string, mixed>>  $messages
+     * @return list<array{role: string, content: string|list<array<string, mixed>>}>
+     */
+    private function toAnthropicMessages(array $messages): array
+    {
+        $out = [];
+
+        foreach ($messages as $m) {
+            $role = (string) ($m['role'] ?? 'user');
+
+            if ($role === 'assistant') {
+                $blocks = [];
+                $text = (string) ($m['content'] ?? '');
+                if ($text !== '') {
+                    $blocks[] = ['type' => 'text', 'text' => $text];
+                }
+                foreach ($m['tool_calls'] ?? [] as $tc) {
+                    $blocks[] = [
+                        'type' => 'tool_use',
+                        'id' => $tc['id'],
+                        'name' => $tc['name'],
+                        'input' => $tc['arguments'],
+                    ];
+                }
+                $out[] = ['role' => 'assistant', 'content' => $blocks !== [] ? $blocks : $text];
+
+                continue;
+            }
+
+            if ($role === 'tool') {
+                $block = [
+                    'type' => 'tool_result',
+                    'tool_use_id' => (string) ($m['tool_call_id'] ?? ''),
+                    'content' => (string) ($m['content'] ?? ''),
+                ];
+                if (! empty($m['is_error'])) {
+                    $block['is_error'] = true;
+                }
+
+                // PHPStan proves the array-typed 'content' here is always
+                // non-empty (built only as $blocks !== [] ? $blocks : $text,
+                // or as [$block]) — an explicit emptiness check was flagged
+                // as dead code, so [0] is trusted directly per that proof.
+                $lastIndex = array_key_last($out);
+                $lastIsToolResultTurn = $lastIndex !== null
+                    && $out[$lastIndex]['role'] === 'user'
+                    && is_array($out[$lastIndex]['content'])
+                    && $out[$lastIndex]['content'][0]['type'] === 'tool_result';
+
+                if ($lastIsToolResultTurn) {
+                    $out[$lastIndex]['content'][] = $block;
+                } else {
+                    $out[] = ['role' => 'user', 'content' => [$block]];
+                }
+
+                continue;
+            }
+
+            $out[] = ['role' => $role, 'content' => (string) ($m['content'] ?? '')];
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $tools
+     * @return list<array{name: string, description: string, input_schema: array<string, mixed>}>
+     */
+    private function toAnthropicTools(array $tools): array
+    {
+        return array_map(fn (array $t) => [
+            'name' => (string) ($t['name'] ?? ''),
+            'description' => (string) ($t['description'] ?? ''),
+            'input_schema' => $t['parameters'] ?? ['type' => 'object', 'properties' => (object) []],
+        ], $tools);
+    }
+
+    /**
+     * Translate the gateway's neutral message shape into OpenAI-compatible
+     * chat-completions messages — assistant tool_calls become the
+     * type:function shape, and each 'tool' turn becomes its own
+     * role:tool message keyed by tool_call_id (unlike Anthropic, OpenAI
+     * does not merge multiple tool results into one turn).
+     *
+     * @param  list<array<string, mixed>>  $messages
+     * @return list<array<string, mixed>>
+     */
+    private function toOpenAiMessages(array $messages, string $systemPrompt): array
+    {
+        $out = [];
+        if ($systemPrompt !== '') {
+            $out[] = ['role' => 'system', 'content' => $systemPrompt];
+        }
+
+        foreach ($messages as $m) {
+            $role = (string) ($m['role'] ?? 'user');
+
+            if ($role === 'assistant' && ! empty($m['tool_calls'])) {
+                $content = (string) ($m['content'] ?? '');
+                $out[] = [
+                    'role' => 'assistant',
+                    'content' => $content !== '' ? $content : null,
+                    'tool_calls' => array_map(fn (array $tc) => [
+                        'id' => $tc['id'],
+                        'type' => 'function',
+                        'function' => [
+                            'name' => $tc['name'],
+                            'arguments' => json_encode($tc['arguments'], JSON_THROW_ON_ERROR),
+                        ],
+                    ], $m['tool_calls']),
+                ];
+
+                continue;
+            }
+
+            if ($role === 'tool') {
+                $out[] = [
+                    'role' => 'tool',
+                    'tool_call_id' => (string) ($m['tool_call_id'] ?? ''),
+                    'content' => (string) ($m['content'] ?? ''),
+                ];
+
+                continue;
+            }
+
+            $out[] = ['role' => $role, 'content' => (string) ($m['content'] ?? '')];
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $tools
+     * @return list<array{type: string, function: array{name: string, description: string, parameters: array<string, mixed>}}>
+     */
+    private function toOpenAiTools(array $tools): array
+    {
+        return array_map(fn (array $t) => [
+            'type' => 'function',
+            'function' => [
+                'name' => (string) ($t['name'] ?? ''),
+                'description' => (string) ($t['description'] ?? ''),
+                'parameters' => $t['parameters'] ?? ['type' => 'object', 'properties' => (object) []],
+            ],
+        ], $tools);
     }
 
     /**
@@ -348,16 +638,16 @@ class LlmGatewayService
     }
 
     /**
-     * @param  list<array{role: string, content: string}>  $messages
+     * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string}
      */
     protected function mockCompletion(array $messages, array $tools): array
     {
         $lastUserMsg = '';
         foreach (array_reverse($messages) as $m) {
-            if ($m['role'] === 'user') {
-                $lastUserMsg = $m['content'];
+            if (($m['role'] ?? '') === 'user') {
+                $lastUserMsg = (string) ($m['content'] ?? '');
                 break;
             }
         }
@@ -372,6 +662,7 @@ class LlmGatewayService
                         'arguments' => ['lookback_hours' => 24, 'concise' => true],
                     ],
                 ],
+                'stop_reason' => 'tool_use',
             ];
         }
 
@@ -394,11 +685,13 @@ class LlmGatewayService
                         ],
                     ],
                 ],
+                'stop_reason' => 'tool_use',
             ];
         }
 
         return [
             'content' => 'DPIK Tadbir Copilot ready. How can I assist you with your executive inbox or project records today?',
+            'stop_reason' => 'end_turn',
         ];
     }
 }

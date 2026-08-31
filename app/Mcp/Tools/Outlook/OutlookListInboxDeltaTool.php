@@ -3,10 +3,13 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Mcp\OutlookMcpBridge;
 
 class OutlookListInboxDeltaTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_list_inbox_delta';
 
     protected string $description = 'Fetches new or unread emails since lookback horizon.';
@@ -40,6 +43,6 @@ class OutlookListInboxDeltaTool extends BaseTool
         $limit = (int) ($arguments['limit'] ?? 25);
         $concise = (bool) ($arguments['concise'] ?? true);
 
-        return $this->bridge->fetchInboxDelta($lookback, $limit, $concise);
+        return $this->scopedBridge($this->bridge)->fetchInboxDelta($lookback, $limit, $concise);
     }
 }
