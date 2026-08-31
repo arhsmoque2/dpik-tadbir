@@ -6,7 +6,6 @@ use App\Mcp\Tools\Outlook\OutlookReplyTool;
 use App\Models\User;
 use App\Services\Ai\ActionApprovalService;
 use Illuminate\Auth\Access\AuthorizationException;
-use RuntimeException;
 
 test('outlook reply fails closed when approval token is missing', function () {
     $tool = app(OutlookReplyTool::class);
