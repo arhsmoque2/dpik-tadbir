@@ -3,10 +3,13 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Mcp\OutlookMcpBridge;
 
 class OutlookSearchMailTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_search_mail';
 
     protected string $description = 'Searches Outlook mailbox with concise executive mode.';
@@ -41,6 +44,6 @@ class OutlookSearchMailTool extends BaseTool
         $limit = (int) ($arguments['limit'] ?? 25);
         $concise = (bool) ($arguments['concise'] ?? true);
 
-        return $this->bridge->searchMail($query, $limit, $concise);
+        return $this->scopedBridge($this->bridge)->searchMail($query, $limit, $concise);
     }
 }

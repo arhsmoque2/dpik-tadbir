@@ -3,10 +3,13 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Mcp\OutlookMcpBridge;
 
 class OutlookReadMessageTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_read_message';
 
     protected string $description = 'Reads full message contents and attachment metadata by ID.';
@@ -39,6 +42,6 @@ class OutlookReadMessageTool extends BaseTool
         $messageId = (string) ($arguments['message_id'] ?? '');
         $concise = (bool) ($arguments['concise'] ?? true);
 
-        return $this->bridge->readMessage($messageId, $concise);
+        return $this->scopedBridge($this->bridge)->readMessage($messageId, $concise);
     }
 }

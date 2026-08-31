@@ -3,17 +3,22 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
+use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
+use App\Services\Ai\ActionApprovalService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class OutlookForwardTool extends BaseTool
 {
+    use ScopesOutlookBridge;
+
     protected string $name = 'outlook_forward';
 
     protected string $description = 'Forwards an existing Outlook email message to specified recipients. Requires human confirmation.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge
+        protected OutlookMcpBridge $bridge,
+        protected ActionApprovalService $approvals
     ) {}
 
     /**
@@ -41,9 +46,10 @@ class OutlookForwardTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
+        $user = auth()->user();
         $token = (string) ($arguments['approval_token'] ?? '');
-        if (empty($token) || ! str_starts_with($token, 'act_tok_')) {
-            throw new AuthorizationException('Write-safety invariant violation: Missing or invalid approval token for email forward.');
+        if (! $user || ! $this->approvals->consume($token, 'outlook_forward', $user)) {
+            throw new AuthorizationException('Write-safety invariant violation: Missing, invalid, expired, or already-used approval token for email forward.');
         }
 
         $messageId = (string) ($arguments['message_id'] ?? '');
@@ -51,7 +57,7 @@ class OutlookForwardTool extends BaseTool
         $toRecipients = (array) ($arguments['to_recipients'] ?? []);
         $comment = (string) ($arguments['comment'] ?? '');
 
-        $success = $this->bridge->forwardMessage($messageId, $toRecipients, $comment);
+        $success = $this->scopedBridge($this->bridge)->forwardMessage($messageId, $toRecipients, $comment);
 
         return [
             'status' => $success ? 'forwarded' : 'failed',

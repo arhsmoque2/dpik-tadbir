@@ -13,6 +13,7 @@ use App\Mcp\Tools\Outlook\OutlookReadMessageTool;
 use App\Mcp\Tools\Outlook\OutlookReplyTool;
 use App\Mcp\Tools\Outlook\OutlookSearchMailTool;
 use App\Models\User;
+use App\Services\Ai\ActionApprovalService;
 use App\Services\Mcp\OutlookMcpBridge;
 use App\Services\Memory\DecisionMarkerExtractor;
 use App\Services\Memory\MemoryRetrievalService;
@@ -31,7 +32,7 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $askRes = $askTool->handle(['question' => 'Which project?', 'options' => ['A', 'B']]);
     expect($askRes['status'])->toBe('suspended');
 
-    $propTool = new ProposeActionCardTool;
+    $propTool = app(ProposeActionCardTool::class);
     expect($propTool->schema())->toHaveKey('properties');
     $propRes = $propTool->handle([
         'action_type' => 'outlook_reply',
@@ -73,12 +74,13 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $draftRes = $draftTool->handle(['subject' => 'Draft Subj', 'body' => 'Body', 'to_recipients' => ['test@example.com']]);
     expect($draftRes['status'])->toBe('draft_created');
 
-    $forwardTool = new OutlookForwardTool($bridge);
+    $forwardToken = app(ActionApprovalService::class)->issue('outlook_forward', [], $user);
+    $forwardTool = app(OutlookForwardTool::class);
     expect($forwardTool->schema())->toHaveKey('properties');
     $forwardRes = $forwardTool->handle([
         'message_id' => 'msg_001',
         'to_recipients' => ['eng@dpik.com.my'],
-        'approval_token' => 'act_tok_123',
+        'approval_token' => $forwardToken,
     ]);
     expect($forwardRes['status'])->toBe('forwarded');
 
@@ -92,12 +94,13 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $readRes = $readTool->handle(['message_id' => 'msg_001']);
     expect($readRes)->toHaveKey('subject');
 
-    $replyTool = new OutlookReplyTool($bridge);
+    $replyToken = app(ActionApprovalService::class)->issue('outlook_reply', [], $user);
+    $replyTool = app(OutlookReplyTool::class);
     expect($replyTool->schema())->toHaveKey('properties');
     $replyRes = $replyTool->handle([
         'message_id' => 'msg_001',
         'body' => 'Confirmed.',
-        'approval_token' => 'act_tok_123',
+        'approval_token' => $replyToken,
     ]);
     expect($replyRes['status'])->toBe('sent');
 
@@ -108,13 +111,11 @@ test('all MCP tools return valid schemas and execute expected methods', function
 });
 
 test('outlook forward and reply tools enforce write-safety tokens', function () {
-    $bridge = new OutlookMcpBridge;
-
-    $forwardTool = new OutlookForwardTool($bridge);
+    $forwardTool = app(OutlookForwardTool::class);
     expect(fn () => $forwardTool->handle(['message_id' => '1', 'approval_token' => 'invalid']))
         ->toThrow(AuthorizationException::class);
 
-    $replyTool = new OutlookReplyTool($bridge);
+    $replyTool = app(OutlookReplyTool::class);
     expect(fn () => $replyTool->handle(['message_id' => '1', 'approval_token' => 'invalid']))
         ->toThrow(AuthorizationException::class);
 });

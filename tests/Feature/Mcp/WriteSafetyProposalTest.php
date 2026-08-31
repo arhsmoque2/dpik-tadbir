@@ -2,12 +2,12 @@
 
 use App\Mcp\Tools\Outlook\OutlookForwardTool;
 use App\Mcp\Tools\Outlook\OutlookReplyTool;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Models\User;
+use App\Services\Ai\ActionApprovalService;
 use Illuminate\Auth\Access\AuthorizationException;
 
 test('outlook reply fails closed when approval token is missing', function () {
-    $bridge = app(OutlookMcpBridge::class);
-    $tool = new OutlookReplyTool($bridge);
+    $tool = app(OutlookReplyTool::class);
 
     $tool->handle([
         'message_id' => 'msg_123',
@@ -16,8 +16,7 @@ test('outlook reply fails closed when approval token is missing', function () {
 })->throws(AuthorizationException::class);
 
 test('outlook reply fails closed when approval token is invalid', function () {
-    $bridge = app(OutlookMcpBridge::class);
-    $tool = new OutlookReplyTool($bridge);
+    $tool = app(OutlookReplyTool::class);
 
     $tool->handle([
         'message_id' => 'msg_123',
@@ -27,22 +26,45 @@ test('outlook reply fails closed when approval token is invalid', function () {
 })->throws(AuthorizationException::class);
 
 test('outlook reply succeeds with valid approval token', function () {
-    $bridge = app(OutlookMcpBridge::class);
-    $tool = new OutlookReplyTool($bridge);
+    $user = User::create([
+        'name' => 'Write Safety Tester',
+        'email' => 'writesafety@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $token = app(ActionApprovalService::class)->issue('outlook_reply', [], $user);
+    $tool = app(OutlookReplyTool::class);
 
     $res = $tool->handle([
         'message_id' => 'msg_123',
         'body' => 'Approved response',
-        'approval_token' => 'act_tok_valid_token_string_12345',
+        'approval_token' => $token,
     ]);
 
     expect($res['status'])->toBe('sent');
     expect($res['success'])->toBeTrue();
 });
 
+test('outlook reply rejects a token already consumed once', function () {
+    $user = User::create([
+        'name' => 'Write Safety Replay Tester',
+        'email' => 'writesafety-replay@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $token = app(ActionApprovalService::class)->issue('outlook_reply', [], $user);
+    $tool = app(OutlookReplyTool::class);
+
+    $tool->handle(['message_id' => 'msg_123', 'body' => 'First send', 'approval_token' => $token]);
+
+    expect(fn () => $tool->handle(['message_id' => 'msg_123', 'body' => 'Replayed send', 'approval_token' => $token]))
+        ->toThrow(AuthorizationException::class);
+});
+
 test('outlook forward fails closed without approval token', function () {
-    $bridge = app(OutlookMcpBridge::class);
-    $tool = new OutlookForwardTool($bridge);
+    $tool = app(OutlookForwardTool::class);
 
     $tool->handle([
         'message_id' => 'msg_123',
