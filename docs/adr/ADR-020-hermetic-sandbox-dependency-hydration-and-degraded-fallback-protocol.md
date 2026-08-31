@@ -25,7 +25,8 @@ We establish the **ARH Two-Tier Dependency Hydration & Degraded Fallback Archite
 - In sandbox environments, `scripts/setup-sandbox.sh` fetches and unpacks `vendor.tar.gz` in a single streaming command (`curl -sL ... | tar -xz`), completing dependency hydration in <3 seconds without making 80+ separate GitHub API zipball requests.
 
 ### 2. Authenticated Composer Token Injection (Tier 2 — Secondary)
-- If the pre-built tarball is unavailable or dependencies have drifted on a feature branch, `scripts/setup-sandbox.sh` automatically detects available authentication tokens (`GITHUB_TOKEN`, `GH_TOKEN`, or `gh auth token`) and injects them into Composer's global configuration (`composer config -g github-oauth.github.com <TOKEN>`) before running `composer install`.
+- If the pre-built tarball is unavailable or dependencies have drifted on a feature branch, `scripts/setup-sandbox.sh` validates available authentication tokens (`GITHUB_TOKEN`, `GH_TOKEN`, or `gh auth token`) against strict format heuristics (rejecting tool proxies like `proxy-injected` and dummy placeholders) before injection into Composer's global configuration (`composer config -g github-oauth.github.com <TOKEN>`).
+- If token injection is invalid or unauthenticated install fails, the script continues cleanly into independent Node/Playwright/SQLite setup rather than cascading into a fatal termination.
 
 ### 3. Degraded CI-Feedback Protocol (Tier 3 — Honesty Doctrine)
 - When running in an air-gapped sandbox where network egress is entirely blocked:

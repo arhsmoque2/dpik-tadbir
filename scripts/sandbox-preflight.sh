@@ -5,6 +5,12 @@ echo "=========================================================="
 echo "  DPIK Tadbir: Hermetic Sandbox Preflight Quality Gate    "
 echo "=========================================================="
 
+if [ ! -d "vendor/bin" ]; then
+  echo "--> [ERROR] vendor/bin directory not found."
+  echo "--> Run 'bash scripts/setup-sandbox.sh' or follow DEVTOOLS.md §4 for Degraded CI-Feedback Protocol."
+  exit 1
+fi
+
 echo "--> 1. Running deterministic auto-fix cascade..."
 vendor/bin/pint || true
 vendor/bin/filacheck app/Filament --fix --dirty || true
