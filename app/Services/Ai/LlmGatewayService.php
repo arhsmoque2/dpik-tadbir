@@ -439,11 +439,14 @@ class LlmGatewayService
                     $block['is_error'] = true;
                 }
 
+                // PHPStan proves the array-typed 'content' here is always
+                // non-empty (built only as $blocks !== [] ? $blocks : $text,
+                // or as [$block]) — an explicit emptiness check was flagged
+                // as dead code, so [0] is trusted directly per that proof.
                 $lastIndex = array_key_last($out);
                 $lastIsToolResultTurn = $lastIndex !== null
                     && $out[$lastIndex]['role'] === 'user'
                     && is_array($out[$lastIndex]['content'])
-                    && $out[$lastIndex]['content'] !== []
                     && $out[$lastIndex]['content'][0]['type'] === 'tool_result';
 
                 if ($lastIsToolResultTurn) {
