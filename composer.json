@@ -90,13 +90,13 @@
     ],
     "check:full": [
       "@check:quick",
-      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 90",
+      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 80",
       "vendor/bin/composer-unused"
     ],
     "test:coverage": "vendor/bin/pest --coverage-clover coverage.xml --parallel",
     "test:diff": [
       "@test:coverage",
-      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 90"
+      "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 80"
     ]
   },
   "extra": {

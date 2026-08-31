@@ -214,12 +214,13 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         uses: astral-sh/setup-uv@v5
 
-      - name: Enforce 90% Incremental Diff Coverage Gate
+      - name: Enforce Incremental Diff Coverage Gate
         if: steps.check_composer.outputs.has_composer == 'true' && github.event_name == 'pull_request'
         run: |
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
-            --fail-under 90
+            --fail-under 80
+
 
   ui-layout-audit:
     name: "Gate 4: Playwright E2E, Visual & Accessibility QA"

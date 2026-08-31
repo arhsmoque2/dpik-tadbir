@@ -90,3 +90,29 @@ test('agent service gracefully degrades and logs failed run when all AI provider
     expect($lastMsg->role)->toBe('assistant');
     expect($lastMsg->metadata['status'])->toBe('failed');
 });
+
+test('agent service generates helpful configuration message when API keys are unconfigured', function () {
+    $user = User::create([
+        'name' => 'Unconfigured Key Tester',
+        'email' => 'nokeys@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $session = ChatSession::create([
+        'user_id' => $user->id,
+        'title' => 'Unconfigured Key Session',
+    ]);
+
+    LlmGatewayService::fake([
+        'anthropic' => new RuntimeException('Anthropic API key is missing'),
+        'gemini' => new RuntimeException("No live integration configured for provider 'gemini'"),
+    ]);
+
+    $agent = app(AgentService::class);
+    $response = $agent->handleUserTurn($session, 'Hello');
+
+    expect($response->status)->toBe('failed');
+    expect($response->content)->toContain('no AI provider configured yet');
+    expect($response->content)->toContain('Executive Settings');
+});

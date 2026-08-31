@@ -342,3 +342,16 @@ test('probeOpenRouterKey handles connection exceptions', function () {
     expect($res['error_code'])->toBe('CONNECTION_FAILED');
     expect($res['error_message'])->toContain('Connection timeout');
 });
+
+test('llm gateway throws runtime exception when liveGate is true for unsupported live provider', function () {
+    $gateway = new LlmGatewayService;
+
+    expect(fn () => $gateway->complete(
+        messages: [['role' => 'user', 'content' => 'Hello']],
+        options: [
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'live' => true,
+        ]
+    ))->toThrow(RuntimeException::class, 'No live integration configured for provider');
+});
