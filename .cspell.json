@@ -318,7 +318,14 @@
     "referer",
     "Konsult",
     "Bintulu",
-    "cutover"
+    "cutover",
+    "devcontainer",
+    "devcontainers",
+    "intelephense",
+    "tarball",
+    "tarballs",
+    "clobber",
+    "gapped"
   ],
   "ignorePaths": [
     "node_modules/**",

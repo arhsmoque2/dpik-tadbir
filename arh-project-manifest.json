@@ -1,0 +1,44 @@
+{
+  "$schema": "https://arh-os.dev/schemas/arh-project-manifest.v1.json",
+  "name": "dpik-tadbir",
+  "description": "Executive Email Copilot & Enterprise Knowledge Workstation for DPIK",
+  "ecosystem": "laravel",
+
+  "stack": {
+    "runtime": "php:^8.4",
+    "framework": "laravel:^12.0",
+    "ui": "filament:^4.0",
+    "package_manager": "composer"
+  },
+
+  "gates": {
+    "quick": "composer check:quick",
+    "full": "composer check:full",
+    "fix": "composer fix",
+    "individual": {
+      "lint": "composer lint",
+      "analyse": "composer analyse",
+      "test": "composer test",
+      "test:coverage": "composer test:coverage",
+      "test:mutate": "composer test:mutate"
+    }
+  },
+
+  "ci": {
+    "provider": "github-actions",
+    "workflow": ".github/workflows/ci.yml",
+    "gate_names": ["pint", "phpstan-l8", "filacheck", "pest", "composer-unused", "mdlint", "cspell", "gitleaks", "diff-cover"]
+  },
+
+  "continuity": {
+    "state_file": "CURRENT_STATE.md",
+    "design_doc": "docs/DESIGN.md",
+    "adr_dir": "docs/adr/"
+  },
+
+  "phase": {
+    "current": "Feature Integration Complete — OpenRouter Multi-Model Gateway & In-Chat 3-Favorites Runtime Swapper Verified",
+    "next_action": "Merge PR #5, begin multi-executive workspace isolation (ADR-013)",
+    "updated_at": "2026-08-30T23:00:00+08:00"
+  }
+}

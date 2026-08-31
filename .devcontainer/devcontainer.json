@@ -1,0 +1,39 @@
+{
+  "name": "DPIK Tadbir Cloud Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "pnpmVersion": "9.15.9"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-debug",
+        "larascripts.laravel-pint",
+        "pestphp.pest-vscode",
+        "ms-playwright.playwright"
+      ],
+      "settings": {
+        "php.suggest.basic": false,
+        "intelephense.environment.phpVersion": "8.4.0",
+        "intelephense.files.maxSize": 5000000
+      }
+    }
+  },
+  "containerEnv": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:"
+  },
+  "postCreateCommand": "bash scripts/setup-sandbox.sh",
+  "remoteUser": "vscode"
+}
