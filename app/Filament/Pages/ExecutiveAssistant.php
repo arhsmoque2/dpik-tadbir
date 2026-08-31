@@ -2,7 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\PersonalTask;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Auth;
 
 class ExecutiveAssistant extends Page
 {
@@ -15,4 +17,13 @@ class ExecutiveAssistant extends Page
     protected static string|\UnitEnum|null $navigationGroup = 'Copilot Command Center';
 
     protected string $view = 'filament.pages.executive-assistant';
+
+    public function toggleTaskStatus(int $taskId): void
+    {
+        $task = PersonalTask::where('user_id', Auth::id())->find($taskId);
+        if ($task) {
+            $task->status = $task->status === 'completed' ? 'pending' : 'completed';
+            $task->save();
+        }
+    }
 }

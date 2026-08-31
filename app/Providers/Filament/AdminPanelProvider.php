@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('@livewire(\'ai-copilot-drawer\')')
+                fn (): string => Blade::render('@livewire(\'ai-copilot-drawer\') @include(\'filament.hooks.bottom-nav\')')
             )
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,

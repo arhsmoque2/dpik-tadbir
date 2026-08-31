@@ -45,8 +45,8 @@
         <!-- Header -->
         <div class="px-5 py-4 border-b border-[#2C2F38] bg-[#18191E] flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 border border-[#C9A36D]/30 flex items-center justify-center text-[#C9A36D]">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 border border-[#C9A36D]/30 flex items-center justify-center text-[#C9A36D] shrink-0">
+                    <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
@@ -70,11 +70,11 @@
                         class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-all font-mono"
                         title="Runtime Model Swapper (ADR-018)"
                     >
-                        <svg class="w-3.5 h-3.5 text-[#C9A36D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg style="width: 14px; height: 14px; min-width: 14px; color: #C9A36D;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                         </svg>
                         <span class="truncate max-w-[170px]">{{ $this->getActiveModelBadgeLabel() }}</span>
-                        <svg class="w-3 h-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg style="width: 12px; height: 12px; min-width: 12px; color: #A1A1AA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
@@ -123,7 +123,7 @@
                                 class="text-[11px] text-zinc-400 hover:text-[#C9A36D] transition-colors flex items-center justify-between group"
                             >
                                 <span>Configure Favorites in Settings</span>
-                                <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-[#C9A36D] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg style="width: 14px; height: 14px; min-width: 14px;" class="text-zinc-500 group-hover:text-[#C9A36D] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </a>
@@ -137,7 +137,7 @@
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
                     title="New Session"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                 </button>
@@ -147,7 +147,7 @@
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
                     title="Close (Esc)"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -161,28 +161,36 @@
                 <button
                     wire:click="runPreset({{ $preset->id }})"
                     type="button"
-                    class="shrink-0 text-xs px-2.5 py-1 rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/50 transition-all flex items-center space-x-1.5"
+                    class="shrink-0 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-colors flex items-center space-x-1.5"
                 >
-                    <span>{{ $preset->title }}</span>
+                    <span>{{ $preset->name }}</span>
                 </button>
             @empty
-                <span class="text-xs text-zinc-500 italic">No presets configured</span>
+                <span class="text-xs text-zinc-600">No active presets configured</span>
             @endforelse
         </div>
 
-        <!-- Conversation Stream -->
-        <div class="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin" id="copilot-message-stream">
+        <!-- Message History Stream -->
+        <div
+            id="copilot-message-stream"
+            class="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin"
+        >
             @forelse($this->messages as $msg)
                 @if($msg->role === 'user')
                     <div class="flex justify-end">
-                        <div class="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#C9A36D]/15 border border-[#C9A36D]/30 px-4 py-3 text-sm text-white">
+                        <div class="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#C9A36D]/15 border border-[#C9A36D]/30 px-4 py-3 text-sm text-white shadow-sm">
                             {{ $msg->content }}
                         </div>
                     </div>
                 @elseif($msg->role === 'assistant')
-                    <div class="flex justify-start">
-                        <div class="max-w-[90%] rounded-2xl rounded-tl-sm bg-[#18191E] border border-[#2C2F38] px-4 py-3.5 text-sm text-zinc-200 space-y-2">
-                            <div class="prose prose-invert prose-sm max-w-none leading-relaxed text-zinc-200">
+                    <div class="flex justify-start space-x-3">
+                        <div class="w-7 h-7 rounded-lg bg-[#18191E] border border-[#2C2F38] flex items-center justify-center text-[#C9A36D] shrink-0 mt-0.5">
+                            <svg style="width: 14px; height: 14px; min-width: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div class="max-w-[85%] space-y-2">
+                            <div class="rounded-2xl rounded-tl-sm bg-[#18191E] border border-[#2C2F38] px-4 py-3 text-sm text-zinc-200 shadow-sm leading-relaxed prose prose-invert prose-sm">
                                 {!! nl2br(e($msg->content)) !!}
                             </div>
                         </div>
@@ -197,8 +205,8 @@
                 @endif
             @empty
                 <div class="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-500">
-                    <div class="w-12 h-12 rounded-xl bg-[#18191E] border border-[#2C2F38] flex items-center justify-center text-[#C9A36D] mb-3">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="w-12 h-12 rounded-xl bg-[#18191E] border border-[#2C2F38] flex items-center justify-center text-[#C9A36D] mb-3 shrink-0">
+                        <svg style="width: 24px; height: 24px; min-width: 24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
                     </div>
@@ -260,7 +268,7 @@
                             type="button"
                             class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-950 hover:bg-zinc-100 shadow transition-all flex items-center space-x-1.5"
                         >
-                            <svg class="w-3.5 h-3.5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg style="width: 14px; height: 14px; min-width: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                             </svg>
                             <span>Approve & Dispatch</span>
@@ -356,7 +364,7 @@
             <!-- Loading Spinner -->
             @if($isProcessing)
                 <div class="flex items-center space-x-3 text-xs text-zinc-400 p-3 rounded-lg bg-[#18191E] border border-[#2C2F38]">
-                    <svg class="animate-spin h-4 w-4 text-[#C9A36D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-4 w-4 text-[#C9A36D]" style="width: 16px; height: 16px; min-width: 16px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -390,7 +398,7 @@
                             class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#C9A36D] hover:bg-[#D4B896] text-zinc-950 transition-colors flex items-center space-x-1.5 shadow"
                         >
                             <span>Send</span>
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg style="width: 14px; height: 14px; min-width: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                         </button>
