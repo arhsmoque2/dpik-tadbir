@@ -175,6 +175,159 @@ test('invokeOpenRouter parses function tool calls from openrouter payload', func
     expect($res['tool_calls'][0]['name'])->toBe('search_projects');
 });
 
+test('llm gateway invokes anthropic messages api with system prompt and correct headers', function () {
+    $gateway = new LlmGatewayService;
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => function ($request) {
+            expect($request->header('x-api-key')[0])->toBe('sk-ant-my-mock-key'); // gitleaks:allow
+            expect($request->header('anthropic-version')[0])->toBe('2023-06-01');
+            expect($request->data()['system'])->toBe('You are the DPIK Tadbir executive copilot.');
+
+            return Http::response([
+                'content' => [
+                    ['type' => 'text', 'text' => 'Sungai Udang bridge repair is on schedule.'],
+                ],
+                'stop_reason' => 'end_turn',
+                'usage' => ['input_tokens' => 120, 'output_tokens' => 18],
+            ], 200);
+        },
+    ]);
+
+    $res = $gateway->complete(
+        messages: [['role' => 'user', 'content' => 'Status update please']],
+        options: [
+            'provider' => 'anthropic',
+            'model' => 'claude-3-7-sonnet-20250219',
+            'live' => true,
+            'system' => 'You are the DPIK Tadbir executive copilot.',
+            'user' => new User(['anthropic_api_key' => 'sk-ant-my-mock-key']), // gitleaks:allow
+        ]
+    );
+
+    expect($res['provider'])->toBe('anthropic');
+    expect($res['content'])->toBe('Sungai Udang bridge repair is on schedule.');
+    expect($res['stop_reason'])->toBe('end_turn');
+    expect($res['tool_calls'])->toBe([]);
+});
+
+test('llm gateway parses anthropic tool_use blocks into normalized tool_calls', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('invokeAnthropic');
+    $method->setAccessible(true);
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => Http::response([
+            'content' => [
+                ['type' => 'text', 'text' => 'Let me check that.'],
+                ['type' => 'tool_use', 'id' => 'toolu_01abc', 'name' => 'query_project_register', 'input' => ['query' => 'FT264']],
+            ],
+            'stop_reason' => 'tool_use',
+            'usage' => ['input_tokens' => 50, 'output_tokens' => 12],
+        ], 200),
+    ]);
+
+    $tools = [
+        ['name' => 'query_project_register', 'description' => 'Searches the register.', 'parameters' => ['type' => 'object', 'properties' => ['query' => ['type' => 'string']]]],
+    ];
+
+    $res = $method->invoke($gateway, 'claude-3-7-sonnet-20250219', [['role' => 'user', 'content' => 'Check FT264']], $tools, 'sk-ant-mock', []); // gitleaks:allow
+
+    expect($res['stop_reason'])->toBe('tool_use');
+    expect($res['tool_calls'])->toHaveCount(1);
+    expect($res['tool_calls'][0]['id'])->toBe('toolu_01abc');
+    expect($res['tool_calls'][0]['name'])->toBe('query_project_register');
+    expect($res['tool_calls'][0]['arguments'])->toBe(['query' => 'FT264']);
+    expect($res['input_tokens'])->toBe(50);
+    expect($res['output_tokens'])->toBe(12);
+});
+
+test('invokeAnthropic throws exception when api key is empty', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('invokeAnthropic');
+    $method->setAccessible(true);
+
+    expect(fn () => $method->invoke($gateway, 'claude-3-7-sonnet-20250219', [], [], '', []))
+        ->toThrow(RuntimeException::class, 'Anthropic API key is missing');
+});
+
+test('invokeAnthropic passes through exact upstream error messages', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('invokeAnthropic');
+    $method->setAccessible(true);
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => Http::response([
+            'error' => ['type' => 'invalid_x_api_key', 'message' => 'invalid x-api-key'],
+        ], 401),
+    ]);
+
+    expect(fn () => $method->invoke($gateway, 'claude-3-7-sonnet-20250219', [['role' => 'user', 'content' => 'Hi']], [], 'sk-ant-bad-key', [])) // gitleaks:allow
+        ->toThrow(RuntimeException::class, 'invalid x-api-key');
+});
+
+test('toAnthropicMessages merges multiple tool results from one turn into a single user message', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toAnthropicMessages');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check both projects'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_1', 'name' => 'query_project_register', 'arguments' => ['query' => 'A']],
+                ['id' => 'call_2', 'name' => 'query_project_register', 'arguments' => ['query' => 'B']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"count":1}', 'tool_call_id' => 'call_1', 'is_error' => false],
+        ['role' => 'tool', 'content' => '{"error":"not found"}', 'tool_call_id' => 'call_2', 'is_error' => true],
+    ];
+
+    $result = $method->invoke($gateway, $neutral);
+
+    expect($result)->toHaveCount(3); // user, assistant(2 tool_use blocks), user(2 merged tool_result blocks)
+    expect($result[1]['content'])->toHaveCount(2);
+    expect($result[1]['content'][0]['type'])->toBe('tool_use');
+    expect($result[2]['role'])->toBe('user');
+    expect($result[2]['content'])->toHaveCount(2);
+    expect($result[2]['content'][0]['type'])->toBe('tool_result');
+    expect($result[2]['content'][0]['tool_use_id'])->toBe('call_1');
+    expect($result[2]['content'][1]['is_error'])->toBeTrue();
+});
+
+test('toOpenAiMessages translates assistant tool_calls and tool results to OpenAI wire format', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toOpenAiMessages');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check FT264'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_1', 'name' => 'query_project_register', 'arguments' => ['query' => 'FT264']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"count":0}', 'tool_call_id' => 'call_1', 'is_error' => false],
+    ];
+
+    $result = $method->invoke($gateway, $neutral, 'System prompt text');
+
+    expect($result[0])->toBe(['role' => 'system', 'content' => 'System prompt text']);
+    expect($result[2]['role'])->toBe('assistant');
+    expect($result[2]['tool_calls'][0]['function']['name'])->toBe('query_project_register');
+    expect($result[2]['tool_calls'][0]['function']['arguments'])->toBe(json_encode(['query' => 'FT264']));
+    expect($result[3])->toBe(['role' => 'tool', 'tool_call_id' => 'call_1', 'content' => '{"count":0}']);
+});
+
 test('probeOpenRouterKey handles connection exceptions', function () {
     $gateway = new LlmGatewayService;
 

@@ -1,10 +1,12 @@
 <?php
 
+use App\Mcp\Tools\Interactive\ProposeActionCardTool;
 use App\Mcp\Tools\Outlook\OutlookForwardTool;
 use App\Mcp\Tools\Outlook\OutlookReplyTool;
 use App\Models\User;
 use App\Services\Ai\ActionApprovalService;
 use Illuminate\Auth\Access\AuthorizationException;
+use RuntimeException;
 
 test('outlook reply fails closed when approval token is missing', function () {
     $tool = app(OutlookReplyTool::class);
@@ -71,3 +73,14 @@ test('outlook forward fails closed without approval token', function () {
         'to_recipients' => ['test@example.com'],
     ]);
 })->throws(AuthorizationException::class);
+
+test('propose action card tool refuses to issue a token outside an authenticated session', function () {
+    $tool = app(ProposeActionCardTool::class);
+
+    $tool->handle([
+        'action_type' => 'outlook_reply',
+        'title' => 'Unauthenticated proposal',
+        'summary' => 'Should never be reachable outside a real session',
+        'payload' => [],
+    ]);
+})->throws(RuntimeException::class, 'Cannot propose an action card outside an authenticated executive session.');
