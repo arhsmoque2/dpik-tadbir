@@ -325,7 +325,9 @@
     "tarball",
     "tarballs",
     "clobber",
-    "gapped"
+    "gapped",
+    "zipball",
+    "zipballs"
   ],
   "ignorePaths": [
     "node_modules/**",
