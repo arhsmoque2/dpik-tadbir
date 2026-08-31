@@ -57,9 +57,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create sandbox-vendor-latest \
-            vendor.tar.gz \
-            node_modules.tar.gz \
-            --title "DPIK Tadbir Sandbox Dependency Cache" \
-            --notes "Automated pre-compiled vendor and node_modules archives for hermetic cloud sandbox agents (ADR-020)." \
-            --clobber
+          if gh release view sandbox-vendor-latest >/dev/null 2>&1; then
+            echo "--> Existing release found. Uploading updated archives..."
+            gh release upload sandbox-vendor-latest \
+              vendor.tar.gz \
+              node_modules.tar.gz \
+              --clobber
+          else
+            echo "--> Creating new sandbox-vendor-latest release..."
+            gh release create sandbox-vendor-latest \
+              vendor.tar.gz \
+              node_modules.tar.gz \
+              --title "DPIK Tadbir Sandbox Dependency Cache" \
+              --notes "Automated pre-compiled vendor and node_modules archives for hermetic cloud sandbox agents (ADR-020)."
+          fi
