@@ -12,6 +12,8 @@ class ProposeActionCardTool extends BaseTool
 
     protected string $description = 'Stages an actionable proposal (email draft, reply, forward) requiring human confirmation with a cryptographic one-time token.';
 
+    protected bool $requiresConfirmation = true;
+
     public function __construct(
         protected ActionApprovalService $approvals
     ) {}
