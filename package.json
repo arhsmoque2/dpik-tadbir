@@ -11,7 +11,8 @@
     "lint:doc": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#vendor\"",
     "lint:spell": "cspell --no-progress \"**/*.md\" \"docs/**/*.json\"",
     "test:e2e": "playwright test",
-    "test:a11y": "playwright test tests/Browser/04-visual-and-accessibility.spec.ts"
+    "test:a11y": "playwright test tests/Browser/04-visual-and-accessibility.spec.ts",
+    "audit:deployed": "node scripts/audit-deployed.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

@@ -136,6 +136,9 @@ composer test:diff
 # 5. Run documentation, schema, and spellcheck audits
 pnpm lint:doc
 pnpm lint:spell
+
+# 6. Portable Playwright audit of deployed preview/production surface
+pnpm audit:deployed https://<deployed-url>/admin
 ```
 
 ---
