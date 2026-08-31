@@ -44,11 +44,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::BODY_END,
-                fn (): string => Blade::render('@livewire(\'ai-copilot-drawer\') @include(\'filament.hooks.bottom-nav\')')
+                fn (): string => auth()->check() ? Blade::render('@livewire(\'ai-copilot-drawer\') @include(\'filament.hooks.bottom-nav\')') : ''
             )
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-                fn (): string => Blade::render('@include(\'filament.hooks.copilot-topbar-button\')')
+                fn (): string => auth()->check() ? Blade::render('@include(\'filament.hooks.copilot-topbar-button\')') : ''
             )
             ->middleware([
                 EncryptCookies::class,
