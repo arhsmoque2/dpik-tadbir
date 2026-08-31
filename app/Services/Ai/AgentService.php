@@ -23,14 +23,47 @@ class AgentService
     private const MAX_ITERATIONS = 8;
 
     /**
-     * How many of the most recent chat_messages rows (across all roles) to
-     * load as context for a turn. Previously unbounded (the full session,
-     * however long) — a real risk now that a single turn can persist
+     * Per-context_mode token budget profiles (ADR-021), replacing the
+     * former flat `HISTORY_MESSAGE_LIMIT = 40` constant. That constant
+     * bounded how many of the most recent chat_messages rows (across all
+     * roles) load as context for a turn — previously unbounded (the full
+     * session, however long), a real risk once a single turn could persist
      * several rows itself (one per tool call/result in the loop below, not
-     * just one assistant reply), so a long working session could grow
-     * every subsequent turn's prompt without limit.
+     * just one assistant reply). ChatSession has carried a `context_mode`
+     * column since its original migration
+     * (inbox_triage/project_deepdive/drafting/general), but every session
+     * is created with the literal 'executive' and this loop never read the
+     * column at all — every turn got identical history/output budgets
+     * regardless of what the session was actually for. 'executive' and the
+     * fallback below both reproduce the exact previous hardcoded behavior
+     * (40 messages, 4096 output tokens) so no existing session changes
+     * behavior; only a session actually created with one of the other
+     * modes sees a different budget.
+     *
+     * @var array<string, array{history_limit: int, max_tokens: int}>
      */
-    private const HISTORY_MESSAGE_LIMIT = 40;
+    private const CONTEXT_MODE_PROFILES = [
+        // Quick status checks ("any new mail", "what's overdue") — short
+        // replies, a small window is enough context to stay coherent.
+        'inbox_triage' => ['history_limit' => 20, 'max_tokens' => 1024],
+        // Composing/replying to correspondence — needs recent thread
+        // context but rarely a deep project history.
+        'drafting' => ['history_limit' => 30, 'max_tokens' => 2048],
+        // Multi-step project research/analysis — the widest budget.
+        'project_deepdive' => ['history_limit' => 60, 'max_tokens' => 4096],
+        // Matches the previous unconditional constants exactly.
+        'general' => ['history_limit' => 40, 'max_tokens' => 4096],
+        'executive' => ['history_limit' => 40, 'max_tokens' => 4096],
+    ];
+
+    /**
+     * @return array{history_limit: int, max_tokens: int}
+     */
+    private function contextProfileFor(ChatSession $session): array
+    {
+        return self::CONTEXT_MODE_PROFILES[$session->context_mode]
+            ?? self::CONTEXT_MODE_PROFILES['general'];
+    }
 
     public function __construct(
         protected LlmGatewayService $llmGateway,
@@ -64,10 +97,11 @@ class AgentService
 
         $tools = $this->toolRegistry->getLlmToolDefinitions();
         $systemPrompt = $this->buildSystemPrompt($user, $tools, $denseContext);
+        $contextProfile = $this->contextProfileFor($session);
 
         $history = $session->messages()
             ->orderBy('id', 'desc')
-            ->limit(self::HISTORY_MESSAGE_LIMIT)
+            ->limit($contextProfile['history_limit'])
             ->get()
             ->reverse()
             ->values();
@@ -78,15 +112,26 @@ class AgentService
         $status = 'completed';
         $finalText = '';
         $lastCompletion = null;
+        // Each loop iteration is its own billed LLM call — Anthropic's
+        // usage figures are per-call, not cumulative — so the turn's real
+        // token cost is the sum across every iteration, not just the last
+        // one. Previously nothing tracked this at all (see ADR-021):
+        // AiRunRecorder fell back to a strlen/4 estimate of the original
+        // user prompt only, ignoring the system prompt, tool schemas,
+        // history and every intermediate completion.
+        $totalPromptTokens = 0;
+        $totalCompletionTokens = 0;
 
         try {
             for ($i = 0; $i < self::MAX_ITERATIONS; $i++) {
                 $completion = $this->llmGateway->complete(
                     $messages,
                     $tools,
-                    array_merge(['user' => $user, 'system' => $systemPrompt], $options)
+                    array_merge(['user' => $user, 'system' => $systemPrompt, 'max_tokens' => $contextProfile['max_tokens']], $options)
                 );
                 $lastCompletion = $completion;
+                $totalPromptTokens += (int) ($completion['input_tokens'] ?? 0);
+                $totalCompletionTokens += (int) ($completion['output_tokens'] ?? 0);
 
                 $toolCalls = $completion['tool_calls'] ?? [];
                 $stopReason = $completion['stop_reason'];
@@ -96,13 +141,16 @@ class AgentService
                     break;
                 }
 
-                // Interactive tools (ask_user_question / propose_action_card)
-                // suspend the turn immediately rather than looping further —
-                // the loop can only resume once the executive answers, via
-                // resumeWithToolResult().
+                // Interactive tools suspend the turn immediately rather than
+                // looping further — the loop can only resume once the
+                // executive answers, via resumeWithToolResult(). Which
+                // tools count as "interactive" is declared on the tool
+                // itself (BaseTool::requiresConfirmation(), ADR-021) rather
+                // than hardcoded here by name, so a new tool can opt into
+                // suspension without an AgentService change.
                 $interactive = null;
                 foreach ($toolCalls as $toolCall) {
-                    if (in_array($toolCall['name'], ['ask_user_question', 'propose_action_card'], true)) {
+                    if ($this->toolRegistry->has($toolCall['name']) && $this->toolRegistry->get($toolCall['name'])->requiresConfirmation()) {
                         $interactive = $toolCall;
                         break;
                     }
@@ -272,6 +320,15 @@ class AgentService
         $actualProvider = $lastCompletion['provider'];
         $actualModel = $lastCompletion['model'];
 
+        // Only override AiRunRecorder's strlen/4 fallback estimate when a
+        // provider actually reported real usage this turn (currently just
+        // the anthropic branch of LlmGatewayService — openrouter/mock
+        // completions don't set input_tokens/output_tokens, so they keep
+        // getting the estimate rather than a false "0 real tokens" figure).
+        $tokenMetadata = $totalPromptTokens > 0 || $totalCompletionTokens > 0
+            ? ['prompt_tokens' => $totalPromptTokens, 'completion_tokens' => $totalCompletionTokens]
+            : [];
+
         $this->recorder->record(
             session: $session,
             provider: $actualProvider,
@@ -280,10 +337,10 @@ class AgentService
             responseContent: $turnResponse->content,
             latencyMs: $latencyMs,
             status: $turnResponse->status,
-            metadata: [
+            metadata: array_merge($tokenMetadata, [
                 'executed_actions_count' => count($turnResponse->executedActions),
                 'has_suspended_tool' => $turnResponse->suspendedToolCall !== null,
-            ]
+            ])
         );
 
         return $turnResponse;

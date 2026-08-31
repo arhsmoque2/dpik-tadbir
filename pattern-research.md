@@ -254,3 +254,18 @@ class ContextSqueezer
 2. **Phase 2 (Next)**:
    - Wire `HistorySummarizer` and `ToolResultOffloader` into [`AgentService.php`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/app/Services/Ai/AgentService.php).
    - Apply `ContextSqueezer` to [`MemoryRetrievalService.php`](file:///D:/ARH-GITHUB/arhsmoque2/dpik-tadbir/app/Services/Memory/MemoryRetrievalService.php).
+
+---
+
+## 7. Update (2026-08-31, same day): a parallel, non-overlapping research + implementation pass
+
+A separate research pass — [`docs/research/PR-005-caching-cost-governance-and-context-compression-candidates.md`](docs/research/PR-005-caching-cost-governance-and-context-compression-candidates.md) — surveyed a **different** set of seven repos (`ykachala/semantic-cache`, `magetechsol/laravel-ai-gateway`, `Touseef-khattak/laravel-llm`, plus four covered earlier in that same thread) specifically for **caching, per-turn cost governance, and repeat-query reuse** — the half of "reduce API billing cost" this document's own §2/§5 didn't scope (this doc is about context-window/token-squeezing; PR-005 is about *not paying for the same tokens twice* and *knowing what a turn actually cost*).
+
+**Findings recorded, decisions and Phase 1 implementation in [`ADR-021`](docs/adr/ADR-021-ai-cost-governance-prompt-caching-and-context-mode-budgets.md)** — already shipped, not just proposed:
+
+- Anthropic native prompt caching (`cache_control` on the system prompt + tool catalog in `LlmGatewayService::invokeAnthropic()`).
+- Real per-turn token telemetry (`AgentService` now accumulates and persists actual `input_tokens`/`output_tokens` from every loop iteration into `AiRun`, replacing the `strlen/4` estimate that previously measured the wrong text entirely).
+- `ChatSession.context_mode` activated as a real token-budget lever (`CONTEXT_MODE_PROFILES`) — this column existed since the original migration but was dead data until now.
+- Declarative `BaseTool::requiresConfirmation()` replacing a hardcoded tool-name literal in the agent loop (pattern credited to `invokable/laravel-copilot-sdk`).
+
+This document's own Phase 2 (`HistorySummarizer`/`ToolResultOffloader`/`ContextSqueezer`, above) is **unaffected and still the next step for context-window compression** — ADR-021 deliberately did not re-scope it. What ADR-021 marks as its own Phase 3 (exact/semantic response caching, multi-tier quota enforcement, cache-aware cost pricing) is new scope this document never covered and needs its own follow-up ADR before implementation.

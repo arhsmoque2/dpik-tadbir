@@ -10,6 +10,8 @@ class AskUserQuestionTool extends BaseTool
 
     protected string $description = 'Presents a multiple-choice question modal to the executive with non-exclusive freeform notes and escape hatches (Skip/Cancel).';
 
+    protected bool $requiresConfirmation = true;
+
     /**
      * @return array<string, mixed>
      */

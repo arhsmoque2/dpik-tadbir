@@ -104,7 +104,7 @@ class LlmGatewayService
      * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @param  array<string, mixed>  $options
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int}
      */
     public function complete(array $messages, array $tools = [], array $options = []): array
     {
@@ -122,7 +122,7 @@ class LlmGatewayService
                     $step['model'] = $targetModel;
                 }
 
-                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string} $step */
+                /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, provider: string, model: string, input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int} $step */
                 return $this->normalizeStopReason($step);
             }
         }
@@ -158,7 +158,7 @@ class LlmGatewayService
      * loses the template correlation regardless).
      *
      * @param  array<string, mixed>  $result
-     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string}
+     * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int}
      */
     private function normalizeStopReason(array $result): array
     {
@@ -166,7 +166,7 @@ class LlmGatewayService
             $result['stop_reason'] = empty($result['tool_calls']) ? 'end_turn' : 'tool_use';
         }
 
-        /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string} $result */
+        /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int} $result */
         return $result;
     }
 
@@ -355,13 +355,29 @@ class LlmGatewayService
             'messages' => $this->toAnthropicMessages($messages),
         ];
 
+        // Prompt caching (ADR-021): the system prompt and tool catalog are
+        // near-identical across every iteration of AgentService's tool loop
+        // (up to MAX_ITERATIONS calls per user turn) and across turns within
+        // the same session, yet were previously sent as plain strings/arrays
+        // with no cache breakpoint — billing full input-token price on every
+        // repeat. A cache_control breakpoint on the system block and on the
+        // last tool definition tells Anthropic to cache everything up to and
+        // including that block; a cache hit bills at ~10% of input price.
+        // Below Anthropic's per-model minimum cacheable length the field is
+        // silently ignored (no error, no behavior change), so this is safe
+        // to always set rather than sizing the prompt first.
         $systemPrompt = (string) ($options['system'] ?? '');
         if ($systemPrompt !== '') {
-            $payload['system'] = $systemPrompt;
+            $payload['system'] = [
+                ['type' => 'text', 'text' => $systemPrompt, 'cache_control' => ['type' => 'ephemeral']],
+            ];
         }
 
         if (! empty($tools)) {
-            $payload['tools'] = $this->toAnthropicTools($tools);
+            $anthropicTools = $this->toAnthropicTools($tools);
+            $lastIndex = array_key_last($anthropicTools);
+            $anthropicTools[$lastIndex]['cache_control'] = ['type' => 'ephemeral'];
+            $payload['tools'] = $anthropicTools;
         }
 
         $response = Http::withHeaders([
@@ -379,7 +395,7 @@ class LlmGatewayService
             throw new RuntimeException("Anthropic API error (HTTP {$response->status()}): {$errorDesc}");
         }
 
-        /** @var array{content?: list<array<string, mixed>>, stop_reason?: string, usage?: array{input_tokens?: int, output_tokens?: int}} $data */
+        /** @var array{content?: list<array<string, mixed>>, stop_reason?: string, usage?: array{input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int}} $data */
         $data = $response->json() ?? [];
         $blocks = $data['content'] ?? [];
 
@@ -405,6 +421,13 @@ class LlmGatewayService
             'model' => $model,
             'input_tokens' => (int) ($data['usage']['input_tokens'] ?? 0),
             'output_tokens' => (int) ($data['usage']['output_tokens'] ?? 0),
+            // Recorded but not yet priced separately by CostCalculator (a
+            // cache write briefly costs more than a normal input token, a
+            // cache read much less) — kept on the result now so AiRun
+            // telemetry can be extended to price them precisely without a
+            // second round of LlmGatewayService changes. See ADR-021.
+            'cache_creation_input_tokens' => (int) ($data['usage']['cache_creation_input_tokens'] ?? 0),
+            'cache_read_input_tokens' => (int) ($data['usage']['cache_read_input_tokens'] ?? 0),
         ];
     }
 

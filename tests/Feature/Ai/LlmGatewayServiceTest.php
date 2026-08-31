@@ -182,7 +182,11 @@ test('llm gateway invokes anthropic messages api with system prompt and correct 
         'https://api.anthropic.com/v1/messages' => function ($request) {
             expect($request->header('x-api-key')[0])->toBe('sk-ant-my-mock-key'); // gitleaks:allow
             expect($request->header('anthropic-version')[0])->toBe('2023-06-01');
-            expect($request->data()['system'])->toBe('You are the DPIK Tadbir executive copilot.');
+            // ADR-021 prompt caching: system is sent as a cache-controlled
+            // content-block array, not a plain string.
+            expect($request->data()['system'])->toBe([
+                ['type' => 'text', 'text' => 'You are the DPIK Tadbir executive copilot.', 'cache_control' => ['type' => 'ephemeral']],
+            ]);
 
             return Http::response([
                 'content' => [
@@ -209,6 +213,75 @@ test('llm gateway invokes anthropic messages api with system prompt and correct 
     expect($res['content'])->toBe('Sungai Udang bridge repair is on schedule.');
     expect($res['stop_reason'])->toBe('end_turn');
     expect($res['tool_calls'])->toBe([]);
+});
+
+test('llm gateway marks anthropic system prompt and last tool definition as cache breakpoints', function () {
+    // ADR-021: the system prompt and tool catalog are near-identical across
+    // every iteration of AgentService's tool loop and across turns in the
+    // same session, so both need a cache_control breakpoint to avoid
+    // rebilling full input-token price on every repeat.
+    $gateway = new LlmGatewayService;
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => function ($request) {
+            $data = $request->data();
+
+            expect($data['system'])->toBe([
+                ['type' => 'text', 'text' => 'System prompt text', 'cache_control' => ['type' => 'ephemeral']],
+            ]);
+            expect($data['tools'])->toHaveCount(2);
+            expect($data['tools'][0])->not->toHaveKey('cache_control');
+            expect($data['tools'][1]['cache_control'])->toBe(['type' => 'ephemeral']);
+
+            return Http::response([
+                'content' => [['type' => 'text', 'text' => 'ok']],
+                'stop_reason' => 'end_turn',
+                'usage' => ['input_tokens' => 10, 'output_tokens' => 2],
+            ], 200);
+        },
+    ]);
+
+    $tools = [
+        ['name' => 'tool_a', 'description' => 'First tool.', 'parameters' => ['type' => 'object', 'properties' => []]],
+        ['name' => 'tool_b', 'description' => 'Second tool.', 'parameters' => ['type' => 'object', 'properties' => []]],
+    ];
+
+    $gateway->complete(
+        messages: [['role' => 'user', 'content' => 'Hi']],
+        tools: $tools,
+        options: [
+            'provider' => 'anthropic',
+            'model' => 'claude-3-7-sonnet-20250219',
+            'live' => true,
+            'system' => 'System prompt text',
+            'user' => new User(['anthropic_api_key' => 'sk-ant-my-mock-key']), // gitleaks:allow
+        ]
+    );
+});
+
+test('llm gateway surfaces anthropic cache usage fields on the completion result', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('invokeAnthropic');
+    $method->setAccessible(true);
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => Http::response([
+            'content' => [['type' => 'text', 'text' => 'ok']],
+            'stop_reason' => 'end_turn',
+            'usage' => [
+                'input_tokens' => 50,
+                'output_tokens' => 12,
+                'cache_creation_input_tokens' => 800,
+                'cache_read_input_tokens' => 4200,
+            ],
+        ], 200),
+    ]);
+
+    $res = $method->invoke($gateway, 'claude-3-7-sonnet-20250219', [['role' => 'user', 'content' => 'Hi']], [], 'sk-ant-mock', []); // gitleaks:allow
+
+    expect($res['cache_creation_input_tokens'])->toBe(800);
+    expect($res['cache_read_input_tokens'])->toBe(4200);
 });
 
 test('llm gateway parses anthropic tool_use blocks into normalized tool_calls', function () {

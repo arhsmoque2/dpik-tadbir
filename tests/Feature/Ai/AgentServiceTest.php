@@ -107,6 +107,79 @@ test('agent service loops non-interactive tool calls back to the model for a syn
     expect($session->messages()->where('role', 'tool')->count())->toBe(1);
 });
 
+test('agent service resolves per-session context_mode token budgets, defaulting unknown modes to general', function () {
+    // ADR-021: ChatSession.context_mode existed but was never read by
+    // AgentService — every session got the same 40-message/4096-token
+    // budget regardless of what it was actually for.
+    $agent = app(AgentService::class);
+    $reflection = new ReflectionClass($agent);
+    $method = $reflection->getMethod('contextProfileFor');
+    $method->setAccessible(true);
+
+    $user = User::create([
+        'name' => 'Context Mode User',
+        'email' => 'context_mode@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+
+    $triage = ChatSession::create(['user_id' => $user->id, 'title' => 'Triage', 'context_mode' => 'inbox_triage']);
+    expect($method->invoke($agent, $triage))->toBe(['history_limit' => 20, 'max_tokens' => 1024]);
+
+    $deepdive = ChatSession::create(['user_id' => $user->id, 'title' => 'Deep dive', 'context_mode' => 'project_deepdive']);
+    expect($method->invoke($agent, $deepdive))->toBe(['history_limit' => 60, 'max_tokens' => 4096]);
+
+    $executive = ChatSession::create(['user_id' => $user->id, 'title' => 'Executive', 'context_mode' => 'executive']);
+    expect($method->invoke($agent, $executive))->toBe(['history_limit' => 40, 'max_tokens' => 4096]);
+
+    // An unrecognized mode falls back to 'general' rather than throwing or
+    // silently using a 0/empty budget.
+    $unknown = ChatSession::create(['user_id' => $user->id, 'title' => 'Unknown', 'context_mode' => 'something_new']);
+    expect($method->invoke($agent, $unknown))->toBe(['history_limit' => 40, 'max_tokens' => 4096]);
+});
+
+test('agent service persists real anthropic token usage on AiRun instead of the strlen estimate', function () {
+    // ADR-021: LlmGatewayService::invokeAnthropic() already returned real
+    // input_tokens/output_tokens from Anthropic's own usage field, but
+    // AgentService never threaded them into AiRunRecorder — every AiRun's
+    // token/cost figures were a strlen($prompt)/4 estimate of the raw user
+    // prompt only, ignoring the system prompt, tool schemas, and history.
+    $user = User::create([
+        'name' => 'Token Telemetry User',
+        'email' => 'token_telemetry@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $session = ChatSession::create(['user_id' => $user->id, 'title' => 'Telemetry Session']);
+
+    Http::fake([
+        'https://api.anthropic.com/v1/messages' => Http::response([
+            'content' => [['type' => 'text', 'text' => 'The register shows no open items.']],
+            'stop_reason' => 'end_turn',
+            'usage' => ['input_tokens' => 733, 'output_tokens' => 41],
+        ], 200),
+    ]);
+
+    $agent = app(AgentService::class);
+    $response = $agent->handleUserTurn($session, 'Anything outstanding?', [
+        'live' => true,
+        'provider' => 'anthropic',
+        'model' => 'claude-3-7-sonnet-20250219',
+        // Overrides the auth()->user() fallback LlmGatewayService would
+        // otherwise resolve for key lookup — that user has no
+        // anthropic_api_key set, which would fail before the fake HTTP
+        // response is ever reached.
+        'user' => new User(['anthropic_api_key' => 'sk-ant-my-mock-key']), // gitleaks:allow
+    ]);
+
+    expect($response->status)->toBe('completed');
+
+    $run = AiRun::latest('id')->first();
+    expect($run->prompt_tokens)->toBe(733);
+    expect($run->completion_tokens)->toBe(41);
+    expect($run->total_tokens)->toBe(774);
+});
+
 test('agent service injects the executive personalization profile into the system prompt', function () {
     $user = User::create([
         'name' => 'Personalized User',
