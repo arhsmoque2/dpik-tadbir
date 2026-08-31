@@ -3,13 +3,14 @@
     x-data="{
         activeTab: '{{ request()->path() }}'
     }"
-    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 rounded-full"
+    style="background: #1e222b;"
     role="navigation"
     aria-label="Floating Primary Navigation"
 >
     <div
         class="relative flex items-center justify-between gap-2 px-4 py-2 rounded-full border shadow-2xl backdrop-blur-xl"
-        style="height: 62px; min-width: 360px; max-width: 460px; background: rgba(30, 34, 43, 0.96); border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55); color: #FFFFFF;"
+        style="height: 62px; min-width: 360px; max-width: 460px; background: #1e222b; border-color: rgba(255, 255, 255, 0.18); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55); color: #FFFFFF;"
     >
         <!-- Slot 1: Dashboard -->
         <a
@@ -24,17 +25,17 @@
             <span style="color: #FFFFFF; font-size: 10px; line-height: 12px; margin-top: 3px; font-weight: 600;">Home</span>
         </a>
 
-        <!-- Slot 2: DPIK Tugas -->
+        <!-- Slot 2: Personal Notes -->
         <a
-            href="/admin/personal-tasks"
+            href="/admin/personal-notes"
             class="flex flex-col items-center justify-center flex-1 transition-all hover:opacity-80"
             style="color: #FFFFFF; text-decoration: none;"
-            title="DPIK Tugas Task Register"
+            title="Personal Notes"
         >
             <svg style="width: 18px; height: 18px; min-width: 18px; color: #FFFFFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
-            <span style="color: #FFFFFF; font-size: 10px; line-height: 12px; margin-top: 3px; font-weight: 600;">Tugas</span>
+            <span style="color: #FFFFFF; font-size: 10px; line-height: 12px; margin-top: 3px; font-weight: 600;">Notes</span>
         </a>
 
         <!-- Center Elevated Capsule Button with Explicit Text -->

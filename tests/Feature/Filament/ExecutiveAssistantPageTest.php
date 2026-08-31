@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Filament\Pages\ExecutiveAssistant;
+use App\Models\ChatSession;
 use App\Models\PersonalTask;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,14 +22,42 @@ class ExecutiveAssistantPageTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
+        ChatSession::create([
+            'user_id' => $user->id,
+            'title' => 'Executive Session Baseline',
+            'context_mode' => 'executive',
+        ]);
+
         $this->actingAs($user)
             ->get('/admin/executive-assistant')
             ->assertSuccessful()
             ->assertSee('DPIK TADBIR — Executive Management')
-            ->assertSee('Today\'s Updates', false)
-            ->assertSee('Overdue')
-            ->assertSee('Pending')
-            ->assertSee('DPIK Tugas — Task List');
+            ->assertSee('Executive AI Sessions')
+            ->assertSee('Executive Session Baseline')
+            ->assertSee('New Session');
+    }
+
+    public function test_start_new_session_and_delete_session(): void
+    {
+        $user = User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin@dpik.com.my',
+            'password' => bcrypt('password'),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ExecutiveAssistant::class)
+            ->call('startNewSession')
+            ->assertDispatched('open-copilot-drawer');
+
+        $session = ChatSession::where('user_id', $user->id)->first();
+        $this->assertNotNull($session);
+
+        Livewire::actingAs($user)
+            ->test(ExecutiveAssistant::class)
+            ->call('deleteSession', $session->id);
+
+        $this->assertNull(ChatSession::find($session->id));
     }
 
     public function test_toggle_task_status_updates_task(): void
@@ -59,3 +88,4 @@ class ExecutiveAssistantPageTest extends TestCase
         $this->assertEquals('pending', $task->fresh()->status);
     }
 }
+

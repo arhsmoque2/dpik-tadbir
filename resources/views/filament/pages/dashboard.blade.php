@@ -1,7 +1,6 @@
 <div
     x-data="{
-        isOpen: false,
-        activeTab: 'tasks'
+        isOpen: false
     }"
     class="space-y-6"
 >
