@@ -163,7 +163,7 @@
                     type="button"
                     class="shrink-0 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-colors flex items-center space-x-1.5"
                 >
-                    <span>{{ $preset->name }}</span>
+                    <span>{{ $preset->title }}</span>
                 </button>
             @empty
                 <span class="text-xs text-zinc-600">No active presets configured</span>
