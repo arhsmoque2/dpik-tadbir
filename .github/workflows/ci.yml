@@ -219,7 +219,7 @@ jobs:
         run: |
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
-            --fail-under 80
+            --fail-under 90
 
 
   ui-layout-audit:
