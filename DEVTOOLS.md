@@ -42,7 +42,26 @@ Every Pull Request must satisfy the 5 gates defined in [`.github/workflows/ci.ym
 
 ---
 
-## 3. [DEV-CASCADE] The Deterministic Pre-Push Auto-Fix Cascade
+## 3. [DEV-SANDBOX] Cloud Sandbox Agent Hydration (ADR-020)
+
+When operating inside ephemeral cloud sandbox agents (Claude Code web, Codespaces, Docker), running `composer install` without authentication can fail with GitHub API rate limits (HTTP 403 / "Could not authenticate against github.com").
+
+To guarantee sandbox agents can run the full auto-fix cascade:
+
+```bash
+# Tier 1: Instant Pre-Compiled Bundle Hydration (<3s, bypasses GitHub API limits)
+bash scripts/setup-sandbox.sh
+
+# Or manual streaming unpack:
+curl -sL https://github.com/arhsmoque2/dpik-tadbir/releases/download/sandbox-vendor-latest/vendor.tar.gz | tar -xz
+```
+
+> **Degraded CI-Feedback Protocol (Air-Gapped Sandboxes)**:  
+> If operating in a network sandbox with complete external proxy isolation where `vendor/` cannot be populated, do not attempt blind install loops. Instead, operate in **Degraded CI-Feedback Mode**: push your semantic code changes and inspect machine-parseable GitHub Actions logs for Pint, PHPStan, and Diff-Cover findings.
+
+---
+
+## 4. [DEV-CASCADE] The Deterministic Pre-Push Auto-Fix Cascade
 
 To achieve maximum token reduction, agents must execute the **5-Phase Local Cascade** before pushing or requesting human review. This guarantees that 70–90% of potential CI failures are resolved deterministically:
 
@@ -97,7 +116,7 @@ pnpm lint:spell
 
 ---
 
-## 4. [DEV-COMMANDS] Canonical Commands & Composer Script Mappings
+## 5. [DEV-COMMANDS] Canonical Commands & Composer Script Mappings
 
 All agents and developers should use the canonical `composer` scripts declared below:
 
@@ -121,7 +140,7 @@ pnpm lint:spell
 
 ---
 
-## 5. [DEV-ARSENAL] Declared Devtools Inventory & Reference
+## 6. [DEV-ARSENAL] Declared Devtools Inventory & Reference
 
 ### Tier 1: Core Automation Devtools (Mandatory in `require-dev`)
 
@@ -169,7 +188,7 @@ pnpm lint:spell
 
 ---
 
-## 6. [DEV-TOKENOMICS] Token Reduction Evidence
+## 7. [DEV-TOKENOMICS] Token Reduction Evidence
 
 | Task Category | Manual / Guesswork Token Cost | Auto-Fix Cascade Cost | Token Savings |
 | :--- | :--- | :--- | :--- |

@@ -19,7 +19,7 @@
     - Playwright suite in `tests/Browser` with global auth storageState (`auth.setup.ts`) covering 3 core user journeys (Auth & SSO, Project Register responsive toolbar actions, AI Copilot drawer & Action Cards)
     - WCAG 2.1 Level AA conformance checks via `@axe-core/playwright` without disabling color contrast, backed by `DatabaseSeeder` deterministic fixtures
     - Full-page viewport screenshot snapshots with `maxDiffPixelRatio: 0.05` for visual regression detection
-- **Governing ADRs (ADR-001 through ADR-018)**:
+- **Governing ADRs (ADR-001 through ADR-020)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
   - `docs/adr/ADR-003-outlook-mcp-email-processor-boundary.md` (Zero Raw Email Storage Boundary)
@@ -38,6 +38,8 @@
   - `docs/adr/ADR-016-ci-cd-quality-hardening-operational-blindspot-remediation.md` (Operational Blind Spot Remediation, Playwright Auth Seeding, CI Gate Decoupling & PII Error Sanitization)
   - `docs/adr/ADR-017-runtime-integrations-and-graceful-error-fallback-guards.md` (Runtime Integrations, Live Connection Reflection Probes & Graceful Fallback Guards)
   - `docs/adr/ADR-018-openrouter-multi-model-catalog-and-runtime-favorites-swapper.md` (OpenRouter Unified Multi-Model Gateway & In-Chat 3-Favorites Runtime Swapper)
+  - `docs/adr/ADR-019-proportionate-ci-gating-and-zero-drift-docs-verification.md` (Proportionate CI Gating, Path-Based Change Classification & Zero-Drift Docs Verification)
+  - `docs/adr/ADR-020-hermetic-sandbox-dependency-hydration-and-degraded-fallback-protocol.md` (Hermetic Sandbox Dependency Hydration, Pre-Compiled Release Bundles & Degraded Fallback Protocol)
 
 ## Active Invariants & Boundaries
 1. **Email Whitelist & Sovereign Executive Roles**: Account registration is strictly restricted to pre-approved corporate emails (`allowed_registration_emails`), preventing unauthorized public signups ([`ADR-013`](docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). `rahman@dpik.com.my`, `smoque@gmail.com`, and `arh.homelab@gmail.com` are permanent un-gated Super Admins; `hilmio@dpik.com.my` (Managing Director) and `hamid@dpik.com.my` (Corporate Administrator) are standard executive users.

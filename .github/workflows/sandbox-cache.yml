@@ -1,0 +1,65 @@
+name: Sandbox Dependency Cache
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'composer.lock'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/sandbox-cache.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish-sandbox-cache:
+    name: "Build & Publish Hermetic Sandbox Bundles"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite, zip
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install Node Dependencies
+        run: pnpm install
+
+      - name: Pack Dependency Archives
+        run: |
+          tar -czf vendor.tar.gz vendor
+          tar -czf node_modules.tar.gz node_modules
+          ls -lh vendor.tar.gz node_modules.tar.gz
+
+      - name: Publish or Update Sandbox Release Bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create sandbox-vendor-latest \
+            vendor.tar.gz \
+            node_modules.tar.gz \
+            --title "DPIK Tadbir Sandbox Dependency Cache" \
+            --notes "Automated pre-compiled vendor and node_modules archives for hermetic cloud sandbox agents (ADR-020)." \
+            --clobber
