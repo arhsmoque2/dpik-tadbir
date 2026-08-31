@@ -88,4 +88,3 @@ class ExecutiveAssistantPageTest extends TestCase
         $this->assertEquals('pending', $task->fresh()->status);
     }
 }
-
