@@ -45,6 +45,13 @@ class User extends Authenticatable implements FilamentUser, HasName
         'microsoft_client_id',
         'microsoft_client_secret',
         'microsoft_tenant_id',
+        'imap_host',
+        'imap_port',
+        'imap_username',
+        'imap_password',
+        'smtp_host',
+        'smtp_port',
+        'smtp_password',
         'bottom_nav_slots',
     ];
 
@@ -55,6 +62,8 @@ class User extends Authenticatable implements FilamentUser, HasName
         'gemini_api_key',
         'openrouter_api_key',
         'microsoft_client_secret',
+        'imap_password',
+        'smtp_password',
     ];
 
     protected function casts(): array
@@ -66,6 +75,8 @@ class User extends Authenticatable implements FilamentUser, HasName
             'gemini_api_key' => 'encrypted',
             'openrouter_api_key' => 'encrypted',
             'microsoft_client_secret' => 'encrypted',
+            'imap_password' => 'encrypted',
+            'smtp_password' => 'encrypted',
             'bottom_nav_slots' => 'array',
         ];
     }

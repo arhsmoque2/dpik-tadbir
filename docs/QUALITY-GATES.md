@@ -1,6 +1,6 @@
 # DPIK Tadbir: Quality Gates & Pre-Merge Gate Suite
 
-Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-Coffee`** and **`ARH-URUS`**, every pull request must pass 5 automated verification gates before merging (governed by [`ADR-015`](adr/ADR-015-quality-gates-e2e-testing-and-ai-observability-resilience.md) and [`ADR-016`](adr/ADR-016-ci-cd-quality-hardening-operational-blindspot-remediation.md)).
+Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-Coffee`** and **`ARH-URUS`**, every pull request must pass 5 automated verification gates before merging (governed by [`ADR-015`](adr/ADR-015-quality-gates-e2e-testing-and-ai-observability-resilience.md), [`ADR-016`](adr/ADR-016-ci-cd-quality-hardening-operational-blindspot-remediation.md), and [`ADR-029`](adr/ADR-029-hermetic-io-stream-and-socket-mocking-architecture.md)).
 
 ---
 
@@ -31,6 +31,8 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 
 - **Hermetic SQLite Sandbox**: 100% passing tests under in-memory SQLite (`./vendor/bin/pest --coverage-clover coverage.xml --parallel`).
 - **Incremental Diff-Cover Gate**: Minimum **90% branch coverage** on modified lines in all PRs (`uvx diff-cover coverage.xml --compare-branch origin/main --fail-under=90`).
+- **Hermetic I/O Stream & Socket Mocking (`ADR-029`)**: All services interacting with native network sockets (`stream_socket_client`, `fsockopen`) must use `php-mock/php-mock-mockery` and in-memory streams (`php://temp`) to test connection failure, SSL timeouts, and protocol error branches hermetically without unmocked network egress.
+- **Filament v4 & Livewire Action Testing**: Standalone Filament pages (`ExecutiveSettings`) must test interactive actions (`call()`, `mountAction()`) via Pest's Livewire harness to maintain 90%+ branch coverage.
 - **Multi-Provider AI Resilience (`AgentServiceResilienceTest`)**: 100% test verification asserting that primary provider rate limits automatically trigger fallback to secondary models (Anthropic $\to$ Gemini), and complete provider failures degrade gracefully into user-friendly notices without throwing HTTP 500 errors.
 - **Database N+1 Query & Eloquent Hygiene Gate (`FilamentResourcesTest`)**:
   - `DatabaseQueryCounter::assertMaxQueries()` ensures all resource listings execute with $O(1)$ constant query bounds.
@@ -46,6 +48,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
   - `App\Services\Auth\RegistrationWhitelistService`
   - `App\Http\Middleware\RegistrationWhitelistMiddleware`
   - `App\Services\Mcp\OutlookMcpBridge`
+  - `App\Services\Mcp\MailDiagnosticService`
   - `App\Services\Memory\MemoryRetrievalService`
   - `App\Services\Audit\ActionMemoryService`
   - `App\Mcp\ToolRegistry`

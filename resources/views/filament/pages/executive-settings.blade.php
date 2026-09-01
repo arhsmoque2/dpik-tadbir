@@ -1,11 +1,117 @@
 <x-filament-panels::page>
     <div class="space-y-8 max-w-5xl">
-        <!-- Header Introduction Card -->
-        <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Executive Sovereign Settings & Integrations</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Manage your private AI reasoning keys, OpenRouter multi-model catalog, and Microsoft 365 / Outlook mailbox credentials. All sensitive API keys and secrets are encrypted at rest using AES-256 and isolated to your executive session.
-            </p>
+        <!-- Header Introduction Card & System Health Bar -->
+        <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Executive Sovereign Settings & Health Diagnostics</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Manage private AI keys, DPIK Exabytes IMAP/SMTP mailbox credentials, and multi-model catalogs. Sensitive keys and passwords are AES-256 encrypted at rest.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    wire:click="testAllConnections"
+                    wire:loading.attr="disabled"
+                    class="px-4 py-2 text-xs font-bold text-amber-900 dark:text-amber-100 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/50 dark:hover:bg-amber-900/70 rounded-lg transition-colors inline-flex items-center space-x-2 shrink-0 self-start md:self-auto"
+                >
+                    <span wire:loading.remove wire:target="testAllConnections">⚡ Run Full System Health Check</span>
+                    <span wire:loading wire:target="testAllConnections">Probing All Services...</span>
+                </button>
+            </div>
+
+            <!-- At-A-Glance Live Service Badges -->
+            <div class="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+                <!-- AI Direct -->
+                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">AI Direct</div>
+                    @if ($aiProbeStatus === 'success')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Active ({{ $aiLatencyMs }}ms)
+                        </span>
+                    @elseif ($aiProbeStatus === 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Error
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            Unchecked
+                        </span>
+                    @endif
+                </div>
+
+                <!-- OpenRouter -->
+                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">OpenRouter</div>
+                    @if ($openrouterProbeStatus === 'success')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Active ({{ $openrouterLatencyMs }}ms)
+                        </span>
+                    @elseif ($openrouterProbeStatus === 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Error
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            Unchecked
+                        </span>
+                    @endif
+                </div>
+
+                <!-- IMAP Mailbox -->
+                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">IMAP (993)</div>
+                    @if ($imapProbeStatus === 'success')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Connected ({{ $imapLatencyMs }}ms)
+                        </span>
+                    @elseif ($imapProbeStatus === 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Failed
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            Unchecked
+                        </span>
+                    @endif
+                </div>
+
+                <!-- SMTP Outgoing -->
+                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">SMTP (465)</div>
+                    @if ($smtpProbeStatus === 'success')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Ready ({{ $smtpLatencyMs }}ms)
+                        </span>
+                    @elseif ($smtpProbeStatus === 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Failed
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            Unchecked
+                        </span>
+                    @endif
+                </div>
+
+                <!-- M365 Outlook -->
+                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1 col-span-2 sm:col-span-1">
+                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Outlook M365</div>
+                    @if ($outlookProbeStatus === 'success')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Active ({{ $outlookLatencyMs }}ms)
+                        </span>
+                    @elseif ($outlookProbeStatus === 'error')
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Error
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                            Optional
+                        </span>
+                    @endif
+                </div>
+            </div>
         </div>
 
         <form wire:submit="save" class="space-y-8">
@@ -17,20 +123,6 @@
                             <div class="flex items-center space-x-2.5">
                                 <span class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-semibold text-xs">AI</span>
                                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">AI Model & Provider Keys</h3>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                @if ($aiProbeStatus === 'success')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                                        AI Active ({{ $aiLatencyMs }}ms)
-                                    </span>
-                                @endif
-                                @if ($openrouterProbeStatus === 'success')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                                        OpenRouter ({{ $openrouterLatencyMs }}ms)
-                                    </span>
-                                @endif
                             </div>
                         </div>
 
@@ -118,12 +210,13 @@
                         @endif
                     </div>
 
-                    <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end space-x-2.5">
+                    <!-- AI Key Action Buttons -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                         <button
                             type="button"
                             wire:click="testOpenRouterConnection"
                             wire:loading.attr="disabled"
-                            class="px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors inline-flex items-center space-x-1.5"
+                            class="px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors inline-flex items-center space-x-1.5"
                         >
                             <span wire:loading.remove wire:target="testOpenRouterConnection">Test OpenRouter</span>
                             <span wire:loading wire:target="testOpenRouterConnection">Verifying...</span>
@@ -136,6 +229,121 @@
                         >
                             <span wire:loading.remove wire:target="testAiConnection">Test AI Keys</span>
                             <span wire:loading wire:target="testAiConnection">Verifying...</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section 2: DPIK Corporate IMAP / Exabytes Mailbox -->
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between space-y-6">
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">MAIL</span>
+                                <h3 class="text-base font-semibold text-gray-900 dark:text-white">DPIK IMAP / SMTP Mailbox</h3>
+                            </div>
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400 font-mono">mail.dpik.com.my</span>
+                        </div>
+
+                        <!-- IMAP Username & Password -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label for="imap_username" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                    Email Account
+                                </label>
+                                <input
+                                    type="email"
+                                    id="imap_username"
+                                    wire:model="imap_username"
+                                    placeholder="rahman@dpik.com.my"
+                                    class="w-full px-3.5 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white"
+                                />
+                            </div>
+                            <div class="space-y-1.5">
+                                <label for="imap_password" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                    Mailbox Password
+                                </label>
+                                <input
+                                    type="password"
+                                    id="imap_password"
+                                    wire:model="imap_password"
+                                    placeholder="••••••••••••"
+                                    autocomplete="off"
+                                    class="w-full px-3.5 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white font-mono"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Server Host & Ports -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="space-y-1.5 col-span-1">
+                                <label for="imap_host" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                    Mail Host
+                                </label>
+                                <input
+                                    type="text"
+                                    id="imap_host"
+                                    wire:model="imap_host"
+                                    placeholder="mail.dpik.com.my"
+                                    class="w-full px-3 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white font-mono"
+                                />
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label for="imap_port" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                    IMAP Port
+                                </label>
+                                <input
+                                    type="number"
+                                    id="imap_port"
+                                    wire:model="imap_port"
+                                    placeholder="993"
+                                    class="w-full px-3 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white font-mono"
+                                />
+                            </div>
+                            <div class="space-y-1.5 col-span-1">
+                                <label for="smtp_port" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                    SMTP Port
+                                </label>
+                                <input
+                                    type="number"
+                                    id="smtp_port"
+                                    wire:model="smtp_port"
+                                    placeholder="465"
+                                    class="w-full px-3 py-1.5 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white font-mono"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Diagnostic Message -->
+                        @if ($imapProbeStatus === 'error')
+                            <div class="p-3 rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200">
+                                {{ $imapProbeMessage }}
+                            </div>
+                        @elseif ($imapProbeStatus === 'success')
+                            <div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200">
+                                {{ $imapProbeMessage }} ({{ $imapLatencyMs }}ms)
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- IMAP & SMTP Action Buttons -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <button
+                            type="button"
+                            wire:click="testImapConnection"
+                            wire:loading.attr="disabled"
+                            class="px-3.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 rounded-lg transition-colors inline-flex items-center space-x-1.5"
+                        >
+                            <span wire:loading.remove wire:target="testImapConnection">Test IMAP (993)</span>
+                            <span wire:loading wire:target="testImapConnection">Checking...</span>
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="testSmtpConnection"
+                            wire:loading.attr="disabled"
+                            class="px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors inline-flex items-center space-x-1.5"
+                        >
+                            <span wire:loading.remove wire:target="testSmtpConnection">Test SMTP (465)</span>
+                            <span wire:loading wire:target="testSmtpConnection">Checking...</span>
                         </button>
                     </div>
                 </div>
@@ -336,10 +544,79 @@
                     wire:loading.attr="disabled"
                     class="px-6 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 inline-flex items-center space-x-2"
                 >
-                    <span wire:loading.remove wire:target="save">Save All Settings</span>
+                    <span wire:loading.remove wire:target="save">Save Personal Settings</span>
                     <span wire:loading wire:target="save">Saving...</span>
                 </button>
             </div>
         </form>
+
+        @if (auth()->user()?->role === 'super_admin' || in_array(auth()->user()?->email, ['smoque@gmail.com', 'arh.homelab@gmail.com', 'rahman@dpik.com.my'], true))
+            <!-- Section 3: Super Admin AI & MCP JSON Control Plane -->
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-200 dark:border-amber-800/60 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="p-1.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">Super Admin</span>
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white">AI & MCP Control Plane (<code class="text-xs text-amber-600 dark:text-amber-400">ai-configuration.json</code>)</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Fine-tune the global System Prompt template, Anti-Hallucination Rules, Context Mode Token Budgets, Memory RRF thresholds, and MCP tool states. Updates hot-reload instantly across all active executive sessions.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button
+                            type="button"
+                            wire:click="formatAiConfigJson"
+                            class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                        >
+                            Format JSON
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="resetAiConfiguration"
+                            wire:confirm="Are you sure you want to reset all AI prompts, rules, and MCP configurations back to factory defaults?"
+                            class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                        >
+                            Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+
+                @if ($configError)
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800 text-xs text-red-800 dark:text-red-200 font-mono">
+                        {{ $configError }}
+                    </div>
+                @endif
+
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Placeholders supported: <code class="text-amber-600 dark:text-amber-400">{executive_name}</code>, <code class="text-amber-600 dark:text-amber-400">{date}</code>, <code class="text-amber-600 dark:text-amber-400">{tools}</code>, <code class="text-amber-600 dark:text-amber-400">{personalization}</code>, <code class="text-amber-600 dark:text-amber-400">{bundle}</code>, <code class="text-amber-600 dark:text-amber-400">{memory}</code></span>
+                        <span>Hot-reloaded via Cache</span>
+                    </div>
+
+                    <textarea
+                        wire:model="rawAiConfigJson"
+                        rows="22"
+                        spellcheck="false"
+                        class="w-full p-4 text-xs font-mono bg-gray-900 text-gray-100 border border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent leading-relaxed"
+                    ></textarea>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Tip: You can export your session database using <code class="text-gray-700 dark:text-gray-300 font-mono">php artisan session:export</code> or via <a href="/admin/sessions/export/db" class="text-amber-600 hover:underline">/admin/sessions/export/db</a>.
+                    </p>
+                    <button
+                        type="button"
+                        wire:click="saveAiConfiguration"
+                        wire:loading.attr="disabled"
+                        class="px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-emerald-500 inline-flex items-center space-x-2"
+                    >
+                        <span wire:loading.remove wire:target="saveAiConfiguration">Save AI Configuration</span>
+                        <span wire:loading wire:target="saveAiConfiguration">Saving...</span>
+                    </button>
+                </div>
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>

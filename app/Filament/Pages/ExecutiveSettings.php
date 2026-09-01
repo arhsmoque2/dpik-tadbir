@@ -3,7 +3,9 @@
 namespace App\Filament\Pages;
 
 use App\Models\User;
+use App\Services\Ai\AiConfigurationService;
 use App\Services\Ai\LlmGatewayService;
+use App\Services\Mcp\MailDiagnosticService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -41,6 +43,32 @@ class ExecutiveSettings extends Page
 
     public ?string $microsoft_tenant_id = null;
 
+    public ?string $imap_host = 'mail.dpik.com.my';
+
+    public ?int $imap_port = 993;
+
+    public ?string $imap_username = null;
+
+    public ?string $imap_password = null;
+
+    public ?string $smtp_host = 'mail.dpik.com.my';
+
+    public ?int $smtp_port = 465;
+
+    public ?string $smtp_password = null;
+
+    public ?string $imapProbeStatus = null;
+
+    public ?string $imapProbeMessage = null;
+
+    public int $imapLatencyMs = 0;
+
+    public ?string $smtpProbeStatus = null;
+
+    public ?string $smtpProbeMessage = null;
+
+    public int $smtpLatencyMs = 0;
+
     public ?string $aiProbeStatus = null;
 
     public ?string $aiProbeMessage = null;
@@ -65,6 +93,10 @@ class ExecutiveSettings extends Page
 
     public int $outlookLatencyMs = 0;
 
+    public string $rawAiConfigJson = '';
+
+    public ?string $configError = null;
+
     public function mount(): void
     {
         /** @var User|null $user */
@@ -80,6 +112,19 @@ class ExecutiveSettings extends Page
             $this->microsoft_client_id = $user->microsoft_client_id;
             $this->microsoft_client_secret = $user->microsoft_client_secret;
             $this->microsoft_tenant_id = $user->microsoft_tenant_id;
+            $this->imap_host = $user->imap_host ?? 'mail.dpik.com.my';
+            $this->imap_port = $user->imap_port ?? 993;
+            $this->imap_username = $user->imap_username ?? $user->email;
+            $this->imap_password = $user->imap_password;
+            $this->smtp_host = $user->smtp_host ?? 'mail.dpik.com.my';
+            $this->smtp_port = $user->smtp_port ?? 465;
+            $this->smtp_password = $user->smtp_password ?? $user->imap_password;
+        }
+
+        try {
+            $this->rawAiConfigJson = app(AiConfigurationService::class)->getRawJson();
+        } catch (Throwable) {
+            $this->rawAiConfigJson = '{}';
         }
     }
 
@@ -272,6 +317,13 @@ class ExecutiveSettings extends Page
             'microsoft_client_id' => $clientId,
             'microsoft_client_secret' => filled($this->microsoft_client_secret) ? trim((string) $this->microsoft_client_secret) : null,
             'microsoft_tenant_id' => $tenantId,
+            'imap_host' => filled($this->imap_host) ? trim((string) $this->imap_host) : 'mail.dpik.com.my',
+            'imap_port' => $this->imap_port ? (int) $this->imap_port : 993,
+            'imap_username' => filled($this->imap_username) ? trim((string) $this->imap_username) : null,
+            'imap_password' => filled($this->imap_password) ? trim((string) $this->imap_password) : null,
+            'smtp_host' => filled($this->smtp_host) ? trim((string) $this->smtp_host) : 'mail.dpik.com.my',
+            'smtp_port' => $this->smtp_port ? (int) $this->smtp_port : 465,
+            'smtp_password' => filled($this->smtp_password) ? trim((string) $this->smtp_password) : null,
         ]);
 
         try {
@@ -288,8 +340,123 @@ class ExecutiveSettings extends Page
 
         Notification::make()
             ->title('Settings Saved Successfully')
-            ->body('Your sovereign AI API keys, favorite models, and Microsoft Graph credentials have been saved securely.')
+            ->body('Your sovereign AI API keys, IMAP mailbox credentials, and favorite models have been saved securely.')
             ->success()
             ->send();
+    }
+
+    public function testImapConnection(): void
+    {
+        $host = (string) ($this->imap_host ?: 'mail.dpik.com.my');
+        $port = (int) ($this->imap_port ?: 993);
+        $user = $this->imap_username ?: Auth::user()?->email;
+        $pass = $this->imap_password;
+
+        $service = app(MailDiagnosticService::class);
+        $res = $service->probeImap($host, $port, $user, $pass);
+
+        $this->imapProbeStatus = $res['status'];
+        $this->imapProbeMessage = $res['message'];
+        $this->imapLatencyMs = $res['latency_ms'];
+
+        if ($res['status'] === 'success') {
+            Notification::make()->title('IMAP Connected')->body($res['message'])->success()->send();
+        } else {
+            Notification::make()->title('IMAP Check Failed')->body($res['message'])->danger()->send();
+        }
+    }
+
+    public function testSmtpConnection(): void
+    {
+        $host = (string) ($this->smtp_host ?: 'mail.dpik.com.my');
+        $port = (int) ($this->smtp_port ?: 465);
+        $user = $this->imap_username ?: Auth::user()?->email;
+        $pass = $this->smtp_password ?? $this->imap_password;
+
+        $service = app(MailDiagnosticService::class);
+        $res = $service->probeSmtp($host, $port, $user, $pass);
+
+        $this->smtpProbeStatus = $res['status'];
+        $this->smtpProbeMessage = $res['message'];
+        $this->smtpLatencyMs = $res['latency_ms'];
+
+        if ($res['status'] === 'success') {
+            Notification::make()->title('SMTP Ready')->body($res['message'])->success()->send();
+        } else {
+            Notification::make()->title('SMTP Check Failed')->body($res['message'])->danger()->send();
+        }
+    }
+
+    public function testAllConnections(): void
+    {
+        $this->testAiConnection();
+        $this->testOpenRouterConnection();
+        $this->testImapConnection();
+        $this->testSmtpConnection();
+        if (filled($this->microsoft_client_id)) {
+            $this->testOutlookConnection();
+        }
+
+        Notification::make()
+            ->title('Full System Diagnostic Complete')
+            ->body('Diagnostic probes completed for AI Providers, OpenRouter, and Mail Transport.')
+            ->info()
+            ->send();
+    }
+
+    public function saveAiConfiguration(): void
+    {
+        $this->configError = null;
+
+        try {
+            $configService = app(AiConfigurationService::class);
+            $configService->saveRawJson($this->rawAiConfigJson);
+            $this->rawAiConfigJson = $configService->getRawJson();
+
+            Notification::make()
+                ->title('AI & MCP Configuration Saved')
+                ->body('Global System Prompt, Rules, Memory Settings, and MCP tool configurations have been updated and cached.')
+                ->success()
+                ->send();
+        } catch (Throwable $e) {
+            $this->configError = $e->getMessage();
+
+            Notification::make()
+                ->title('Invalid JSON Configuration')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function resetAiConfiguration(): void
+    {
+        $this->configError = null;
+
+        try {
+            $configService = app(AiConfigurationService::class);
+            $configService->resetToDefaults();
+            $this->rawAiConfigJson = $configService->getRawJson();
+
+            Notification::make()
+                ->title('Configuration Reset')
+                ->body('AI & MCP configuration has been restored to factory defaults.')
+                ->info()
+                ->send();
+        } catch (Throwable $e) {
+            $this->configError = $e->getMessage();
+        }
+    }
+
+    public function formatAiConfigJson(): void
+    {
+        $this->configError = null;
+
+        try {
+            $decoded = json_decode($this->rawAiConfigJson, true, 512, JSON_THROW_ON_ERROR);
+            $this->rawAiConfigJson = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: $this->rawAiConfigJson;
+        } catch (Throwable $e) {
+            $this->configError = 'Cannot format invalid JSON: '.$e->getMessage();
+        }
     }
 }
