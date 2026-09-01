@@ -66,6 +66,14 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::GLOBAL_SEARCH_AFTER,
                 fn (): string => auth()->check() ? Blade::render('@include(\'filament.hooks.copilot-topbar-button\')') : ''
             )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => Blade::render('@include(\'filament.components.google-login-button\')')
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_REGISTER_FORM_AFTER,
+                fn (): string => Blade::render('@include(\'filament.components.google-login-button\')')
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

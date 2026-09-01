@@ -17,6 +17,8 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $last_name
  * @property string|null $name
  * @property string $email
+ * @property string|null $google_id
+ * @property string|null $avatar_url
  * @property string $role
  * @property array<string, mixed>|list<array{key: string, label: string, icon: string, url: string}>|null $bottom_nav_slots
  */
@@ -29,6 +31,9 @@ class User extends Authenticatable implements FilamentUser, HasName
         'last_name',
         'name',
         'email',
+        'email_verified_at',
+        'google_id',
+        'avatar_url',
         'password',
         'role',
         'anthropic_api_key',

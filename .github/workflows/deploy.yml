@@ -143,6 +143,9 @@ jobs:
             MICROSOFT_CLIENT_ID=${{ secrets.MICROSOFT_CLIENT_ID }}
             MICROSOFT_CLIENT_SECRET=${{ secrets.MICROSOFT_CLIENT_SECRET }}
             MICROSOFT_TENANT_ID=${{ secrets.MICROSOFT_TENANT_ID }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=${{ vars.APP_URL }}/auth/google/callback
 
       - name: Post-deploy health smoke verification (/up)
         if: steps.check_scaffold.outputs.is_scaffolded == 'true'
