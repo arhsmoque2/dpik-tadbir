@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>DPIK Tadbir — Executive Management Console (Light Mode Preview)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // Authentic DPIK Portal Palette (dpik-portal.pages.dev)
+            navy: {
+              50: '#f0f4f9',
+              100: '#d9e4f0',
+              200: '#b3c9e1',
+              300: '#8eb3d3',
+              400: '#6793c3',
+              500: '#4178b4',
+              600: '#2d609a',
+              700: '#1e3a5f', // Primary DPIK Brand Navy
+              800: '#162d4a',
+              900: '#0e1d30',
+              950: '#08111d'
+            },
+            app: {
+              canvas: '#f8fafc',
+              panel: '#ffffff',
+              card: '#ffffff',
+              border: '#e2e8f0',
+              hover: '#f1f5f9',
+              sunken: '#f1f5f9'
+            },
+            accent: {
+              gold: '#c9a36d',
+              amber: '#d97706',
+              emerald: '#15803d',
+              rose: '#dc2626'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .safe-bottom {
+      padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    }
+    
+    /* Precision mobile device frame */
+    .device-mobile {
+      max-width: 410px;
+      height: 850px;
+      border-radius: 40px;
+      border: 10px solid #1e293b;
+      box-shadow: 0 25px 50px -12px rgba(30, 58, 95, 0.25);
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .theme-transition {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-[#111215] text-slate-900 dark:text-[#F3F4F6] font-sans antialiased min-h-screen flex flex-col selection:bg-navy-100 selection:text-navy-900 theme-transition">
+
+  <!-- ==================== TOP NAVIGATION / EXECUTIVE CONTROLS ==================== -->
+  <header class="bg-white dark:bg-[#18191E] border-b border-slate-200 dark:border-[#2C2F38] sticky top-0 z-50 px-5 py-2.5 flex items-center justify-between text-xs shadow-xs theme-transition">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-navy-700 text-white flex items-center justify-center font-bold text-xs tracking-tight font-mono shadow-sm">
+          DT
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-navy-900 dark:text-zinc-100 tracking-wide text-xs uppercase">DPIK Tadbir</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-navy-50 text-navy-700 border border-navy-100 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">Light Mode (DPIK Portal Theme)</span>
+          </div>
+          <p class="text-slate-500 dark:text-zinc-400 text-[10px] font-medium">Executive Management & Outlook Governance Console</p>
+        </div>
+      </div>
+      <div class="h-4 w-px bg-slate-200 dark:bg-[#2C2F38] hidden sm:block"></div>
+      <div class="hidden sm:flex items-center gap-2 text-slate-600 dark:text-zinc-400 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-medium">Microsoft Graph Bridge Active</span>
+      </div>
+    </div>
+
+    <!-- Controls Toolbar: Theme, Role, Viewport -->
+    <div class="flex items-center gap-2.5">
+      
+      <!-- Theme Switcher (Light / Dark) -->
+      <div class="bg-slate-100 dark:bg-[#141519] p-0.5 rounded-lg border border-slate-200 dark:border-[#2C2F38] flex items-center">
+        <button id="btn-theme-light" onclick="setTheme('light')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white dark:bg-transparent text-navy-700 dark:text-zinc-400 shadow-xs transition flex items-center gap-1.5">
+          <i data-lucide="sun" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>Portal Light</span>
+        </button>
+        <button id="btn-theme-dark" onclick="setTheme('dark')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-500 dark:bg-[#21232B] dark:text-zinc-100 transition flex items-center gap-1.5">
+          <i data-lucide="moon" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Obsidian Dark</span>
+        </button>
+      </div>
+
+      <!-- Sovereign Persona Switcher -->
+      <div class="bg-slate-100 dark:bg-[#141519] p-0.5 rounded-lg border border-slate-200 dark:border-[#2C2F38] hidden md:flex items-center">
+        <button id="btn-role-md" onclick="switchRole('md')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white dark:bg-[#21232B] text-slate-900 dark:text-zinc-100 shadow-xs transition">Managing Director</button>
+        <button id="btn-role-admin" onclick="switchRole('admin')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-500 dark:text-zinc-400 hover:text-slate-900 transition">Super Admin</button>
+      </div>
+
+      <!-- Viewport Device Switcher -->
+      <div class="bg-slate-100 dark:bg-[#141519] p-0.5 rounded-lg border border-slate-200 dark:border-[#2C2F38] flex items-center">
+        <button id="btn-view-desktop" onclick="switchView('desktop')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white dark:bg-[#21232B] text-slate-900 dark:text-zinc-100 shadow-xs transition flex items-center gap-1.5">
+          <i data-lucide="monitor" class="w-3.5 h-3.5 text-navy-700 dark:text-zinc-300"></i>
+          <span class="hidden lg:inline">Desktop</span>
+        </button>
+        <button id="btn-view-mobile" onclick="switchView('mobile')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-500 dark:text-zinc-400 hover:text-slate-900 transition flex items-center gap-1.5">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span class="hidden lg:inline">Mobile TWA</span>
+        </button>
+      </div>
+
+      <!-- Quick AI Copilot Toggle -->
+      <button onclick="toggleCopilot()" class="px-3 py-1.5 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white font-semibold text-xs tracking-wide shadow-sm transition flex items-center gap-1.5">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+        <span>AI Copilot <kbd class="font-mono text-[10px] bg-navy-800 px-1 py-0.5 rounded text-navy-200">⌘J</kbd></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== SCENARIO STRIP ==================== -->
+  <div class="bg-slate-100 dark:bg-[#141519] border-b border-slate-200 dark:border-[#2C2F38] px-5 py-2 flex items-center justify-between overflow-x-auto no-scrollbar text-xs">
+    <div class="flex items-center gap-2 text-slate-600 dark:text-zinc-400 whitespace-nowrap text-xs">
+      <span class="font-semibold text-slate-800 dark:text-zinc-300 flex items-center gap-1.5">
+        <i data-lucide="compass" class="w-3.5 h-3.5 text-navy-700"></i>
+        Executive Workflows:
+      </span>
+    </div>
+    <div class="flex items-center gap-2 ml-4">
+      <button class="px-3 py-1 rounded-md bg-white dark:bg-[#21232B] border border-navy-200 dark:border-[#2C2F38] text-navy-800 dark:text-zinc-200 text-xs font-medium shadow-xs hover:bg-navy-50 transition">
+        1. Delta Digest
+      </button>
+      <button class="px-3 py-1 rounded-md bg-white dark:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] text-slate-700 dark:text-zinc-300 text-xs font-medium hover:bg-navy-50 transition">
+        2. Supervised Reply Card
+      </button>
+      <button class="px-3 py-1 rounded-md bg-white dark:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] text-slate-700 dark:text-zinc-300 text-xs font-medium hover:bg-navy-50 transition">
+        3. Project Register Memory
+      </button>
+      <button class="px-3 py-1 rounded-md bg-white dark:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] text-slate-700 dark:text-zinc-300 text-xs font-medium hover:bg-navy-50 transition">
+        4. Activity Rollups
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN WORKSPACE CONTAINER ==================== -->
+  <div id="main-container" class="flex-1 flex overflow-hidden">
+
+    <!-- ================================================================ -->
+    <!-- DESKTOP 3-COLUMN WORKSTATION VIEW                                -->
+    <!-- ================================================================ -->
+    <div id="desktop-layout" class="w-full flex flex-1 overflow-hidden">
+      
+      <!-- 1. LEFT NAVIGATION RAIL (240px) -->
+      <aside class="w-60 bg-white dark:bg-[#18191E] border-r border-slate-200 dark:border-[#2C2F38] flex flex-col justify-between p-4 select-none flex-shrink-0 theme-transition">
+        <div class="space-y-6">
+          
+          <!-- Identity Card -->
+          <div class="flex items-center gap-3 p-3 rounded-xl bg-navy-50/60 dark:bg-[#21232B] border border-navy-100 dark:border-[#2C2F38]">
+            <div class="w-9 h-9 rounded-lg bg-navy-700 text-white flex items-center justify-center font-bold text-xs font-mono shadow-xs">
+              AR
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold text-slate-900 dark:text-zinc-100 truncate" id="user-display-name">Ir. Abdul Rahman Hilmi</p>
+              <p class="text-[11px] text-navy-700 dark:text-zinc-400 font-medium truncate" id="user-display-role">Managing Director</p>
+            </div>
+          </div>
+
+          <!-- Group 1: Executive Governance -->
+          <div class="space-y-1">
+            <p class="px-3 text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase font-mono">Executive Governance</p>
+            <button class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-navy-50 text-navy-800 border border-navy-100 dark:bg-[#21232B] dark:text-zinc-100 dark:border-[#2C2F38] transition text-left shadow-xs">
+              <i data-lucide="layout-grid" class="w-4 h-4 text-navy-700 dark:text-[#D4A373]"></i>
+              <span>Executive Overview</span>
+            </button>
+            <button onclick="toggleCopilot()" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-[#21232B] transition text-left">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="bot" class="w-4 h-4 text-slate-500"></i>
+                <span>Executive Copilot</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 dark:bg-[#141519] dark:text-zinc-400 dark:border-[#2C2F38]">MCP</span>
+            </button>
+            <button class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-[#21232B] transition text-left">
+              <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
+              <span>Activity Ledger</span>
+            </button>
+          </div>
+
+          <!-- Group 2: Enterprise Intelligence -->
+          <div class="space-y-1">
+            <p class="px-3 text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase font-mono">Knowledge Base</p>
+            <button class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-[#21232B] transition text-left">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="folder-git-2" class="w-4 h-4 text-emerald-600"></i>
+                <span>Project Register</span>
+              </div>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">FTS5</span>
+            </button>
+          </div>
+
+          <!-- Group 3: Sovereign Workspace -->
+          <div class="space-y-1">
+            <p class="px-3 text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase font-mono">Private Workspace</p>
+            <button class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-[#21232B] transition text-left">
+              <i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i>
+              <span>Personal Notes</span>
+            </button>
+            <button class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-[#21232B] transition text-left">
+              <i data-lucide="check-square" class="w-4 h-4 text-slate-500"></i>
+              <span>Personal Tasks</span>
+            </button>
+          </div>
+
+          <!-- Group 4: Administration -->
+          <div id="nav-group-admin" class="space-y-1 hidden">
+            <p class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase font-mono">Administration</p>
+            <button class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-navy-800 hover:bg-slate-100 transition text-left">
+              <i data-lucide="settings" class="w-4 h-4 text-slate-500"></i>
+              <span>Executive Settings</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Footnote Status Metrics -->
+        <div class="pt-3 border-t border-slate-200 dark:border-[#2C2F38] text-[11px] font-mono text-slate-500 space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span>Graph API Quota:</span>
+            <span class="font-semibold text-slate-700 dark:text-zinc-300">0.08 / 1.0</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>Storage Boundary:</span>
+            <span class="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Zero Raw Blob</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 2. MIDDLE LIST & CONTEXT STREAM (380px) -->
+      <section class="w-96 bg-white dark:bg-[#18191E] border-r border-slate-200 dark:border-[#2C2F38] flex flex-col flex-shrink-0 overflow-hidden theme-transition">
+        
+        <!-- Stream Header & Search -->
+        <div class="p-3.5 border-b border-slate-200 dark:border-[#2C2F38] space-y-2.5 bg-slate-50/50 dark:bg-transparent">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-navy-700"></span>
+              <h2 class="text-xs font-bold text-navy-900 dark:text-zinc-200 tracking-wider uppercase">
+                Incoming Delta Briefing
+              </h2>
+            </div>
+            <button onclick="simulateDeltaSync()" class="text-xs text-slate-600 hover:text-navy-800 flex items-center gap-1.5 transition font-medium">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="sync-icon"></i>
+              <span class="font-mono text-[11px]">Sync Delta</span>
+            </button>
+          </div>
+          
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" placeholder="Search correspondence, decisions, project codes..." class="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-[#141519] border border-slate-200 dark:border-[#2C2F38] rounded-lg text-slate-900 dark:text-zinc-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent transition font-sans shadow-2xs">
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="flex items-center gap-1.5 text-xs">
+            <button class="px-2.5 py-1 rounded-md bg-navy-700 text-white font-medium shadow-xs text-[11px]">All Deltas (3)</button>
+            <button class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium text-[11px]">Interim Claims (1)</button>
+            <button class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium text-[11px]">Technical (2)</button>
+          </div>
+        </div>
+
+        <!-- Delta Feed Items List -->
+        <div class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-[#2C2F38]/60 p-3 space-y-2">
+          
+          <!-- Delta Record 1 (Active) -->
+          <div class="p-3.5 rounded-xl bg-navy-50/70 dark:bg-[#21232B] border-2 border-navy-400 dark:border-[#D4A373]/60 transition cursor-pointer space-y-2 shadow-xs">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-navy-900 dark:text-zinc-100">Dato' Ir. Azman (Minco Perunding)</span>
+              <span class="text-[10px] text-slate-500 font-mono">14:15 Today</span>
+            </div>
+            <p class="text-xs font-bold text-navy-800 dark:text-[#D4A373] line-clamp-1">Re: PC-2023-011 - Review of Interim Claim No. 4</p>
+            <p class="text-xs text-slate-600 dark:text-zinc-300 line-clamp-2 leading-relaxed">Requesting formal sign-off on geotechnical variation order (RM 120,000.00) prior to Thursday submission.</p>
+            <div class="flex items-center gap-2 pt-1 text-[11px]">
+              <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-semibold">Staged Approval</span>
+              <span class="text-slate-400 font-mono text-[10px]">PC-2023-011</span>
+            </div>
+          </div>
+
+          <!-- Delta Record 2 -->
+          <div class="p-3.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#18191E] dark:hover:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] transition cursor-pointer space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-900 dark:text-zinc-100">Kapt. Rosli (JKR Cawangan Jalan)</span>
+              <span class="text-[10px] text-slate-500 font-mono">11:30 Today</span>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">Site Inspection Protocol — FT264 Kemaman</p>
+            <p class="text-xs text-slate-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">Joint inspection scheduled for next Tuesday. Requesting updated slope stability assessment dossier.</p>
+            <div class="flex items-center gap-2 pt-1 text-[11px]">
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-medium">Information Only</span>
+              <span class="text-slate-400 font-mono text-[10px]">FT264-PKG02</span>
+            </div>
+          </div>
+
+          <!-- Delta Record 3 -->
+          <div class="p-3.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#18191E] dark:hover:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] transition cursor-pointer space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-900 dark:text-zinc-100">Pn. Faridah (DPIK Finance)</span>
+              <span class="text-[10px] text-slate-500 font-mono">09:45 Today</span>
+            </div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-zinc-200 line-clamp-1">Monthly Billing Rollup — February 2026</p>
+            <p class="text-xs text-slate-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">Completed compilation of consultant fee disbursements across all 4 active federal packages.</p>
+            <div class="flex items-center gap-2 pt-1 text-[11px]">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">Processed</span>
+              <span class="text-slate-400 font-mono text-[10px]">INTERNAL-FIN</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. DETAIL & INTERACTIVE WORKSPACE CANVAS (Flex-1) -->
+      <main class="flex-1 bg-slate-50 dark:bg-[#111215] overflow-y-auto p-6 space-y-6 theme-transition">
+        
+        <!-- Top Status Banner -->
+        <div class="bg-white dark:bg-[#18191E] rounded-2xl p-5 border border-slate-200 dark:border-[#2C2F38] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-navy-700"></span>
+              <h1 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">DPIK TADBIR — Executive Management</h1>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-navy-100 text-navy-800 border border-navy-200">Light Mode</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-zinc-300 mt-1 max-w-2xl">
+              Daily management console for DPIK project registers, task tracking, and Microsoft Outlook correspondence.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-right hidden sm:block font-mono text-[11px] text-slate-500">
+              <div>Session: <span class="font-bold text-slate-700">MD-EXEC-ACTIVE</span></div>
+              <div>Model: <span class="font-semibold text-navy-700">Claude 3.7 Sonnet</span></div>
+            </div>
+            <button onclick="toggleCopilot()" class="px-4 py-2.5 rounded-xl bg-navy-700 hover:bg-navy-600 text-white font-semibold text-xs tracking-wide shadow-sm transition flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-300"></i>
+              <span>Launch Copilot (⌘J)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Quick Metric Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-[#18191E] p-4 rounded-xl border border-slate-200 dark:border-[#2C2F38] shadow-2xs space-y-1.5">
+            <div class="flex items-center justify-between text-slate-500 text-xs">
+              <span class="font-medium">Active Projects</span>
+              <i data-lucide="briefcase" class="w-4 h-4 text-navy-700"></i>
+            </div>
+            <div class="text-2xl font-black text-slate-900 dark:text-white font-mono">14</div>
+            <p class="text-[11px] text-emerald-600 font-semibold">● 100% on schedule</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#18191E] p-4 rounded-xl border border-slate-200 dark:border-[#2C2F38] shadow-2xs space-y-1.5">
+            <div class="flex items-center justify-between text-slate-500 text-xs">
+              <span class="font-medium">Pending Approvals</span>
+              <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+            </div>
+            <div class="text-2xl font-black text-amber-600 font-mono">1</div>
+            <p class="text-[11px] text-amber-600 font-medium">Interim Claim #4 Staged</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#18191E] p-4 rounded-xl border border-slate-200 dark:border-[#2C2F38] shadow-2xs space-y-1.5">
+            <div class="flex items-center justify-between text-slate-500 text-xs">
+              <span class="font-medium">FTS5 Index Records</span>
+              <i data-lucide="database" class="w-4 h-4 text-navy-700"></i>
+            </div>
+            <div class="text-2xl font-black text-slate-900 dark:text-white font-mono">1,842</div>
+            <p class="text-[11px] text-slate-500 font-mono">RRF hybrid ranked</p>
+          </div>
+
+          <div class="bg-white dark:bg-[#18191E] p-4 rounded-xl border border-slate-200 dark:border-[#2C2F38] shadow-2xs space-y-1.5">
+            <div class="flex items-center justify-between text-slate-500 text-xs">
+              <span class="font-medium">Outlook Deltas (24h)</span>
+              <i data-lucide="mail-check" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div class="text-2xl font-black text-slate-900 dark:text-white font-mono">27</div>
+            <p class="text-[11px] text-emerald-600 font-medium">Zero raw mail persisted</p>
+          </div>
+        </div>
+
+        <!-- Main Detail Card: Active Selected Delta Inspection -->
+        <div class="bg-white dark:bg-[#18191E] rounded-2xl border border-slate-200 dark:border-[#2C2F38] shadow-xs overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 dark:border-[#2C2F38] bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-navy-100 text-navy-800 flex items-center justify-center font-semibold">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Active Operational Briefing</h3>
+                <p class="text-xs text-slate-500 font-mono">Ref: PC-2023-011 | Minco Perunding (Dato' Ir. Azman)</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition">
+                View Full Context
+              </button>
+              <button onclick="toggleCopilot()" class="px-3.5 py-1.5 rounded-lg bg-navy-700 hover:bg-navy-600 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
+                <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                <span>Ask Copilot</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-6 space-y-4 text-xs">
+            <!-- Subject and Metadata -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-[11px]">
+              <div>
+                <span class="text-slate-400 uppercase text-[10px] font-bold block">Sender</span>
+                <span class="text-slate-900 font-semibold">azman@minco.com.my</span>
+              </div>
+              <div>
+                <span class="text-slate-400 uppercase text-[10px] font-bold block">Project Boundary</span>
+                <span class="text-navy-700 font-bold">PC-2023-011 (Rawang Bypass)</span>
+              </div>
+              <div>
+                <span class="text-slate-400 uppercase text-[10px] font-bold block">Financial Value</span>
+                <span class="text-emerald-700 font-bold">RM 120,000.00 (VO #2)</span>
+              </div>
+            </div>
+
+            <!-- Executive Synthesis -->
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">AI Executive Synthesis</h4>
+              <div class="p-4 rounded-xl bg-navy-50/60 border border-navy-100 text-slate-700 leading-relaxed space-y-2">
+                <p>
+                  Minco Perunding has completed geotechnical review for slope stabilization variation order No. 2 on Section CH 14+200. Total recommended claim is certified at <strong>RM 120,000.00</strong>.
+                </p>
+                <p>
+                  Requires Managing Director formal concurrence before Thursday 17:00 submission to JKR Headquarters. All prior geotechnical test bores match contractual R1 specifications.
+                </p>
+              </div>
+            </div>
+
+            <!-- Staged Action Card -->
+            <div class="p-4 rounded-xl border-2 border-amber-300 bg-amber-50/40 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <span class="font-bold text-amber-900 text-xs">Staged Outgoing Action Card (Human-in-the-loop)</span>
+                </div>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">Requires Approval</span>
+              </div>
+
+              <div class="bg-white p-3 rounded-lg border border-amber-200 text-slate-800 space-y-1 font-sans">
+                <div class="text-[11px] text-slate-500 font-mono">Action: <strong>outlook.send_reply</strong> → azman@minco.com.my</div>
+                <div class="text-xs font-medium text-slate-700 italic border-l-2 border-navy-600 pl-2 mt-1">
+                  "Dear Dato' Ir. Azman, I have reviewed the geotechnical variation breakdown for VO No. 2 (RM 120,000.00). Concurrence is granted for submission in accordance with R1 terms."
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5 pt-1">
+                <button onclick="approveActionCard()" id="btn-approve" class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Approve & Dispatch via Graph API</span>
+                </button>
+                <button class="px-3.5 py-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
+                  Edit Proposal
+                </button>
+                <button class="px-3.5 py-2 rounded-lg bg-white border border-slate-200 hover:bg-red-50 text-red-600 font-semibold text-xs transition">
+                  Discard
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ============================================================ -->
+      <!-- 4. RIGHT DOCKED AI COPILOT DRAWER (400px)                      -->
+      <!-- ============================================================ -->
+      <aside id="copilot-drawer" class="w-96 bg-white dark:bg-[#18191E] border-l border-slate-200 dark:border-[#2C2F38] flex flex-col flex-shrink-0 theme-transition shadow-lg">
+        
+        <!-- Copilot Header & Model Swapper -->
+        <div class="p-4 border-b border-slate-200 dark:border-[#2C2F38] space-y-3 bg-navy-50/40 dark:bg-transparent">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-navy-700 text-white flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-navy-900 dark:text-zinc-100">Executive AI Copilot</h3>
+                <p class="text-[10px] text-slate-500 font-mono">Sovereign Session • Context-Aware</p>
+              </div>
+            </div>
+            <button onclick="toggleCopilot()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Model Swapper Ribbon -->
+          <div class="bg-white dark:bg-[#141519] p-1 rounded-xl border border-slate-200 dark:border-[#2C2F38] flex items-center justify-between text-[11px] font-medium">
+            <button onclick="selectModel('claude')" id="model-claude" class="flex-1 py-1 rounded-lg bg-navy-700 text-white font-semibold text-center shadow-xs transition">Claude 3.7</button>
+            <button onclick="selectModel('gemini')" id="model-gemini" class="flex-1 py-1 rounded-lg text-slate-600 hover:text-slate-900 text-center transition">Gemini 2.5</button>
+            <button onclick="selectModel('deepseek')" id="model-deepseek" class="flex-1 py-1 rounded-lg text-slate-600 hover:text-slate-900 text-center transition">DeepSeek R1</button>
+          </div>
+        </div>
+
+        <!-- Chat / Prompt Stream -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+          
+          <!-- User Prompt -->
+          <div class="flex justify-end">
+            <div class="max-w-[85%] bg-navy-700 text-white p-3 rounded-2xl rounded-tr-xs shadow-xs space-y-1">
+              <p class="font-medium leading-relaxed">Summarize all geotechnical commitments made to Minco regarding VO #2.</p>
+              <div class="text-[10px] text-navy-200 text-right font-mono">14:18</div>
+            </div>
+          </div>
+
+          <!-- AI Copilot Response -->
+          <div class="flex justify-start">
+            <div class="max-w-[90%] bg-slate-50 dark:bg-[#21232B] border border-slate-200 dark:border-[#2C2F38] p-3.5 rounded-2xl rounded-tl-xs shadow-2xs space-y-2 text-slate-800 dark:text-zinc-200">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-1.5 text-[10px] font-mono text-slate-500">
+                <span class="flex items-center gap-1 font-semibold text-navy-700">
+                  <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i>
+                  FTS5 Domain Memory Grounded
+                </span>
+                <span>284 tokens • 420ms</span>
+              </div>
+              <p class="leading-relaxed">
+                Found <strong>2 historical commitments</strong> indexed in the project register for <code class="bg-navy-50 text-navy-800 px-1 py-0.5 rounded font-mono text-[10px]">PC-2023-011</code>:
+              </p>
+              <ul class="list-disc pl-4 space-y-1 text-[11px] text-slate-700">
+                <li><strong>12-Jan-2026</strong>: Agreed in Technical Committee Meeting 03 to adopt bore-hole standard S4 for slope stabilization.</li>
+                <li><strong>04-Feb-2026</strong>: Certified provisional sum cap of RM 150,000.00 with JKR Project Director.</li>
+              </ul>
+              <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-medium">
+                ✓ Current VO claim (RM 120,000.00) is well within approved provisional cap.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Chat Input & Quick Presets -->
+        <div class="p-3.5 border-t border-slate-200 dark:border-[#2C2F38] bg-slate-50/50 space-y-2">
+          
+          <!-- Preset Chips -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-[11px]">
+            <button class="px-2.5 py-1 rounded-full bg-white hover:bg-navy-50 border border-slate-200 text-slate-700 hover:text-navy-800 font-medium whitespace-nowrap shadow-2xs transition">
+              ✍️ Draft Reply
+            </button>
+            <button class="px-2.5 py-1 rounded-full bg-white hover:bg-navy-50 border border-slate-200 text-slate-700 hover:text-navy-800 font-medium whitespace-nowrap shadow-2xs transition">
+              💰 Check Budget
+            </button>
+            <button class="px-2.5 py-1 rounded-full bg-white hover:bg-navy-50 border border-slate-200 text-slate-700 hover:text-navy-800 font-medium whitespace-nowrap shadow-2xs transition">
+              📑 Briefing Notes
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" placeholder="Instruct AI Copilot (⌘J)..." class="w-full pl-3 pr-10 py-2.5 text-xs bg-white dark:bg-[#141519] border border-slate-200 dark:border-[#2C2F38] rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-navy-500 shadow-xs">
+            <button class="absolute right-2 top-2 p-1 rounded-lg bg-navy-700 text-white hover:bg-navy-600 transition">
+              <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MOBILE VIEW (Device Frame Simulation)                            -->
+    <!-- ================================================================ -->
+    <div id="mobile-layout" class="w-full flex-1 overflow-y-auto p-6 hidden">
+      <div class="device-mobile bg-slate-50 dark:bg-[#111215] flex flex-col relative theme-transition">
+        
+        <!-- Mobile Top Notch & App Bar -->
+        <div class="bg-white dark:bg-[#18191E] border-b border-slate-200 dark:border-[#2C2F38] px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-md bg-navy-700 text-white flex items-center justify-center font-bold text-[10px] font-mono">DT</div>
+            <span class="font-bold text-xs uppercase text-navy-900 dark:text-zinc-100">DPIK Tadbir</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-[10px] font-mono text-slate-500">Graph OK</span>
+          </div>
+        </div>
+
+        <!-- Mobile Scroll Content -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-24 text-xs">
+          
+          <!-- Mobile Status Pill -->
+          <div class="bg-white dark:bg-[#18191E] p-3.5 rounded-2xl border border-slate-200 dark:border-[#2C2F38] shadow-2xs space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white">Today's Delta Digest</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] bg-amber-50 text-amber-700 font-semibold border border-amber-200">1 Action Required</span>
+            </div>
+            <p class="text-slate-600 text-[11px]">3 priority items synced from Microsoft Outlook mailbox.</p>
+          </div>
+
+          <!-- Mobile Delta Card -->
+          <div class="bg-white dark:bg-[#18191E] p-3.5 rounded-2xl border-2 border-navy-400 dark:border-[#D4A373] shadow-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-navy-900 dark:text-zinc-100">Dato' Ir. Azman</span>
+              <span class="text-[10px] text-slate-400 font-mono">14:15</span>
+            </div>
+            <p class="font-semibold text-navy-800 dark:text-[#D4A373] text-xs">PC-2023-011: Interim Claim #4</p>
+            <p class="text-[11px] text-slate-600 leading-relaxed">Geotechnical VO No. 2 recommendation (RM 120,000.00) awaiting sign-off.</p>
+            <div class="pt-2 flex items-center gap-2">
+              <button class="flex-1 py-1.5 rounded-lg bg-navy-700 text-white font-semibold text-xs shadow-xs text-center">Approve (RM 120k)</button>
+              <button class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold text-xs">Details</button>
+            </div>
+          </div>
+
+          <!-- Mobile Metric Grid -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+              <div class="text-lg font-black text-slate-900 font-mono">14</div>
+              <div class="text-[10px] text-slate-500 uppercase font-semibold">Active Projects</div>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+              <div class="text-lg font-black text-emerald-600 font-mono">100%</div>
+              <div class="text-[10px] text-slate-500 uppercase font-semibold">SLA Health</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MOBILE FLOATING CAPSULE BOTTOM NAVIGATION                    -->
+        <!-- ============================================================ -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-[360px]">
+          <div class="relative flex items-center justify-between px-3 py-1.5 rounded-full bg-white/95 dark:bg-[#1e222b] border border-slate-200 dark:border-white/20 shadow-2xl backdrop-blur-xl text-slate-700 dark:text-white">
+            
+            <!-- Home -->
+            <button class="flex flex-col items-center justify-center flex-1 py-1 transition text-navy-700 dark:text-[#C9A36D]">
+              <i data-lucide="home" class="w-4 h-4"></i>
+              <span class="text-[9px] font-bold mt-0.5">Home</span>
+            </button>
+
+            <!-- Notes -->
+            <button class="flex flex-col items-center justify-center flex-1 py-1 transition text-slate-500 hover:text-slate-900">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              <span class="text-[9px] font-semibold mt-0.5">Notes</span>
+            </button>
+
+            <!-- Center Elevated AI Copilot Capsule -->
+            <div class="relative px-1 -top-4">
+              <button onclick="toggleCopilot()" class="flex items-center justify-center px-3.5 py-2 rounded-full bg-navy-700 hover:bg-navy-600 text-white shadow-xl border-2 border-white dark:border-[#21232B] transition transform hover:scale-105 active:scale-95 gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-300"></i>
+                <span class="text-[10px] font-black tracking-wider uppercase">Copilot</span>
+              </button>
+            </div>
+
+            <!-- Projects -->
+            <button class="flex flex-col items-center justify-center flex-1 py-1 transition text-slate-500 hover:text-slate-900">
+              <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+              <span class="text-[9px] font-semibold mt-0.5">Projects</span>
+            </button>
+
+            <!-- Settings -->
+            <button class="flex flex-col items-center justify-center flex-1 py-1 transition text-slate-500 hover:text-slate-900">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+              <span class="text-[9px] font-semibold mt-0.5">Settings</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== SCRIPT LOGIC & INTERACTION ==================== -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Theme Management (Light: DPIK Portal vs Dark: Obsidian)
+    function setTheme(theme) {
+      const html = document.documentElement;
+      const btnLight = document.getElementById('btn-theme-light');
+      const btnDark = document.getElementById('btn-theme-dark');
+
+      if (theme === 'dark') {
+        html.classList.add('dark');
+        html.classList.remove('light');
+        btnDark.classList.add('bg-[#21232B]', 'text-zinc-100', 'shadow-xs');
+        btnDark.classList.remove('text-slate-500');
+        btnLight.classList.remove('bg-white', 'text-navy-700', 'shadow-xs');
+        btnLight.classList.add('text-zinc-400');
+      } else {
+        html.classList.remove('dark');
+        html.classList.add('light');
+        btnLight.classList.add('bg-white', 'text-navy-700', 'shadow-xs');
+        btnLight.classList.remove('text-zinc-400');
+        btnDark.classList.remove('bg-[#21232B]', 'text-zinc-100', 'shadow-xs');
+        btnDark.classList.add('text-slate-500');
+      }
+    }
+
+    // Viewport switcher
+    function switchView(view) {
+      const desktopLayout = document.getElementById('desktop-layout');
+      const mobileLayout = document.getElementById('mobile-layout');
+      const btnDesktop = document.getElementById('btn-view-desktop');
+      const btnMobile = document.getElementById('btn-view-mobile');
+
+      if (view === 'mobile') {
+        desktopLayout.classList.add('hidden');
+        mobileLayout.classList.remove('hidden');
+        btnMobile.classList.add('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnMobile.classList.remove('text-slate-500');
+        btnDesktop.classList.remove('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnDesktop.classList.add('text-slate-500');
+      } else {
+        desktopLayout.classList.remove('hidden');
+        mobileLayout.classList.add('hidden');
+        btnDesktop.classList.add('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnDesktop.classList.remove('text-slate-500');
+        btnMobile.classList.remove('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnMobile.classList.add('text-slate-500');
+      }
+      lucide.createIcons();
+    }
+
+    // AI Copilot Drawer Toggle
+    function toggleCopilot() {
+      const drawer = document.getElementById('copilot-drawer');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+      } else {
+        drawer.classList.add('hidden');
+      }
+    }
+
+    // Keyboard shortcut Cmd+J / Ctrl+J
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        toggleCopilot();
+      }
+    });
+
+    // Model Selector
+    function selectModel(model) {
+      const btnClaude = document.getElementById('model-claude');
+      const btnGemini = document.getElementById('model-gemini');
+      const btnDeepseek = document.getElementById('model-deepseek');
+
+      [btnClaude, btnGemini, btnDeepseek].forEach(b => {
+        b.classList.remove('bg-navy-700', 'text-white', 'font-semibold', 'shadow-xs');
+        b.classList.add('text-slate-600');
+      });
+
+      if (model === 'claude') {
+        btnClaude.classList.add('bg-navy-700', 'text-white', 'font-semibold', 'shadow-xs');
+        btnClaude.classList.remove('text-slate-600');
+      } else if (model === 'gemini') {
+        btnGemini.classList.add('bg-navy-700', 'text-white', 'font-semibold', 'shadow-xs');
+        btnGemini.classList.remove('text-slate-600');
+      } else if (model === 'deepseek') {
+        btnDeepseek.classList.add('bg-navy-700', 'text-white', 'font-semibold', 'shadow-xs');
+        btnDeepseek.classList.remove('text-slate-600');
+      }
+    }
+
+    // Persona switch
+    function switchRole(role) {
+      const name = document.getElementById('user-display-name');
+      const title = document.getElementById('user-display-role');
+      const adminGroup = document.getElementById('nav-group-admin');
+      const btnMd = document.getElementById('btn-role-md');
+      const btnAdmin = document.getElementById('btn-role-admin');
+
+      if (role === 'admin') {
+        name.textContent = 'Ir. Abdul Rahman (Super Admin)';
+        title.textContent = 'Platform Operator';
+        adminGroup.classList.remove('hidden');
+        btnAdmin.classList.add('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnAdmin.classList.remove('text-slate-500');
+        btnMd.classList.remove('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnMd.classList.add('text-slate-500');
+      } else {
+        name.textContent = 'Ir. Abdul Rahman Hilmi';
+        title.textContent = 'Managing Director';
+        adminGroup.classList.add('hidden');
+        btnMd.classList.add('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnMd.classList.remove('text-slate-500');
+        btnAdmin.classList.remove('bg-white', 'dark:bg-[#21232B]', 'text-slate-900', 'dark:text-zinc-100', 'shadow-xs');
+        btnAdmin.classList.add('text-slate-500');
+      }
+    }
+
+    // Action Card simulation
+    function approveActionCard() {
+      const btn = document.getElementById('btn-approve');
+      btn.innerHTML = '<i data-lucide="check-check" class="w-4 h-4 text-white"></i><span>Dispatched to Graph API!</span>';
+      btn.classList.remove('bg-emerald-700', 'hover:bg-emerald-800');
+      btn.classList.add('bg-slate-800', 'cursor-not-allowed');
+      btn.disabled = true;
+      lucide.createIcons();
+    }
+
+    // Delta sync animation
+    function simulateDeltaSync() {
+      const icon = document.getElementById('sync-icon');
+      icon.classList.add('animate-spin');
+      setTimeout(() => {
+        icon.classList.remove('animate-spin');
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

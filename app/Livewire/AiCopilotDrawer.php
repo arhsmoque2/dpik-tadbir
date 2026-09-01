@@ -112,11 +112,15 @@ class AiCopilotDrawer extends Component
     }
 
     #[On('open-copilot-drawer')]
-    public function openDrawer(?string $initialPrompt = null, ?int $sessionId = null): void
+    public function openDrawer(?string $initialPrompt = null, ?int $sessionId = null, ?int $bundleId = null): void
     {
         $this->isOpen = true;
 
-        if ($sessionId !== null) {
+        $user = Auth::user();
+        if ($user instanceof User && $bundleId !== null) {
+            $session = $this->ensureActiveSession($user);
+            $session->update(['bundle_id' => $bundleId]);
+        } elseif ($sessionId !== null) {
             $this->switchSession($sessionId);
         }
 
@@ -126,22 +130,6 @@ class AiCopilotDrawer extends Component
         }
     }
 
-    /**
-     * Deliberately not #[On('toggle-copilot-drawer')] — both trigger buttons
-     * (topbar, hero page) dispatch that same event via a raw
-     * $dispatch('toggle-copilot-drawer'), which the drawer's own Alpine
-     * x-data already listens for directly (@toggle-copilot-drawer.window="isOpen
-     * = !isOpen", entangled with $isOpen). Livewire auto-binds #[On(...)]
-     * methods to window-dispatched events too, so with both listeners active
-     * one click fired an instant client-side flip AND a server round-trip
-     * that flipped it back on sync — the drawer would silently no-op or
-     * flicker depending on timing. Alpine is now the sole owner of the
-     * toggle; this method is reachable only via ⌘J's direct
-     * $wire.toggleDrawer() call (a real Livewire method invocation, not the
-     * window event), which was never part of the race. mount() already
-     * unconditionally establishes activeSessionId, so the old re-init guard
-     * here was dead code in practice.
-     */
     public function toggleDrawer(): void
     {
         $this->isOpen = ! $this->isOpen;
@@ -547,7 +535,7 @@ class AiCopilotDrawer extends Component
             'gemini-2.5-flash' => 'Gemini 2.5 Flash',
             'gemini-2.5-pro' => 'Gemini 2.5 Pro',
             'anthropic/claude-3.7-sonnet' => 'Claude 3.7 Sonnet',
-            'google/gemini-2.5-pro' => 'Gemini 2.5 Pro',
+            'google/gemini-2.5-pro' => 'Google Gemini 2.5 Pro',
             'openai/gpt-4o' => 'GPT-4o',
             'meta-llama/llama-3.3-70b-instruct' => 'Llama 3.3 70B',
         ];

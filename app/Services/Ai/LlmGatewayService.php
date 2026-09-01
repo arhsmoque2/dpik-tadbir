@@ -162,9 +162,7 @@ class LlmGatewayService
      */
     private function normalizeStopReason(array $result): array
     {
-        if (! isset($result['stop_reason'])) {
-            $result['stop_reason'] = empty($result['tool_calls']) ? 'end_turn' : 'tool_use';
-        }
+        $result['stop_reason'] ??= empty($result['tool_calls']) ? 'end_turn' : 'tool_use';
 
         /** @var array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens?: int, output_tokens?: int, cache_creation_input_tokens?: int, cache_read_input_tokens?: int} $result */
         return $result;
@@ -271,7 +269,7 @@ class LlmGatewayService
             'messages' => $this->toOpenAiMessages($messages, (string) ($options['system'] ?? '')),
         ];
 
-        if (! empty($tools)) {
+        if ($tools !== []) {
             $payload['tools'] = $this->toOpenAiTools($tools);
         }
 
@@ -297,15 +295,13 @@ class LlmGatewayService
         $content = (string) ($choice['content'] ?? '');
         $toolCalls = [];
 
-        if (! empty($choice['tool_calls'])) {
-            foreach ($choice['tool_calls'] as $tc) {
-                $rawArgs = (string) ($tc['function']['arguments'] ?? '{}');
-                $toolCalls[] = [
-                    'id' => (string) ($tc['id'] ?? uniqid('call_')),
-                    'name' => (string) ($tc['function']['name'] ?? ''),
-                    'arguments' => (array) (json_decode($rawArgs, true) ?? []),
-                ];
-            }
+        foreach ($choice['tool_calls'] ?? [] as $tc) {
+            $rawArgs = (string) ($tc['function']['arguments'] ?? '{}');
+            $toolCalls[] = [
+                'id' => (string) ($tc['id'] ?? uniqid('call_')),
+                'name' => (string) ($tc['function']['name'] ?? ''),
+                'arguments' => (array) (json_decode($rawArgs, true) ?? []),
+            ];
         }
 
         $finishReason = (string) ($data['choices'][0]['finish_reason'] ?? '');
@@ -373,7 +369,7 @@ class LlmGatewayService
             ];
         }
 
-        if (! empty($tools)) {
+        if ($tools !== []) {
             $anthropicTools = $this->toAnthropicTools($tools);
             $lastIndex = array_key_last($anthropicTools);
             $anthropicTools[$lastIndex]['cache_control'] = ['type' => 'ephemeral'];
@@ -511,7 +507,7 @@ class LlmGatewayService
      */
     private function toAnthropicTools(array $tools): array
     {
-        return array_map(fn (array $t) => [
+        return array_map(fn (array $t): array => [
             'name' => (string) ($t['name'] ?? ''),
             'description' => (string) ($t['description'] ?? ''),
             'input_schema' => $t['parameters'] ?? ['type' => 'object', 'properties' => (object) []],
@@ -543,7 +539,7 @@ class LlmGatewayService
                 $out[] = [
                     'role' => 'assistant',
                     'content' => $content !== '' ? $content : null,
-                    'tool_calls' => array_map(fn (array $tc) => [
+                    'tool_calls' => array_map(fn (array $tc): array => [
                         'id' => $tc['id'],
                         'type' => 'function',
                         'function' => [
@@ -578,7 +574,7 @@ class LlmGatewayService
      */
     private function toOpenAiTools(array $tools): array
     {
-        return array_map(fn (array $t) => [
+        return array_map(fn (array $t): array => [
             'type' => 'function',
             'function' => [
                 'name' => (string) ($t['name'] ?? ''),

@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property array<string, mixed>|list<array{key: string, label: string, icon: string, url: string}>|null $bottom_nav_slots
+ */
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
@@ -29,6 +32,7 @@ class User extends Authenticatable implements FilamentUser
         'microsoft_client_id',
         'microsoft_client_secret',
         'microsoft_tenant_id',
+        'bottom_nav_slots',
     ];
 
     protected $hidden = [
@@ -49,6 +53,29 @@ class User extends Authenticatable implements FilamentUser
             'gemini_api_key' => 'encrypted',
             'openrouter_api_key' => 'encrypted',
             'microsoft_client_secret' => 'encrypted',
+            'bottom_nav_slots' => 'array',
+        ];
+    }
+
+    /**
+     * Get configured mobile bottom navigation slots or defaults.
+     *
+     * @return list<array{key: string, label: string, icon: string, url: string}>
+     */
+    public function getBottomNavSlots(): array
+    {
+        if (is_array($this->bottom_nav_slots) && $this->bottom_nav_slots !== []) {
+            /** @var list<array{key: string, label: string, icon: string, url: string}> $slots */
+            $slots = $this->bottom_nav_slots;
+
+            return $slots;
+        }
+
+        return [
+            ['key' => 'copilot', 'label' => 'Copilot', 'icon' => 'heroicon-o-sparkles', 'url' => '/admin/executive-assistant'],
+            ['key' => 'bundles', 'label' => 'Bundles', 'icon' => 'heroicon-o-folder-open', 'url' => '/admin/bundles'],
+            ['key' => 'notes', 'label' => 'Notes', 'icon' => 'heroicon-o-document-text', 'url' => '/admin/personal-notes'],
+            ['key' => 'settings', 'label' => 'Settings', 'icon' => 'heroicon-o-cog-6-tooth', 'url' => '/admin/executive-settings'],
         ];
     }
 

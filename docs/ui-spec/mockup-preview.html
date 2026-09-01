@@ -2,796 +2,346 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>DPIK Tadbir — Executive Management Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DPIK Tadbir — Authentic Filament Lucent (Executive Navy)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Inter & JetBrains Mono Fonts -->
+  <!-- Inter Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            app: {
-              canvas: '#111215',
-              panel: '#18191E',
-              card: '#21232B',
-              border: '#2C2F38',
-              hover: '#282B35',
-              sunken: '#141519'
-            },
-            accent: {
-              gold: '#C9A36D',
-              champagne: '#D4A373',
-              emerald: '#429A6A',
-              rose: '#D35858'
+            lucent: {
+              outer: '#141416',
+              canvas: '#1b1c20',
+              card: '#232429',
+              border: '#2e2f36',
+              borderHover: '#3b3c45',
+              navy: '#2563eb',
+              navyDark: '#1d4ed8',
+              navySubtle: 'rgba(37, 99, 235, 0.18)',
+              navyText: '#93c5fd',
+              green: '#10b981',
+              red: '#f43f5e'
             }
           },
           fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-            mono: ['JetBrains Mono', 'Geist Mono', 'monospace']
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
           }
         }
       }
     }
   </script>
   <style>
-    /* Warm tactile scrollbars */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #2C2F38; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #383C47; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    * { box-sizing: border-box; }
+    ::-webkit-scrollbar { display: none; }
+    body { background-color: #141416; color: #f3f4f6; font-family: 'Inter', sans-serif; }
     
-    .safe-bottom {
-      padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    .input-lucent {
+      background-color: #232429;
+      border: 1px solid #2e2f36;
+      color: #f3f4f6;
+      border-radius: 0.5rem;
     }
-    
-    /* Precision mobile frame */
-    .device-mobile {
-      max-width: 400px;
-      height: 840px;
-      border-radius: 36px;
-      border: 8px solid #2C2F38;
-      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
-      overflow: hidden;
-      margin: 0 auto;
+    .input-lucent:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .card-lucent {
+      background-color: #232429;
+      border: 1px solid #2e2f36;
+      border-radius: 0.75rem;
+    }
+
+    .badge-navy {
+      background-color: rgba(37, 99, 235, 0.18);
+      color: #93c5fd;
+      border: 1px solid rgba(37, 99, 235, 0.35);
     }
   </style>
 </head>
-<body class="bg-[#111215] text-[#F3F4F6] font-sans antialiased min-h-screen flex flex-col selection:bg-[#C9A36D]/30 selection:text-[#F3F4F6]">
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600/20 antialiased">
 
-  <!-- Top Executive Control & Context Header -->
-  <header class="bg-[#18191E] border-b border-[#2C2F38] sticky top-0 z-50 px-5 py-2.5 flex items-center justify-between text-xs">
+  <!-- TOP HEADER -->
+  <header class="h-16 px-6 flex items-center justify-between border-b border-[#26272c] bg-[#141416] sticky top-0 z-30">
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2.5">
-        <div class="w-6 h-6 rounded-md bg-[#C9A36D] text-zinc-950 flex items-center justify-center font-bold text-[11px] tracking-tight font-mono shadow-sm">DT</div>
-        <div>
-          <span class="font-semibold text-zinc-100 tracking-wider text-xs uppercase">DPIK Tadbir</span>
-          <span class="text-zinc-500 text-[10px] ml-1.5 font-mono">Executive Suite</span>
-        </div>
-      </div>
-      <div class="h-4 w-px bg-[#2C2F38] hidden sm:block"></div>
-      <div class="hidden sm:flex items-center gap-2 text-zinc-400 text-xs">
-        <span class="w-2 h-2 rounded-full bg-[#429A6A]"></span>
-        <span>Microsoft Graph Bridge (Outlook MCP)</span>
-      </div>
+      <span class="text-xl font-bold tracking-tight text-white italic">filament</span>
+      <span class="text-xs text-slate-500 font-mono">DPIK Tadbir v4.1 · Executive Navy Spec</span>
     </div>
 
-    <!-- Role & Device Simulation Toggles -->
-    <div class="flex items-center gap-2.5">
-      <!-- Sovereign Persona Toggle -->
-      <div class="bg-[#141519] p-0.5 rounded-lg border border-[#2C2F38] flex items-center">
-        <button id="btn-role-md" onclick="switchRole('md')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-zinc-200 text-zinc-950 transition shadow-sm">Managing Director (User)</button>
-        <button id="btn-role-admin" onclick="switchRole('admin')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition">Platform Operator (Super Admin)</button>
+    <div class="flex items-center gap-4">
+      <div class="relative hidden sm:block w-72">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+        <input type="text" placeholder="Search..." class="input-lucent w-full pl-9 pr-3 py-1.5 text-xs">
       </div>
 
-      <!-- Viewport Toggle -->
-      <div class="bg-[#141519] p-0.5 rounded-lg border border-[#2C2F38] flex items-center">
-        <button id="btn-view-desktop" onclick="switchView('desktop')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-[#21232B] text-zinc-200 transition flex items-center gap-1.5 border border-[#2C2F38]">
-          <i data-lucide="monitor" class="w-3.5 h-3.5 text-zinc-300"></i>
-          <span class="hidden md:inline">Desktop Suite</span>
-        </button>
-        <button id="btn-view-mobile" onclick="switchView('mobile')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
-          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
-          <span>Mobile TWA</span>
-        </button>
+      <button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#232429]">
+        <i data-lucide="bell" class="w-4 h-4"></i>
+      </button>
+
+      <div class="w-8 h-8 rounded-full bg-black text-white font-semibold text-xs flex items-center justify-center border border-[#2e2f36]">
+        AR
       </div>
     </div>
   </header>
 
-  <!-- Scenario Quick-Jump Strip -->
-  <div class="bg-[#141519] border-b border-[#2C2F38] px-5 py-2 flex items-center justify-between overflow-x-auto no-scrollbar text-xs">
-    <div class="flex items-center gap-2 text-zinc-400 whitespace-nowrap text-xs">
-      <span class="font-medium text-zinc-400">Operational Scenarios:</span>
-    </div>
-    <div class="flex items-center gap-2 ml-4">
-      <button onclick="triggerScenario('scen-01')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">1. Today's Delta Digest</button>
-      <button onclick="triggerScenario('scen-02')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">2. Supervised Reply Card</button>
-      <button onclick="triggerScenario('scen-03')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">3. Project Register Memory</button>
-      <button onclick="triggerScenario('scen-04')" class="px-2.5 py-1 rounded-md bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap transition">4. Activity Ledger</button>
-    </div>
-  </div>
 
-  <!-- MAIN VIEW CONTAINER -->
-  <div id="main-container" class="flex-1 flex overflow-hidden">
-
-    <!-- ==================== DESKTOP 3-COLUMN WORKSTATION ==================== -->
-    <div id="desktop-layout" class="w-full flex flex-1 overflow-hidden">
+  <!-- MAIN CONTAINER (DESKTOP LAYOUT WITH FILAMENT ROUNDED CANVAS) -->
+  <div class="flex-1 flex max-w-[1600px] w-full mx-auto p-4 gap-6">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-60 shrink-0 space-y-6 pt-2">
       
-      <!-- 1. LEFT NAVIGATION RAIL (230px) -->
-      <aside class="w-60 bg-[#18191E] border-r border-[#2C2F38] flex flex-col justify-between p-3.5 select-none flex-shrink-0">
-        <div class="space-y-6">
-          
-          <!-- Identity Card -->
-          <div class="flex items-center gap-3 p-2.5 rounded-xl bg-[#21232B] border border-[#2C2F38]">
-            <div class="w-8 h-8 rounded-lg bg-[#2C2F38] flex items-center justify-center text-[#D4A373] font-semibold text-xs font-mono">AR</div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-semibold text-zinc-100 truncate" id="user-display-name">Ir. Abdul Rahman Hilmi</p>
-              <p class="text-[10px] text-zinc-400 font-mono truncate" id="user-display-role">Managing Director</p>
-            </div>
-          </div>
+      <button onclick="showTab('dashboard')" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-[#232429] border border-[#2e2f36] border-l-4 border-l-[#2563eb] text-white text-xs font-semibold text-left">
+        <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#2563eb]"></i>
+        <span>Dashboard</span>
+      </button>
 
-          <!-- Group 1: Executive Governance -->
-          <div class="space-y-1">
-            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Governance</p>
-            <button onclick="switchTab('dashboard')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium bg-[#21232B] text-zinc-100 border border-[#2C2F38] transition text-left shadow-sm">
-              <i data-lucide="layout-grid" class="w-4 h-4 text-[#D4A373]"></i>
-              <span>Executive Overview</span>
-            </button>
-            <button onclick="switchTab('copilot')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <div class="flex items-center gap-2.5">
-                <i data-lucide="bot" class="w-4 h-4 text-zinc-400"></i>
-                <span>Executive Copilot</span>
-              </div>
-              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#141519] text-zinc-400 border border-[#2C2F38]">MCP</span>
-            </button>
-            <button onclick="switchTab('rollups')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="history" class="w-4 h-4 text-zinc-400"></i>
-              <span>Activity Ledger</span>
-            </button>
-          </div>
-
-          <!-- Group 2: Enterprise Intelligence -->
-          <div class="space-y-1">
-            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Knowledge Base</p>
-            <button onclick="switchTab('register')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <div class="flex items-center gap-2.5">
-                <i data-lucide="folder-git-2" class="w-4 h-4 text-[#429A6A]"></i>
-                <span>Project Register</span>
-              </div>
-              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#141519] text-zinc-400 border border-[#2C2F38]">FTS5</span>
-            </button>
-          </div>
-
-          <!-- Group 3: Sovereign Workspace -->
-          <div class="space-y-1">
-            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Private Workspace</p>
-            <button onclick="switchTab('notes')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="file-text" class="w-4 h-4 text-zinc-400"></i>
-              <span>Personal Notes</span>
-            </button>
-            <button onclick="switchTab('tasks')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="check-square" class="w-4 h-4 text-zinc-400"></i>
-              <span>Personal Tasks</span>
-            </button>
-          </div>
-
-          <!-- Group 4: Administration (super_admin only) -->
-          <div id="nav-group-admin" class="space-y-1 hidden">
-            <p class="px-2.5 text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">Administration</p>
-            <button onclick="switchTab('settings')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B] transition text-left">
-              <i data-lucide="settings" class="w-4 h-4 text-zinc-400"></i>
-              <span>Executive Settings</span>
-            </button>
-          </div>
+      <!-- Section 1: Executive Hub -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between px-2 text-xs text-slate-400 font-medium">
+          <span>Executive Hub</span>
+          <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-500"></i>
         </div>
-
-        <!-- Footnote Status -->
-        <div class="pt-3 border-t border-[#2C2F38] text-[11px] font-mono text-zinc-500 space-y-1">
-          <div class="flex justify-between">
-            <span>Graph API Rate:</span>
-            <span class="text-zinc-400">0.08 / 1.0</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Raw Ingestion:</span>
-            <span class="text-[#429A6A]">Zero Blob Stored</span>
-          </div>
-        </div>
-      </aside>
-
-      <!-- 2. MIDDLE LIST & CONTEXT STREAM (380px) -->
-      <section class="w-96 bg-[#18191E] border-r border-[#2C2F38] flex flex-col flex-shrink-0 overflow-hidden">
         
-        <!-- Stream Header & Search -->
-        <div class="p-3.5 border-b border-[#2C2F38] space-y-2.5">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xs font-semibold text-zinc-200 tracking-wider uppercase">
-              Incoming Delta Briefing
-            </h2>
-            <button onclick="simulateDeltaSync()" class="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="sync-icon"></i>
-              <span class="font-mono text-[11px]">Sync Delta</span>
-            </button>
-          </div>
-          
-          <div class="relative">
-            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-zinc-500"></i>
-            <input type="text" placeholder="Search correspondence, decisions, project codes..." class="w-full pl-9 pr-3 py-2 text-xs bg-[#141519] border border-[#2C2F38] rounded-lg text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#C9A36D] transition font-sans">
-          </div>
-
-          <!-- Structured Filter Tabs -->
-          <div class="flex items-center gap-1.5 text-xs">
-            <button class="px-3 py-1 rounded-md bg-[#21232B] text-zinc-100 border border-[#2C2F38] font-medium">All Deltas (3)</button>
-            <button class="px-3 py-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B]">Interim Claims (1)</button>
-            <button class="px-3 py-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-[#21232B]">Technical (2)</button>
-          </div>
-        </div>
-
-        <!-- Delta Feed Items List -->
-        <div class="flex-1 overflow-y-auto divide-y divide-[#2C2F38]/60 p-2.5 space-y-1.5">
-          
-          <!-- Delta Record 1 -->
-          <div onclick="selectStreamItem(1)" class="p-3.5 rounded-xl bg-[#21232B] border border-[#D4A373]/30 hover:border-[#D4A373]/60 transition cursor-pointer space-y-2 shadow-sm">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-zinc-100">Dato' Ir. Azman (Minco Perunding)</span>
-              <span class="text-[10px] text-zinc-400 font-mono">14:15 Today</span>
-            </div>
-            <p class="text-xs font-semibold text-[#D4A373] line-clamp-1">Re: PC-2023-011 - Review of Interim Claim No. 4</p>
-            <p class="text-xs text-zinc-300 line-clamp-2 leading-relaxed">Requesting formal sign-off on geotechnical variation order (RM 120,000.00) prior to Thursday submission.</p>
-            <div class="flex items-center gap-2 pt-1 text-[11px]">
-              <span class="px-2 py-0.5 rounded-md bg-[#D4A373]/10 text-[#D4A373] border border-[#D4A373]/25 font-medium">Staged Approval</span>
-              <span class="font-mono text-zinc-400">PC-2023-011</span>
-            </div>
-          </div>
-
-          <!-- Delta Record 2 -->
-          <div onclick="selectStreamItem(2)" class="p-3.5 rounded-xl bg-[#141519] border border-[#2C2F38] hover:border-zinc-500 transition cursor-pointer space-y-2">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-zinc-200">Ir. Syahril (Lead Hydrologist)</span>
-              <span class="text-[10px] text-zinc-400 font-mono">11:30 Today</span>
-            </div>
-            <p class="text-xs font-medium text-zinc-100 line-clamp-1">Sungai Udang Barrage - Hydraulic Model Revision R2</p>
-            <p class="text-xs text-zinc-400 line-clamp-2 leading-relaxed">Attached updated drawing pack and HEC-RAS 2D spillway calculation for review.</p>
-            <div class="flex items-center gap-2 pt-1 text-[11px]">
-              <span class="px-2 py-0.5 rounded-md bg-[#21232B] text-zinc-300 border border-[#2C2F38] font-medium">Deliverable Review</span>
-              <span class="font-mono text-zinc-400">Revision R2</span>
-            </div>
-          </div>
-
-          <!-- Delta Record 3 -->
-          <div onclick="selectStreamItem(3)" class="p-3.5 rounded-xl bg-[#141519] border border-[#2C2F38] hover:border-zinc-500 transition cursor-pointer space-y-2">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-zinc-200">Pn. Sarah (JPS Kelantan)</span>
-              <span class="text-[10px] text-zinc-400 font-mono">09:12 Today</span>
-            </div>
-            <p class="text-xs font-medium text-zinc-100 line-clamp-1">Notice: Technical Committee Meeting No. 3</p>
-            <p class="text-xs text-zinc-400 line-clamp-2 leading-relaxed">Meeting scheduled for next Tuesday at JPS Kota Bharu regarding EIA mitigation report.</p>
-            <div class="flex items-center gap-2 pt-1 text-[11px]">
-              <span class="px-2 py-0.5 rounded-md bg-[#21232B] text-zinc-400 border border-[#2C2F38] font-medium">Statutory Notice</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3. MAIN WORKSPACE / DETAIL CANVAS (Flex-1) -->
-      <main class="flex-1 bg-[#111215] overflow-y-auto flex flex-col">
-        
-        <!-- Top Executive Inquiry Bar -->
-        <div class="p-3.5 border-b border-[#2C2F38] bg-[#18191E]/60 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
-          <div class="flex items-center gap-2 flex-shrink-0 text-xs text-zinc-400 font-medium">
-            <span class="font-mono text-[11px] text-zinc-400 uppercase tracking-wider">Executive Presets:</span>
-          </div>
-          <div class="flex items-center gap-2 flex-nowrap">
-            <button onclick="triggerPreset('whats_new')" class="px-3.5 py-1.5 rounded-lg text-xs bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-100 font-medium transition whitespace-nowrap flex items-center gap-1.5 shadow-sm">
-              <span>Today's Delta Digest</span>
-            </button>
-            <button onclick="triggerPreset('check_email')" class="px-3.5 py-1.5 rounded-lg text-xs bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 font-medium transition whitespace-nowrap flex items-center gap-1.5">
-              <span>Unread Correspondence</span>
-            </button>
-            <button onclick="triggerPreset('action_items')" class="px-3.5 py-1.5 rounded-lg text-xs bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 font-medium transition whitespace-nowrap flex items-center gap-1.5">
-              <span>Action Items Requiring Reply</span>
-            </button>
-            <button onclick="triggerPreset('blockers')" class="px-3.5 py-1.5 rounded-lg text-xs bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-300 font-medium transition whitespace-nowrap flex items-center gap-1.5">
-              <span>Delivery Status & Blockers</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Dynamic Content Pane -->
-        <div id="content-pane" class="flex-1 p-7 space-y-6 max-w-5xl mx-auto w-full">
-          
-          <!-- Key Metric Indicators (CAP-009 / UI-11 Dashboard Composition) -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Staged Proposals</p>
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-[#D4A373] font-mono" id="stat-pending">1</span>
-                <span class="text-xs text-zinc-400">Requires Sign-Off</span>
-              </div>
-            </div>
-            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Action Receipts (7-Day)</p>
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-zinc-100 font-mono" id="stat-receipts">18</span>
-                <span class="text-xs text-zinc-400">Immutable Ledger</span>
-              </div>
-            </div>
-            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Outlook Sync Status</p>
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-[#429A6A] font-mono">Live</span>
-                <span class="text-xs text-zinc-400">Zero Raw Blob</span>
-              </div>
-            </div>
-            <div class="p-4 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1.5 shadow-sm">
-              <p class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Project Register</p>
-              <div class="flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-zinc-100 font-mono">142</span>
-                <span class="text-xs text-[#429A6A] font-mono">Indexed Memory</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Main Workspace: Selected Record Detail & AI Action Proposal -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Left Canvas (7 cols): Document & Correspondence Inspector -->
-            <div class="lg:col-span-7 space-y-4">
-              <div class="p-5 rounded-2xl bg-[#18191E] border border-[#2C2F38] space-y-4 shadow-sm">
-                <div class="flex items-start justify-between border-b border-[#2C2F38] pb-3.5">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                      <span class="px-2.5 py-0.5 rounded-md text-xs font-mono bg-[#21232B] text-[#D4A373] border border-[#2C2F38] font-medium">PC-2023-011</span>
-                      <span class="text-xs text-zinc-300">Sungai Udang Barrage & Flood Mitigation</span>
-                    </div>
-                    <h3 class="text-base font-semibold text-zinc-100">Review & Valuation of Interim Claim No. 4</h3>
-                  </div>
-                  <span class="text-xs font-mono text-zinc-400">Sync: Graph API</span>
-                </div>
-
-                <!-- Structured Context Summary -->
-                <div class="p-4 rounded-xl bg-[#141519] border border-[#2C2F38] space-y-2.5 text-xs text-zinc-300 leading-relaxed">
-                  <p class="font-medium text-zinc-100 text-xs font-mono uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#D4A373]"></span>
-                    <span>Synthesis Summary (Zero Raw Email Storage):</span>
-                  </p>
-                  <ul class="list-disc list-inside space-y-1.5 text-zinc-300 pl-1 text-xs">
-                    <li>Dato' Ir. Azman requested formal confirmation on geotechnical variation order (<span class="font-mono text-zinc-100 font-medium">RM 120,000.00</span>).</li>
-                    <li>Site survey milestone <span class="font-mono text-zinc-100 font-medium">M2</span> was verified and accepted by the resident engineer.</li>
-                    <li>Payment claim requires submission to state treasury before Thursday 15:00.</li>
-                  </ul>
-                </div>
-
-                <!-- Action Triggers -->
-                <div class="flex items-center justify-between pt-2 text-xs">
-                  <div class="flex items-center gap-2.5">
-                    <button onclick="triggerReplyProposal()" class="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium transition flex items-center gap-2 shadow-sm">
-                      <i data-lucide="file-edit" class="w-4 h-4"></i>
-                      <span>Stage Outlook Reply</span>
-                    </button>
-                    <button onclick="saveToProjectRegister()" class="px-4 py-2 rounded-lg bg-[#21232B] hover:bg-[#282B35] border border-[#2C2F38] text-zinc-200 font-medium transition flex items-center gap-2">
-                      <i data-lucide="folder-plus" class="w-4 h-4 text-[#429A6A]"></i>
-                      <span>Save to Register</span>
-                    </button>
-                  </div>
-                  <span class="text-[11px] text-zinc-400 font-mono">dm:decision, dm:financial</span>
-                </div>
-              </div>
-
-              <!-- Project Register Context & Linked Decisions -->
-              <div class="p-5 rounded-2xl bg-[#18191E] border border-[#2C2F38] space-y-3.5 shadow-sm">
-                <div class="flex items-center justify-between border-b border-[#2C2F38] pb-3">
-                  <h4 class="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="folder-git-2" class="w-4 h-4 text-[#429A6A]"></i>
-                    <span>Linked Project Register Commitments</span>
-                  </h4>
-                  <span class="text-[11px] text-zinc-400 font-mono">FTS5 Match: PC-2023-011</span>
-                </div>
-
-                <div class="divide-y divide-[#2C2F38]/60 text-xs">
-                  <div class="py-3 flex items-center justify-between">
-                    <div>
-                      <p class="font-medium text-zinc-100 text-xs">VO #2 Geotechnical Scope Addendum Signed</p>
-                      <p class="text-[11px] text-zinc-400 mt-0.5">Recorded by Ir. Abdul Rahman Hilmi • 14 Aug 2026</p>
-                    </div>
-                    <div class="text-right space-y-1">
-                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#429A6A]/15 text-[#429A6A] border border-[#429A6A]/25 font-semibold">dm:decision</span>
-                      <p class="text-[10px] text-zinc-400 font-mono">RM 120,000.00</p>
-                    </div>
-                  </div>
-                  <div class="py-3 flex items-center justify-between">
-                    <div>
-                      <p class="font-medium text-zinc-100 text-xs">Interim Claim No. 3 Settlement Acknowledged</p>
-                      <p class="text-[11px] text-zinc-400 mt-0.5">State Treasury Payment Voucher #PV-9912 • 28 Jul 2026</p>
-                    </div>
-                    <div class="text-right space-y-1">
-                      <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-[#21232B] text-zinc-300 border border-[#2C2F38] font-medium">dm:financial</span>
-                      <p class="text-[10px] text-zinc-400 font-mono">RM 245,500.00</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="pt-1.5 text-right">
-                  <button onclick="switchTab('register')" class="text-xs text-[#D4A373] hover:underline font-medium transition">
-                    View Full Project Register &rarr;
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Column (5 cols): AI Copilot Action Card Surface -->
-            <div class="lg:col-span-5 space-y-4">
-              <div class="p-4.5 rounded-2xl bg-[#18191E] border border-[#2C2F38] flex flex-col h-[540px] shadow-sm">
-                
-                <!-- Copilot Header -->
-                <div class="flex items-center justify-between pb-3 border-b border-[#2C2F38]">
-                  <div>
-                    <p class="text-xs font-semibold text-zinc-100 tracking-wide">Executive AI Copilot</p>
-                    <p class="text-[10px] text-zinc-400 font-mono">ADR-007 Write-Safety Protocol</p>
-                  </div>
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#21232B] text-zinc-300 border border-[#2C2F38]">Supervised</span>
-                </div>
-
-                <!-- Chat & Action Card Container -->
-                <div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs">
-                  
-                  <!-- System Status Summary -->
-                  <div class="p-3 rounded-xl bg-[#141519] border border-[#2C2F38] space-y-1">
-                    <p class="text-zinc-300 leading-relaxed">Delta scan completed. 1 outbound communication proposal staged for review.</p>
-                    <p class="text-[10px] text-zinc-500 font-mono">14:18:02 • latency: 240ms</p>
-                  </div>
-
-                  <!-- Typed Action Dossier Card -->
-                  <div id="action-card-1" class="p-4 rounded-xl bg-[#141519] border border-[#D4A373]/40 space-y-3 transition-all shadow-sm">
-                    <div class="flex items-center justify-between border-b border-[#2C2F38] pb-2.5">
-                      <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-medium bg-[#D4A373]/10 text-[#D4A373] border border-[#D4A373]/25">
-                        OUTLOOK PROPOSAL: REPLY
-                      </span>
-                      <span class="text-[10px] text-zinc-400 font-mono">STAGED</span>
-                    </div>
-
-                    <div class="space-y-1 text-zinc-300 text-xs">
-                      <p><span class="text-zinc-500 font-mono">To:</span> Dato' Ir. Azman (Minco Perunding)</p>
-                      <p><span class="text-zinc-500 font-mono">Subject:</span> Re: PC-2023-011 - Review of Interim Claim No. 4</p>
-                    </div>
-
-                    <div class="p-3 rounded-lg bg-[#18191E] border border-[#2C2F38] font-mono text-[11px] text-zinc-200 space-y-1.5 leading-relaxed">
-                      <p class="text-zinc-400 font-sans text-[10px] uppercase tracking-wider">Proposed Text:</p>
-                      <p>"Dear Dato' Ir. Azman, I have reviewed the revised site valuation report for Claim No. 4. The geotechnical VO of RM 120,000.00 is verified and approved for Thursday submission."</p>
-                    </div>
-
-                    <!-- Card Action Buttons -->
-                    <div id="card-1-triggers" class="flex items-center gap-2 pt-1">
-                      <button onclick="approveActionCard(1)" class="flex-1 py-2 px-3.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
-                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                        <span>Approve & Dispatch</span>
-                      </button>
-                      <button onclick="discardActionCard(1)" class="py-2 px-3.5 rounded-lg bg-[#21232B] hover:bg-[#282B35] text-zinc-300 hover:text-white border border-[#2C2F38] text-xs transition">
-                        Discard
-                      </button>
-                    </div>
-
-                    <!-- Executed Receipt Badge -->
-                    <div id="card-1-receipt" class="hidden p-2.5 rounded-lg bg-[#429A6A]/10 border border-[#429A6A]/25 text-[#429A6A] text-xs flex items-center justify-between">
-                      <span class="flex items-center gap-2 font-medium">
-                        <i data-lucide="check-check" class="w-4 h-4 text-[#429A6A]"></i>
-                        <span>Dispatched via Graph API (Receipt #REC-8842)</span>
-                      </span>
-                      <span class="font-mono text-[10px]">14:22:04</span>
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- Chat Input Area -->
-                <div class="pt-3 border-t border-[#2C2F38] space-y-2">
-                  <div class="relative">
-                    <input id="copilot-input" type="text" placeholder="Directive to Copilot (e.g., 'Reassign calculation ticket to Haziq')..." class="w-full pl-3.5 pr-9 py-2.5 text-xs bg-[#141519] border border-[#2C2F38] rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-[#C9A36D] transition font-sans">
-                    <button onclick="sendCopilotPrompt()" class="absolute right-3 top-3 text-zinc-400 hover:text-zinc-200">
-                      <i data-lucide="corner-down-left" class="w-4 h-4"></i>
-                    </button>
-                  </div>
-                  <p class="text-[10px] text-zinc-500 text-center font-mono">Zero autonomous outbound actions. Human approval mandatory.</p>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </main>
-
-    </div>
-
-    <!-- ==================== MOBILE / TWA VIEWPORT SIMULATION ==================== -->
-    <div id="mobile-layout" class="w-full hidden justify-center items-center p-4 bg-[#111215] overflow-y-auto">
-      <div class="device-mobile bg-[#111215] flex flex-col text-zinc-100 relative shadow-2xl">
-        
-        <!-- Mobile Top Status Bar -->
-        <div class="h-10 bg-[#18191E] border-b border-[#2C2F38] px-5 flex items-center justify-between text-[11px] text-zinc-400 select-none">
-          <span class="font-mono font-medium text-zinc-200">14:22</span>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-mono text-zinc-400">TWA</span>
-            <div class="w-4 h-2 rounded-sm border border-zinc-400 flex items-center p-0.5">
-              <div class="h-full w-2.5 bg-[#429A6A] rounded-2xs"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mobile Header -->
-        <div class="px-4 py-3 bg-[#18191E] border-b border-[#2C2F38] flex items-center justify-between">
+        <button onclick="showTab('sessions')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#232429] text-left">
           <div class="flex items-center gap-2.5">
-            <div class="w-6 h-6 rounded-md bg-[#C9A36D] text-zinc-950 flex items-center justify-center font-bold text-xs font-mono">DT</div>
+            <i data-lucide="layout-grid" class="w-4 h-4 text-slate-400"></i>
+            <span>AI Sessions</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono badge-navy">Active</span>
+        </button>
+
+        <button onclick="showTab('bundles')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#232429] text-left">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="folder-clock" class="w-4 h-4 text-slate-400"></i>
+            <span>Mail Bundles</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono badge-navy">206</span>
+        </button>
+
+        <button onclick="showTab('copilot')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#232429] text-left">
+          <i data-lucide="sparkles" class="w-4 h-4 text-slate-400"></i>
+          <span>AI Assistant</span>
+        </button>
+      </div>
+
+      <!-- Section 2: Project Memory -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between px-2 text-xs text-slate-400 font-medium">
+          <span>Project Memory</span>
+          <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-500"></i>
+        </div>
+        
+        <button onclick="showTab('register')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#232429] text-left">
+          <i data-lucide="book-open" class="w-4 h-4 text-slate-400"></i>
+          <span>Project Register</span>
+        </button>
+
+        <button onclick="showTab('notes')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white hover:bg-[#232429] text-left">
+          <i data-lucide="file-text" class="w-4 h-4 text-slate-400"></i>
+          <span>Personal Notes</span>
+        </button>
+      </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT ROUNDED CONTAINER -->
+    <main class="flex-1 bg-[#1b1c20] border border-[#26272c] rounded-2xl p-6 shadow-2xl space-y-6 overflow-y-auto min-h-[calc(100vh-100px)]">
+      
+      <!-- PAGE TITLE -->
+      <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+        <div class="text-xs text-slate-400 font-mono">Ir. Abdul Rahman Hilmi · Executive Workspace</div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Business customers only</label>
+          <select class="input-lucent w-full px-3 py-2 text-xs">
+            <option>Direct Correspondence Only (To: Ir. Abdul Rahman)</option>
+            <option>All Projects Scope</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Start date</label>
+          <div class="relative">
+            <input type="text" value="01/09/2026" class="input-lucent w-full px-3 py-2 text-xs">
+            <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">End date</label>
+          <div class="relative">
+            <input type="text" value="10/dd/2026" class="input-lucent w-full px-3 py-2 text-xs">
+            <i data-lucide="calendar" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- WELCOME CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card-lucent p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-black border border-[#2e2f36] flex items-center justify-center font-semibold text-xs text-white">
+              AR
+            </div>
             <div>
-              <h1 class="text-xs font-semibold text-zinc-100">DPIK Tadbir</h1>
-              <p class="text-[10px] text-zinc-400 font-mono">Executive Mobile</p>
+              <h3 class="text-sm font-semibold text-white">Welcome</h3>
+              <p class="text-xs text-slate-400">Ir. Abdul Rahman Hilmi</p>
             </div>
           </div>
-          <button onclick="simulateDeltaSync()" class="p-1.5 rounded-lg bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38]">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <button class="px-3 py-1.5 rounded-lg bg-[#141416] border border-[#2e2f36] text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1.5">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Sign out</span>
           </button>
         </div>
 
-        <!-- Mobile Scrollable Content Flow -->
-        <div class="flex-1 overflow-y-auto p-3.5 space-y-3.5">
-          
-          <!-- Mobile Preset Inquiries -->
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button onclick="triggerPreset('whats_new')" class="px-3 py-1.5 rounded-lg bg-[#21232B] border border-[#2C2F38] text-zinc-200 text-xs font-medium whitespace-nowrap">
-              Delta Digest
-            </button>
-            <button onclick="triggerPreset('check_email')" class="px-3 py-1.5 rounded-lg bg-[#21232B] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap">
-              Correspondence
-            </button>
-            <button onclick="triggerPreset('blockers')" class="px-3 py-1.5 rounded-lg bg-[#21232B] border border-[#2C2F38] text-zinc-300 text-xs whitespace-nowrap">
-              Blockers
-            </button>
-          </div>
-
-          <!-- Mobile KPI Grid -->
-          <div class="grid grid-cols-2 gap-2.5 text-xs">
-            <div class="p-3 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1">
-              <span class="text-[10px] font-mono text-zinc-400 uppercase">Staged Actions</span>
-              <p class="text-lg font-bold font-mono text-[#D4A373]">1 Pending</p>
+        <div class="card-lucent p-4 col-span-2 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-bold text-white italic tracking-tight">filament</span>
+              <span class="text-xs text-slate-400 font-mono">v4.1.9 · Lucent Executive Navy</span>
             </div>
-            <div class="p-3 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-1">
-              <span class="text-[10px] font-mono text-zinc-400 uppercase">Active Projects</span>
-              <p class="text-lg font-bold font-mono text-[#429A6A]">4 Active</p>
-            </div>
+            <p class="text-xs text-slate-400 mt-1">DPIK Tadbir Executive Engine · Anthropic Claude 3.7 Sonnet Active</p>
           </div>
-
-          <!-- Mobile Stream -->
-          <div class="space-y-2.5">
-            <p class="text-[10px] font-mono tracking-wider text-zinc-400 uppercase">Incoming Items</p>
-            
-            <div class="p-3.5 rounded-xl bg-[#18191E] border border-[#2C2F38] space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-medium text-zinc-200">Dato' Ir. Azman</span>
-                <span class="text-[10px] text-zinc-400 font-mono">14:15</span>
-              </div>
-              <p class="text-xs font-semibold text-[#D4A373]">PC-2023-011: Interim Claim No. 4 Review</p>
-              <p class="text-xs text-zinc-300 leading-relaxed">RM 120,000.00 Geotechnical Variation Order verification requested.</p>
-              
-              <!-- Mobile Action Card Trigger -->
-              <button onclick="openMobileBottomSheet()" class="w-full mt-2 py-2.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-medium flex items-center justify-center gap-1.5 transition shadow-sm">
-                <span>Inspect Staged Reply Proposal &rarr;</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Mobile Bottom Sheet (Copilot Overlay) -->
-        <div id="mobile-bottom-sheet" class="hidden absolute inset-x-0 bottom-0 top-20 bg-[#18191E]/98 backdrop-blur-md border-t border-[#2C2F38] rounded-t-3xl p-4 flex flex-col z-40 transition-transform shadow-2xl">
-          <div class="w-12 h-1 bg-zinc-600 rounded-full mx-auto mb-3 cursor-pointer" onclick="closeMobileBottomSheet()"></div>
-          
-          <div class="flex items-center justify-between pb-2.5 border-b border-[#2C2F38]">
-            <span class="text-xs font-semibold text-zinc-100">
-              Copilot Proposal Review
-            </span>
-            <button onclick="closeMobileBottomSheet()" class="text-xs text-zinc-400 hover:text-white">Close</button>
-          </div>
-
-          <div class="flex-1 overflow-y-auto py-3 space-y-3 text-xs">
-            <div class="p-3.5 rounded-xl bg-[#141519] border border-[#D4A373]/40 space-y-2.5">
-              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-medium bg-[#D4A373]/10 text-[#D4A373] border border-[#D4A373]/25">OUTLOOK PROPOSAL: REPLY</span>
-              <p class="text-zinc-200 text-xs">To: Dato' Ir. Azman (Minco Perunding)</p>
-              <div class="p-3 bg-[#18191E] border border-[#2C2F38] rounded-lg font-mono text-[11px] text-zinc-200 leading-relaxed">
-                "Dear Dato' Ir. Azman, I have reviewed the revised site valuation report for Claim No. 4. Geotechnical VO of RM 120,000.00 is approved for submission."
-              </div>
-            </div>
-          </div>
-
-          <!-- Sticky Mobile Footer Buttons (44px min touch target) -->
-          <div class="pt-2.5 border-t border-[#2C2F38] space-y-2 safe-bottom">
-            <button onclick="approveMobileAction()" class="w-full h-11 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs flex items-center justify-center gap-2 transition shadow-md">
-              <i data-lucide="check" class="w-4 h-4"></i>
-              <span>Approve & Dispatch</span>
-            </button>
-            <button onclick="closeMobileBottomSheet()" class="w-full h-10 rounded-xl bg-[#21232B] border border-[#2C2F38] text-zinc-300 font-medium text-xs">
-              Discard
-            </button>
+          <div class="flex items-center gap-4 text-xs text-slate-400">
+            <span class="flex items-center gap-1"><i data-lucide="book" class="w-3.5 h-3.5"></i> Documentation</span>
+            <span class="flex items-center gap-1"><i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub</span>
           </div>
         </div>
+      </div>
 
-        <!-- Mobile Bottom Navigation Bar (Thumb Zone) -->
-        <nav class="h-14 bg-[#141519] border-t border-[#2C2F38] grid grid-cols-4 items-center text-center text-[10px] text-zinc-400 safe-bottom">
-          <button class="flex flex-col items-center gap-1 text-[#D4A373]">
-            <i data-lucide="layout-grid" class="w-4 h-4"></i>
-            <span>Overview</span>
-          </button>
-          <button onclick="openMobileBottomSheet()" class="flex flex-col items-center gap-1 hover:text-zinc-200">
-            <i data-lucide="bot" class="w-4 h-4 text-zinc-400"></i>
-            <span>Copilot</span>
-          </button>
-          <button class="flex flex-col items-center gap-1 hover:text-zinc-200">
-            <i data-lucide="folder-git-2" class="w-4 h-4 text-zinc-400"></i>
-            <span>Register</span>
-          </button>
-          <button class="flex flex-col items-center gap-1 hover:text-zinc-200">
-            <i data-lucide="file-text" class="w-4 h-4 text-zinc-400"></i>
-            <span>Notes</span>
-          </button>
-        </nav>
+      <!-- STAT OVERVIEW CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div class="card-lucent p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold tracking-wider uppercase">
+            <span>MAIL RETRIEVALS (DELTA)</span>
+          </div>
+          <div class="text-3xl font-bold text-white">8 Messages</div>
+          <div class="flex items-center gap-1.5 text-xs text-[#10b981] font-medium">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>PC-2023-011 Auto-Promoted (4 in 7d)</span>
+          </div>
+          <svg class="w-full h-8 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 200 40">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M 0 35 Q 40 10 80 25 T 160 15 T 200 20" />
+          </svg>
+        </div>
+
+        <div class="card-lucent p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold tracking-wider uppercase">
+            <span>VARIATION ORDERS (VO)</span>
+          </div>
+          <div class="text-3xl font-bold text-white">RM 120.00k</div>
+          <div class="flex items-center gap-1.5 text-xs text-[#10b981] font-medium">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Pier 4 Supplementary Soil Test</span>
+          </div>
+          <svg class="w-full h-8 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 200 40">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M 0 30 Q 50 38 100 20 T 200 10" />
+          </svg>
+        </div>
+
+        <div class="card-lucent p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold tracking-wider uppercase">
+            <span>ACTION CARDS STAGED</span>
+          </div>
+          <div class="text-3xl font-bold text-white">1 Pending</div>
+          <div class="flex items-center gap-1.5 text-xs text-amber-400 font-medium">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            <span>Requires Executive Click Approval</span>
+          </div>
+          <svg class="w-full h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 200 40">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M 0 20 Q 60 5 120 30 T 200 15" />
+          </svg>
+        </div>
 
       </div>
-    </div>
 
+      <!-- MAIN FEATURE MODULES -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+        
+        <!-- Left Panel: Bundle #104 Review -->
+        <div class="card-lucent p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-[#2e2f36] pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="folder-clock" class="w-4 h-4 text-[#93c5fd]"></i>
+              <span>Bundle #104 — PC-2023-011 Geotechnical</span>
+            </h3>
+            <span class="text-xs font-mono text-slate-400">8 Messages Materialized</span>
+          </div>
+
+          <div class="bg-[#141416] p-4 rounded-xl border border-[#2e2f36] space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-semibold text-white">Ir. Dr. Tan (Geotechnical Consultant)</span>
+              <span class="text-slate-400 font-mono">14:12</span>
+            </div>
+            <p class="text-xs font-semibold text-[#93c5fd]">Re: Sungai Buloh Package 3 Borehole Review & VO</p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              "We have reviewed the supplementary soil test data for Pier 4. The Variation Order estimation stands at RM 120,000.00. Please confirm if statutory submission..."
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-300">Executive Notes (Zero AI Token Cost)</label>
+            <textarea rows="2" class="input-lucent w-full p-2.5 text-xs text-slate-200" placeholder="Add personal note...">Confirmed Pier 4 soil tests with Dr. Tan. Instructed QS to verify RM 120k VO against contingencies.</textarea>
+            <button onclick="alert('Notes saved to Bundle #104!')" class="w-full py-2 rounded-lg bg-[#141416] border border-[#2e2f36] text-xs font-semibold text-white hover:bg-[#2e2f36]">
+              Save Notes
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Panel: Interactive Action Card (Executive Navy Button & Border) -->
+        <div class="card-lucent p-5 space-y-4 border-2 border-[#2563eb]/50">
+          <div class="flex items-center justify-between border-b border-[#2e2f36] pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="mail-check" class="w-4 h-4 text-[#93c5fd]"></i>
+              <span>Interactive Action Card (Outlook Reply)</span>
+            </h3>
+            <span class="text-xs font-mono text-[#93c5fd] badge-navy px-2 py-0.5 rounded">Approval Required</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <p><span class="text-slate-400">Recipient:</span> <span class="text-white font-medium">dr.tan@geotech-consult.com</span></p>
+            <p><span class="text-slate-400">Subject:</span> <span class="text-white font-medium">Re: Pier 4 Geotechnical VO Confirmation</span></p>
+            
+            <div class="bg-[#141416] p-3 rounded-lg border border-[#2e2f36] text-slate-200 text-xs leading-relaxed space-y-2">
+              <p>Dear Dr. Tan,</p>
+              <p>We accept the RM 120,000.00 Variation Order estimation subject to final Quantity Surveyor audit.</p>
+              <p>Please proceed with preparing the statutory submission package for JPS Selangor.</p>
+              <p class="text-slate-400">Regards,<br>Ir. Abdul Rahman Hilmi</p>
+            </div>
+          </div>
+
+          <button onclick="alert('Action approved! Dispatched live via Microsoft Graph API.')" class="w-full py-2.5 rounded-lg bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold text-xs shadow-lg transition-colors flex items-center justify-center gap-2">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>Approve & Dispatch Email</span>
+          </button>
+        </div>
+
+      </div>
+
+    </main>
   </div>
 
   <script>
-    // Initialize Lucide Icons
     lucide.createIcons();
-
-    // View Switching Logic
-    function switchView(view) {
-      const desktop = document.getElementById('desktop-layout');
-      const mobile = document.getElementById('mobile-layout');
-      const btnDesktop = document.getElementById('btn-view-desktop');
-      const btnMobile = document.getElementById('btn-view-mobile');
-
-      if (view === 'desktop') {
-        desktop.classList.remove('hidden');
-        mobile.classList.add('hidden');
-        mobile.classList.remove('flex');
-        btnDesktop.classList.add('bg-[#21232B]', 'text-zinc-200', 'border', 'border-[#2C2F38]');
-        btnDesktop.classList.remove('text-zinc-400');
-        btnMobile.classList.remove('bg-[#21232B]', 'text-zinc-200', 'border', 'border-[#2C2F38]');
-        btnMobile.classList.add('text-zinc-400');
-      } else {
-        desktop.classList.add('hidden');
-        mobile.classList.remove('hidden');
-        mobile.classList.add('flex');
-        btnMobile.classList.add('bg-[#21232B]', 'text-zinc-200', 'border', 'border-[#2C2F38]');
-        btnMobile.classList.remove('text-zinc-400');
-        btnDesktop.classList.remove('bg-[#21232B]', 'text-zinc-200', 'border', 'border-[#2C2F38]');
-        btnDesktop.classList.add('text-zinc-400');
-      }
-    }
-
-    // Role Switching Simulation (ADR-013 Two-Tier Role Split)
-    function switchRole(role) {
-      const btnMd = document.getElementById('btn-role-md');
-      const btnAdmin = document.getElementById('btn-role-admin');
-      const userName = document.getElementById('user-display-name');
-      const userRole = document.getElementById('user-display-role');
-      const adminNav = document.getElementById('nav-group-admin');
-
-      if (role === 'md') {
-        btnMd.classList.add('bg-zinc-200', 'text-zinc-950');
-        btnMd.classList.remove('text-zinc-400');
-        btnAdmin.classList.remove('bg-zinc-200', 'text-zinc-950');
-        btnAdmin.classList.add('text-zinc-400');
-        userName.textContent = 'Ir. Abdul Rahman Hilmi';
-        userRole.textContent = 'Managing Director (Sovereign User)';
-        adminNav.classList.add('hidden');
-      } else {
-        btnAdmin.classList.add('bg-zinc-200', 'text-zinc-950');
-        btnAdmin.classList.remove('text-zinc-400');
-        btnMd.classList.remove('bg-zinc-200', 'text-zinc-950');
-        btnMd.classList.add('text-zinc-400');
-        userName.textContent = 'Platform Operator';
-        userRole.textContent = 'Platform Operator (Super Admin)';
-        adminNav.classList.remove('hidden');
-      }
-    }
-
-    // Interactive Action Card Approval
-    function approveActionCard(id) {
-      const triggers = document.getElementById(`card-${id}-triggers`);
-      const receipt = document.getElementById(`card-${id}-receipt`);
-      const card = document.getElementById(`action-card-${id}`);
-
-      triggers.classList.add('hidden');
-      receipt.classList.remove('hidden');
-      card.classList.remove('border-[#D4A373]/40');
-      card.classList.add('border-[#429A6A]/40', 'bg-[#429A6A]/5');
-      
-      // Update pending counter
-      document.getElementById('stat-pending').textContent = '0';
-      document.getElementById('stat-receipts').textContent = '19';
-    }
-
-    function discardActionCard(id) {
-      const card = document.getElementById(`action-card-${id}`);
-      card.style.opacity = '0.35';
-      card.style.pointerEvents = 'none';
-      document.getElementById('stat-pending').textContent = '0';
-    }
-
-    // Mobile Bottom Sheet Controls
-    function openMobileBottomSheet() {
-      document.getElementById('mobile-bottom-sheet').classList.remove('hidden');
-    }
-    function closeMobileBottomSheet() {
-      document.getElementById('mobile-bottom-sheet').classList.add('hidden');
-    }
-    function approveMobileAction() {
-      closeMobileBottomSheet();
-      alert("Action Approved: Dispatched via Microsoft Graph API. Audit receipt recorded in ai_action_receipts.");
-    }
-
-    // Preset & Scenario Triggers
-    function triggerPreset(preset) {
-      const input = document.getElementById('copilot-input');
-      if (preset === 'whats_new') input.value = "Delta Digest: Query Graph API delta for today's inbox changes.";
-      if (preset === 'check_email') input.value = "Unread Correspondence: Extract pending client inquiries.";
-      if (preset === 'action_items') input.value = "Action Items: Generate proposal cards for messages requiring formal sign-off.";
-      if (preset === 'blockers') input.value = "Status Review: Aggregate critical path bottlenecks across project registers.";
-      sendCopilotPrompt();
-    }
-
-    function triggerScenario(scen) {
-      if (scen === 'scen-01') triggerPreset('whats_new');
-      if (scen === 'scen-02') {
-        const card = document.getElementById('action-card-1');
-        card.scrollIntoView({ behavior: 'smooth' });
-        card.classList.add('ring-1', 'ring-[#D4A373]');
-        setTimeout(() => card.classList.remove('ring-1', 'ring-[#D4A373]'), 2000);
-      }
-      if (scen === 'scen-03') saveToProjectRegister();
-      if (scen === 'scen-04') alert("SCEN-04 Activity Ledger: Rendered weekly executive audit summary from 18 verified AiActionReceipt records.");
-    }
-
-    function sendCopilotPrompt() {
-      const input = document.getElementById('copilot-input');
-      if (!input.value) return;
-      
-      const chat = document.getElementById('chat-messages');
-      const userBubble = document.createElement('div');
-      userBubble.className = "p-3 rounded-xl bg-[#21232B] border border-[#2C2F38] text-zinc-100 text-xs ml-6 shadow-sm";
-      userBubble.textContent = input.value;
-      chat.appendChild(userBubble);
-      chat.scrollTop = chat.scrollHeight;
-      input.value = "";
-    }
-
-    function saveToProjectRegister() {
-      alert("Structured summary saved into 'project_registry_entries' under PC-2023-011. Zero raw email blobs stored.");
-    }
-
-    function triggerReplyProposal() {
-      const card = document.getElementById('action-card-1');
-      card.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function simulateDeltaSync() {
-      const icon = document.getElementById('sync-icon');
-      icon.classList.add('animate-spin');
-      setTimeout(() => {
-        icon.classList.remove('animate-spin');
-        alert("Graph API Delta Scan: 0 new unread messages since 14:15.");
-      }, 800);
-    }
+    function showTab(tabId) { alert('Tab switched to ' + tabId); }
   </script>
+
 </body>
 </html>
