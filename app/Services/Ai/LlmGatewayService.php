@@ -843,7 +843,6 @@ class LlmGatewayService
                 $lastIndex = array_key_last($out);
                 $lastIsToolResultTurn = $lastIndex !== null
                     && $out[$lastIndex]['role'] === 'user'
-                    && is_array($out[$lastIndex]['parts'])
                     && isset($out[$lastIndex]['parts'][0]['functionResponse']);
 
                 if ($lastIsToolResultTurn) {
