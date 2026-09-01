@@ -21,7 +21,7 @@ class ViewBundle extends ViewRecord
                 ->label('Fetch Full Body Live (Graph API)')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('info')
-                ->form([
+                ->schema([
                     Select::make('message_id')
                         ->label('Select Email Pointer')
                         ->options(function ($record) {
