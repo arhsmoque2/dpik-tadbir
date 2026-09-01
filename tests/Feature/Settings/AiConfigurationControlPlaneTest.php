@@ -1,8 +1,12 @@
 <?php
 
 use App\Filament\Pages\ExecutiveSettings;
+use App\Models\ChatSession;
 use App\Models\User;
+use App\Services\Ai\AgentService;
 use App\Services\Ai\AiConfigurationService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -44,6 +48,43 @@ it('rejects malformed raw JSON strings with an exception', function () {
 
     expect(fn () => $service->saveRawJson('{ invalid json string ...'))
         ->toThrow(InvalidArgumentException::class);
+});
+
+it('rejects raw JSON that does not parse to an object/array', function () {
+    $service = app(AiConfigurationService::class);
+
+    expect(fn () => $service->saveRawJson('"just a string"'))
+        ->toThrow(InvalidArgumentException::class, 'Configuration must be a valid JSON object.');
+});
+
+it('falls back to factory defaults if settings table throws an exception', function () {
+    Cache::flush();
+    DB::shouldReceive('table')
+        ->with('settings')
+        ->andThrow(new RuntimeException('Table does not exist'));
+
+    $service = app(AiConfigurationService::class);
+    $config = $service->getConfiguration();
+
+    expect($config)->toHaveKey('system_prompt');
+});
+
+it('falls back to default system prompt template in AgentService when base_template is empty', function () {
+    $service = app(AiConfigurationService::class);
+    $custom = $service->getConfiguration();
+    $custom['system_prompt']['base_template'] = '';
+    $service->saveConfiguration($custom);
+
+    $agent = app(AgentService::class);
+    $user = User::create([
+        'name' => 'Fallback User',
+        'email' => 'fallback_user@dpik.com.my',
+        'password' => bcrypt('secret'),
+    ]);
+    $session = ChatSession::create(['user_id' => $user->id, 'title' => 'Test Fallback']);
+
+    $turn = $agent->handleUserTurn($session, 'Hello');
+    expect($turn->status)->toBe('completed');
 });
 
 it('allows super admins to view, format, and save AI JSON configuration on executive settings page', function () {

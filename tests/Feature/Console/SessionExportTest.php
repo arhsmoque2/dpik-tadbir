@@ -151,3 +151,32 @@ it('exports all formats when format option is all', function () {
     $this->artisan('session:export', ['--format' => 'all'])
         ->assertSuccessful();
 });
+
+it('exports db format when format option is db', function () {
+    $this->artisan('session:export', ['--format' => 'db', '--session' => $this->session1->id])
+        ->assertSuccessful()
+        ->expectsOutputToContain('SQLite FTS5 (.db)');
+});
+
+it('exports jsonl format when format option is jsonl', function () {
+    $this->artisan('session:export', ['--format' => 'jsonl', '--session' => $this->session1->id])
+        ->assertSuccessful()
+        ->expectsOutputToContain('JSON Lines (.jsonl)');
+});
+
+it('creates missing directories when exporting to custom paths', function () {
+    $exporter = app(SessionExportService::class);
+    $customDbDir = storage_path('framework/testing/exports_nested_'.uniqid());
+    $customDbPath = $customDbDir.DIRECTORY_SEPARATOR.'test.db';
+    $customJsonlDir = storage_path('framework/testing/exports_nested_jsonl_'.uniqid());
+    $customJsonlPath = $customJsonlDir.DIRECTORY_SEPARATOR.'test.jsonl';
+
+    $dbResult = $exporter->exportToDb($this->session1->id, $customDbPath);
+    expect(File::exists($dbResult))->toBeTrue();
+
+    $jsonlResult = $exporter->exportToJsonl($this->session1->id, $customJsonlPath);
+    expect(File::exists($jsonlResult))->toBeTrue();
+
+    File::deleteDirectory($customDbDir);
+    File::deleteDirectory($customJsonlDir);
+});

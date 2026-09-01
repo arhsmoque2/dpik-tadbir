@@ -33,6 +33,8 @@
     "annotatable",
     "hideable",
     "reassignable",
+    "unmocked",
+    "phpmock",
     "Aksi",
     "Alam",
     "analyse",
