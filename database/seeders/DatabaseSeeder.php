@@ -18,65 +18,58 @@ class DatabaseSeeder extends Seeder
     {
         // All seeder queries use idempotent firstOrCreate fixtures
 
-        $accounts = [
+        $whitelistEntries = [
             [
                 'email' => 'rahman@dpik.com.my',
-                'name' => 'Rahman',
-                'role' => 'super_admin',
                 'notes' => 'Super Admin (Owner)',
+                'role' => 'super_admin',
             ],
             [
                 'email' => 'smoque@gmail.com',
-                'name' => 'Smoque',
-                'role' => 'super_admin',
                 'notes' => 'Super Admin (Owner)',
+                'role' => 'super_admin',
             ],
             [
                 'email' => 'arh.homelab@gmail.com',
-                'name' => 'ARH Homelab',
-                'role' => 'super_admin',
                 'notes' => 'Super Admin (Owner)',
+                'role' => 'super_admin',
             ],
             [
                 'email' => 'hilmio@dpik.com.my',
-                'name' => 'Hilmio',
-                'role' => 'user',
                 'notes' => 'Managing Director',
+                'role' => 'executive',
             ],
             [
                 'email' => 'hamid@dpik.com.my',
-                'name' => 'Hamid',
-                'role' => 'user',
                 'notes' => 'Corporate Administrator',
+                'role' => 'executive',
             ],
             [
                 'email' => 'admin@dpik.com.my',
-                'name' => 'Admin DPIK',
+                'notes' => 'Primary administrative executive account for testing',
                 'role' => 'super_admin',
-                'notes' => 'Primary administrative executive account for E2E testing',
             ],
         ];
 
         $admin = null;
-        foreach ($accounts as $acc) {
+        foreach ($whitelistEntries as $entry) {
             $user = User::firstOrCreate(
-                ['email' => $acc['email']],
+                ['email' => $entry['email']],
                 [
-                    'name' => $acc['name'],
                     'password' => Hash::make('password'),
-                    'role' => $acc['role'],
+                    'role' => $entry['role'],
                 ]
             );
 
             AllowedRegistrationEmail::firstOrCreate(
-                ['email' => $acc['email']],
+                ['email' => $entry['email']],
                 [
-                    'notes' => $acc['notes'],
+                    'notes' => $entry['notes'],
                     'created_by_user_id' => $user->id,
                 ]
             );
 
-            if ($acc['email'] === 'admin@dpik.com.my') {
+            if ($entry['email'] === 'admin@dpik.com.my') {
                 $admin = $user;
             }
         }
