@@ -146,3 +146,8 @@ it('downloads exported jsonl file through authenticated web endpoint', function 
     $response->assertSuccessful();
     $response->assertHeader('content-type', 'application/x-ndjson');
 });
+
+it('exports all formats when format option is all', function () {
+    $this->artisan('session:export', ['--format' => 'all'])
+        ->assertSuccessful();
+});

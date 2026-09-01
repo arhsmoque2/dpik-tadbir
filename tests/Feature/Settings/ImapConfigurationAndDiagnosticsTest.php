@@ -111,3 +111,27 @@ it('runs full system health check across all services via testAllConnections', f
         ->assertSet('imapProbeStatus', 'success')
         ->assertSet('smtpProbeStatus', 'success');
 });
+
+it('handles imap and smtp probe errors in executive settings component', function () {
+    $mock = Mockery::mock(MailDiagnosticService::class);
+    $mock->shouldReceive('probeImap')->andReturn([
+        'status' => 'error',
+        'latency_ms' => 10,
+        'message' => 'IMAP Failed',
+        'remediation' => 'Check host',
+    ]);
+    $mock->shouldReceive('probeSmtp')->andReturn([
+        'status' => 'error',
+        'latency_ms' => 12,
+        'message' => 'SMTP Failed',
+        'remediation' => 'Check port',
+    ]);
+    $this->app->instance(MailDiagnosticService::class, $mock);
+
+    Livewire::actingAs($this->user)
+        ->test(ExecutiveSettings::class)
+        ->call('testImapConnection')
+        ->assertSet('imapProbeStatus', 'error')
+        ->call('testSmtpConnection')
+        ->assertSet('smtpProbeStatus', 'error');
+});
