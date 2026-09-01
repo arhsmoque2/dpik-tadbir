@@ -57,6 +57,11 @@
   - `docs/adr/ADR-029-hermetic-io-stream-and-socket-mocking-architecture.md` (Hermetic I/O Stream & Socket Mocking Architecture)
   - `docs/adr/ADR-030-tadbir-runtime-control-plane-snip-output-filtering-and-state-doctrine.md` (Tadbir Runtime Control Plane, Snip Output Filtering & State-First Doctrine)
 
+## Implementation Boundaries & Deferred Refinements
+- **Dashboard Design Contract (ADR-022 / CAP-009)**: The default dashboard is strictly a calm Bundle & AI Session list. Stat-card metric widgets (`ExecutiveStatsOverview`) remain decoupled from the default view per ADR-022's human-first, AI-optional directive.
+- **Hermes Closed-Loop Skill Synthesis (ADR-028)**: Accepted architectural specification for future Phase 2 development. Composed domain tools (`prepare_email_reply_draft`, `tender_auto_intake`) and proactive skill promotion prompts are intentionally reserved and not yet implemented in code.
+- **Adaptive Mobile Navigation (CAP-020)**: 4-slot bottom nav customization with persistent Copilot anchor and user-customizable slot arrangement is fully active. Advanced compound controls (Home-as-expandable-menu, Retrieve filter chips, More drawer) are documented design targets reserved for future mobile polish passes.
+
 ## Active Invariants & Boundaries
 1. **Email Whitelist & Sovereign Executive Roles**: Account registration is strictly restricted to pre-approved corporate emails (`allowed_registration_emails`), preventing unauthorized public signups ([`ADR-013`](docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). `rahman@dpik.com.my`, `smoque@gmail.com`, and `arh.homelab@gmail.com` are permanent un-gated Super Admins; `hilmio@dpik.com.my` (Managing Director) and `hamid@dpik.com.my` (Corporate Administrator) are standard executive users.
 2. **User-Configurable AI Provider Keys & OpenRouter Catalog**: Each executive can configure their private Anthropic (Claude 3.7), Gemini, and OpenRouter API keys via `ExecutiveSettings`, stored encrypted at rest. When unset, Tadbir gracefully falls back to system / SOPS credentials. In-chat 3-favorites swapper (`Cmd+J`) enables zero-reload model switching between executive favorites ([`ADR-018`](docs/adr/ADR-018-openrouter-multi-model-catalog-and-runtime-favorites-swapper.md)).

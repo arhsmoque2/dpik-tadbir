@@ -82,7 +82,7 @@ All findings below have been remediated, verified, and locked with automated reg
 | # | Feature / Capability | Declared Contract | Backend Implementation | Missing UI / Remediation Performed |
 | :- | :--- | :--- | :--- | :--- |
 | 1 | **Adaptive Bottom Nav Customization** | [ADR-022](docs/adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md) | `bottom_nav_slots` on `User` & `getBottomNavSlots()`. | Added slot configuration section to `ExecutiveSettings` and dynamic rendering loop in `bottom-nav.blade.php`. |
-| 2 | **Executive Stats KPI Overview** | [CAPABILITIES.md](docs/CAPABILITIES.md) | `ExecutiveStatsOverview.php` defines 4 KPI cards. | Embedded `@livewire(\App\Filament\Widgets\ExecutiveStatsOverview::class)` onto `Dashboard.php`. |
+| 2 | **Executive Stats KPI Overview** | [ADR-022](docs/adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md) / [CAPABILITIES.md](docs/CAPABILITIES.md) | `ExecutiveStatsOverview.php` defines 4 KPI cards. | Preserved as decoupled widget; excluded from default Dashboard view per ADR-022 / CAP-009 human-first list invariant. |
 | 3 | **Automated Activity Rollup Note Creation** | [ADR-008](docs/adr/ADR-008-action-receipts-and-automated-activity-rollups.md) | `GenerateDailyRollupJob.php` & `GenerateWeeklyRollupJob.php`. | Implemented personal note synthesis from `AiActionReceipt` records and registered jobs in `routes/console.php`. |
 | 4 | **Session SQLite FTS5 / JSONL Exports** | [ADR-006](docs/adr/ADR-006-hybrid-memory-search-and-retrieval-engine.md) | `SessionExportController.php` routes `/admin/sessions/export/{format}`. | Added explicit Export JSON and Export Markdown buttons in `ExecutiveAssistant` view. |
 

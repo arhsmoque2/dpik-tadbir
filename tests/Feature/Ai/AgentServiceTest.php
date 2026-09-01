@@ -206,3 +206,94 @@ test('agent service injects the executive personalization profile into the syste
     expect($prompt)->toContain('Prefers concise, bullet-point summaries in English.');
     expect($prompt)->toContain('reply_tone: formal');
 });
+
+test('resumeWithToolResult suppresses duplicate user message and guarantees strict role alternation for Anthropic wire format', function () {
+    $user = User::create([
+        'name' => 'Alternation Test User',
+        'email' => 'alternation@dpik.com.my',
+        'password' => bcrypt('password'),
+    ]);
+    test()->actingAs($user);
+
+    $session = ChatSession::create([
+        'user_id' => $user->id,
+        'title' => 'Alternation Test Session',
+    ]);
+
+    // Turn 1: Assistant suspends on propose_action_card
+    LlmGatewayService::fakeSequence([
+        [
+            'content' => 'I have drafted the email response for your approval.',
+            'tool_calls' => [
+                [
+                    'id' => 'call_suspend_alt_1',
+                    'name' => 'propose_action_card',
+                    'arguments' => [
+                        'action_type' => 'outlook_draft',
+                        'title' => 'Draft Reply',
+                        'summary' => 'Confirm attendance',
+                        'payload' => ['subject' => 'RE: Meeting'],
+                    ],
+                ],
+            ],
+            'stop_reason' => 'tool_use',
+        ],
+        [
+            'content' => 'Action card approved. Draft has been finalized.',
+            'stop_reason' => 'end_turn',
+        ],
+    ]);
+
+    $agent = app(AgentService::class);
+    $suspendedResponse = $agent->handleUserTurn($session, 'Draft an email reply');
+    expect($suspendedResponse->status)->toBe('suspended');
+
+    // Turn 2: Operator confirms Action Card -> resumeWithToolResult
+    $resumedResponse = $agent->resumeWithToolResult($session, 'call_suspend_alt_1', ['approved' => true]);
+    expect($resumedResponse->status)->toBe('completed');
+    expect($resumedResponse->content)->toBe('Action card approved. Draft has been finalized.');
+
+    // Assert database messages sequence: user -> assistant(suspended) -> tool(result) -> assistant(final)
+    $messages = $session->messages()->orderBy('id', 'asc')->get();
+    expect($messages)->toHaveCount(4);
+
+    $roles = $messages->pluck('role')->toArray();
+    expect($roles)->toBe(['user', 'assistant', 'tool', 'assistant']);
+
+    // Crucial check: verify there are NO consecutive user-role entries in database
+    for ($i = 0; $i < count($roles) - 1; $i++) {
+        expect($roles[$i] === 'user' && $roles[$i + 1] === 'user')
+            ->toBeFalse('Found consecutive user roles which causes HTTP 400 in Anthropic API');
+    }
+
+    // Assert gateway toAnthropicMessages wire format translation produces strictly alternating turns
+    $gateway = app(LlmGatewayService::class);
+    $reflectionGateway = new ReflectionClass($gateway);
+    $toAnthropicMethod = $reflectionGateway->getMethod('toAnthropicMessages');
+    $toAnthropicMethod->setAccessible(true);
+
+    $reflectionAgent = new ReflectionClass($agent);
+    $toNeutralMethod = $reflectionAgent->getMethod('toNeutralMessages');
+    $toNeutralMethod->setAccessible(true);
+
+    $neutralMessages = $toNeutralMethod->invoke($agent, $messages);
+    $anthropicWire = $toAnthropicMethod->invoke($gateway, $neutralMessages);
+
+    $anthropicRoles = array_column($anthropicWire, 'role');
+    // In Anthropic wire format: user(prompt) -> assistant(tool_use) -> user(tool_result) -> assistant(final)
+    expect($anthropicRoles)->toBe(['user', 'assistant', 'user', 'assistant']);
+
+    for ($i = 0; $i < count($anthropicRoles) - 1; $i++) {
+        expect($anthropicRoles[$i])->not->toBe($anthropicRoles[$i + 1], "Anthropic wire messages must strictly alternate roles (index {$i} and index ".($i + 1).')');
+    }
+
+    // Assert tool_name was resolved and Gemini wire format also produces valid functionResponse
+    $toGeminiMethod = $reflectionGateway->getMethod('toGeminiContents');
+    $toGeminiMethod->setAccessible(true);
+    $geminiWire = $toGeminiMethod->invoke($gateway, $neutralMessages);
+
+    expect($geminiWire[2]['role'])->toBe('user');
+    expect($geminiWire[2]['parts'][0]['functionResponse']['name'])->toBe('propose_action_card');
+    expect($geminiWire[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['approved' => true]);
+});
+

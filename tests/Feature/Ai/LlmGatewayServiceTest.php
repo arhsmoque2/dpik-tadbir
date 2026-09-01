@@ -515,3 +515,72 @@ test('probeGeminiKey handles auth error response', function () {
     expect($res['success'])->toBeFalse()
         ->and($res['error_code'])->toBe('AUTH_ERROR');
 });
+
+test('toGeminiContents translates assistant tool_calls and tool results to Gemini functionResponse wire format', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toGeminiContents');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check both projects'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_1', 'name' => 'query_project_register', 'arguments' => ['query' => 'A']],
+                ['id' => 'call_2', 'name' => 'query_project_register', 'arguments' => ['query' => 'B']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"count":1}', 'tool_call_id' => 'call_1', 'tool_name' => 'query_project_register', 'is_error' => false],
+        ['role' => 'tool', 'content' => '{"error":"not found"}', 'tool_call_id' => 'call_2', 'is_error' => true],
+    ];
+
+    /** @var list<array{role: string, parts: list<array<string, mixed>>}> $result */
+    $result = $method->invoke($gateway, $neutral);
+
+    expect($result)->toHaveCount(3); // user turn, model turn with functionCalls, user turn with merged functionResponses
+    expect($result[0]['role'])->toBe('user');
+    expect($result[0]['parts'][0]['text'])->toBe('Check both projects');
+
+    expect($result[1]['role'])->toBe('model');
+    expect($result[1]['parts'])->toHaveCount(2);
+    expect($result[1]['parts'][0]['functionCall']['name'])->toBe('query_project_register');
+    expect($result[1]['parts'][0]['functionCall']['args'])->toBe(['query' => 'A']);
+    expect($result[1]['parts'][1]['functionCall']['name'])->toBe('query_project_register');
+
+    expect($result[2]['role'])->toBe('user');
+    expect($result[2]['parts'])->toHaveCount(2); // consecutive tool messages merged
+    expect($result[2]['parts'][0]['functionResponse']['name'])->toBe('query_project_register');
+    expect($result[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['count' => 1]);
+    expect($result[2]['parts'][1]['functionResponse']['name'])->toBe('query_project_register');
+    expect($result[2]['parts'][1]['functionResponse']['response']['content'])->toBe(['error' => 'not found']);
+});
+
+test('toGeminiContents resolves tool name from preceding assistant tool_calls when tool_name is omitted', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toGeminiContents');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check FT264'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_suspend_99', 'name' => 'propose_action_card', 'arguments' => ['title' => 'Draft']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"approved":true}', 'tool_call_id' => 'call_suspend_99'],
+    ];
+
+    /** @var list<array{role: string, parts: list<array<string, mixed>>}> $result */
+    $result = $method->invoke($gateway, $neutral);
+
+    expect($result)->toHaveCount(3);
+    expect($result[2]['role'])->toBe('user');
+    expect($result[2]['parts'][0]['functionResponse']['name'])->toBe('propose_action_card');
+    expect($result[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['approved' => true]);
+});
+

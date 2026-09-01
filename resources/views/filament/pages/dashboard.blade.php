@@ -30,11 +30,6 @@
         </div>
     </div>
 
-    <!-- Executive KPI Stats Overview Widget -->
-    <div>
-        @livewire(\App\Filament\Widgets\ExecutiveStatsOverview::class)
-    </div>
-
     <!-- Live Executive AI Sessions Register -->
     <div class="bg-[#212631] rounded-xl border border-[#323946] overflow-hidden shadow-sm">
         <div class="px-6 py-4 border-b border-[#323946] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

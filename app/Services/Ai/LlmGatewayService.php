@@ -765,6 +765,12 @@ class LlmGatewayService
     }
 
     /**
+     * Translate the gateway's neutral message shape into Google Gemini's
+     * contents format. Gemini requires tool results as `functionResponse` parts
+     * inside a user-role turn with correlated tool names and response objects.
+     * Consecutive tool results from the same turn are merged into a single user
+     * turn matching Gemini multi-tool semantics.
+     *
      * @param  list<array<string, mixed>>  $messages
      * @return list<array{role: string, parts: list<array<string, mixed>>}>
      */
@@ -773,11 +779,84 @@ class LlmGatewayService
         $out = [];
         foreach ($messages as $m) {
             $role = (string) ($m['role'] ?? 'user');
-            $geminiRole = match ($role) {
-                'assistant' => 'model',
-                'tool' => 'user',
-                default => 'user',
-            };
+
+            if ($role === 'assistant') {
+                $parts = [];
+                $text = (string) ($m['content'] ?? '');
+                if ($text !== '') {
+                    $parts[] = ['text' => $text];
+                }
+
+                if (! empty($m['tool_calls'])) {
+                    foreach ($m['tool_calls'] as $tc) {
+                        $parts[] = [
+                            'functionCall' => [
+                                'name' => (string) ($tc['name'] ?? ''),
+                                'args' => $tc['arguments'] ?? (object) [],
+                            ],
+                        ];
+                    }
+                }
+
+                if ($parts !== []) {
+                    $out[] = [
+                        'role' => 'model',
+                        'parts' => $parts,
+                    ];
+                }
+
+                continue;
+            }
+
+            if ($role === 'tool') {
+                $toolName = (string) ($m['tool_name'] ?? $m['name'] ?? '');
+                if ($toolName === '' && ! empty($m['tool_call_id'])) {
+                    foreach (array_reverse($messages) as $prevMsg) {
+                        if (! empty($prevMsg['tool_calls'])) {
+                            foreach ($prevMsg['tool_calls'] as $tc) {
+                                if (($tc['id'] ?? '') === $m['tool_call_id']) {
+                                    $toolName = (string) ($tc['name'] ?? '');
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                if ($toolName === '') {
+                    $toolName = 'unknown_tool';
+                }
+
+                $rawContent = (string) ($m['content'] ?? '');
+                $decoded = json_decode($rawContent, true);
+                $responseObject = is_array($decoded) ? $decoded : ['output' => $rawContent];
+
+                $part = [
+                    'functionResponse' => [
+                        'name' => $toolName,
+                        'response' => [
+                            'name' => $toolName,
+                            'content' => $responseObject,
+                        ],
+                    ],
+                ];
+
+                $lastIndex = array_key_last($out);
+                $lastIsToolResultTurn = $lastIndex !== null
+                    && $out[$lastIndex]['role'] === 'user'
+                    && is_array($out[$lastIndex]['parts'])
+                    && isset($out[$lastIndex]['parts'][0]['functionResponse']);
+
+                if ($lastIsToolResultTurn) {
+                    $out[$lastIndex]['parts'][] = $part;
+                } else {
+                    $out[] = [
+                        'role' => 'user',
+                        'parts' => [$part],
+                    ];
+                }
+
+                continue;
+            }
 
             $parts = [];
             $text = (string) ($m['content'] ?? '');
@@ -785,20 +864,9 @@ class LlmGatewayService
                 $parts[] = ['text' => $text];
             }
 
-            if (! empty($m['tool_calls'])) {
-                foreach ($m['tool_calls'] as $tc) {
-                    $parts[] = [
-                        'functionCall' => [
-                            'name' => $tc['name'],
-                            'args' => $tc['arguments'] ?? [],
-                        ],
-                    ];
-                }
-            }
-
             if ($parts !== []) {
                 $out[] = [
-                    'role' => $geminiRole,
+                    'role' => 'user',
                     'parts' => $parts,
                 ];
             }
