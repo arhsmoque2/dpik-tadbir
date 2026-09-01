@@ -35,6 +35,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+COPY --from=vendor /app/vendor /app/vendor
 RUN pnpm run build
 
 # ---- Stage 3: Production Runtime ----
