@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Filament\Auth\Pages\Login;
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Auth;
 
 use function Pest\Livewire\livewire;
@@ -18,7 +19,7 @@ test('superadmin can login with remember me and session persists with remember c
         ]
     );
 
-    \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
 
     $component = livewire(Login::class)
         ->set('data.email', 'admin@dpik.com.my')

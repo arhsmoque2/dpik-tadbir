@@ -7,13 +7,12 @@ use App\Models\Bundle;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\Section as InfolistSection;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -111,7 +110,7 @@ class BundleResource extends Resource
     {
         return $schema
             ->components([
-                InfolistSection::make('Bundle Information')
+                Section::make('Bundle Information')
                     ->schema([
                         TextEntry::make('filter_label')
                             ->label('Filter Label'),
@@ -130,7 +129,7 @@ class BundleResource extends Resource
                     ])
                     ->columns(4),
 
-                InfolistSection::make('Materialized Email Pointers (Graph API Metadata)')
+                Section::make('Materialized Email Pointers (Graph API Metadata)')
                     ->schema([
                         RepeatableEntry::make('bundleEmails')
                             ->schema([

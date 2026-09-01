@@ -6,7 +6,6 @@ use App\Filament\Resources\BundleResource;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewBundle extends ViewRecord
