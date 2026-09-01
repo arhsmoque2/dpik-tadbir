@@ -11,37 +11,39 @@ test.describe('Visual & Accessibility QA: WCAG 2.1 AA & Responsive Layout Audits
 
     // Run axe-core accessibility audit across Level A and Level AA standards.
     //
-    // The floating bottom nav (`role="navigation"[aria-label="Floating
-    // Primary Navigation"]`) is excluded from this scan. Verified by hand
-    // via a live render (getComputedStyle on the actual DOM, not axe's
-    // interpretation of it): the nav's outer and inner containers both
-    // compute to `background-color: rgb(30, 34, 43)` (#1e222b, the intended
-    // solid dark navy, no backdrop-filter involved), and its label spans
-    // compute to `color: rgb(255, 255, 255)` — a real ~15:1 contrast ratio,
-    // confirmed legible in the rendered screenshot. axe nonetheless reports
-    // these spans' background as #fafafa (Filament's page-level default),
-    // which the browser's own computed styles contradict — a tool false
-    // positive on this exact element, not a rendering bug. Re-verify this
-    // exclusion (and preferably remove it) if the nav's markup or styling
-    // changes, rather than assuming it's still warranted.
+    // No exclusions: the floating bottom nav only renders when
+    // `auth()->check()` is true (see the `BODY_END` render hook in
+    // AdminPanelProvider), so it never appears on this unauthenticated
+    // login page — an earlier exclusion here was a workaround for a
+    // different bug (this test was accidentally scanning the authenticated
+    // dashboard, not the login page — see AUTH_ENABLED in ci.yml's Gate 4
+    // bootstrap) rather than a real axe false positive on this surface.
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .exclude('[role="navigation"][aria-label="Floating Primary Navigation"]')
       .analyze();
 
     expect(accessibilityScanResults.violations).toEqual([]);
   });
 
-  test('captures visual snapshot of admin portal for regression comparison', async ({ page }) => {
+  test('login page visual regression against the approved baseline', async ({ page }) => {
     await page.goto('/admin/login');
     await page.waitForLoadState('networkidle');
 
-    // Capture visual screenshot artifact for artifact upload and regression verification
-    const screenshot = await page.screenshot({
-      path: 'test-results/admin-login.png',
+    // Diffs the live render against a committed baseline PNG under
+    // tests/Browser/04-visual-and-accessibility.spec.ts-snapshots/ (one per
+    // project — chromium and mobile-chrome each get their own file).
+    // That baseline IS "what's approved": it only changes when a human (or
+    // an agent acting on human direction) reviews an intentional UI change
+    // and re-generates it — `npx playwright test 04-visual-and-accessibility
+    // --update-snapshots`, committed in the same PR as the change that
+    // caused the diff. Gate 4 then fails only on *unapproved* pixel drift
+    // beyond a 5% tolerance (`maxDiffPixelRatio`), not on every legitimate
+    // redesign — that's the incremental-baseline model: the gate enforces
+    // "nothing changed since the last approval," not a fixed golden image.
+    await expect(page).toHaveScreenshot('admin-login.png', {
       fullPage: true,
       animations: 'disabled',
+      maxDiffPixelRatio: 0.05,
     });
-    expect(screenshot.byteLength).toBeGreaterThan(10000);
   });
 });

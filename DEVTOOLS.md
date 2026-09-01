@@ -42,6 +42,24 @@ Every Pull Request must satisfy the 5 gates defined in [`.github/workflows/ci.ym
 
 ---
 
+## 2b. [DEV-VISUAL-BASELINE] Gate 4's Incremental Visual Baseline (ADR-016)
+
+`tests/Browser/04-visual-and-accessibility.spec.ts`'s visual regression test (`login page visual regression against the approved baseline`) does **not** diff against a fixed golden image maintained forever — it diffs against a *committed baseline* under `tests/Browser/04-visual-and-accessibility.spec.ts-snapshots/` that only changes when a human explicitly approves a new render. That's the practical distinction: Gate 4 fails on *unapproved* pixel drift, not on every legitimate redesign.
+
+**When you intentionally change the login page's visual design**, regenerate and commit the baseline in the same PR:
+
+```bash
+# Bootstrap the testing env exactly like Gate 4 does (see ci.yml), then:
+CI=true APP_ENV=testing npx playwright test tests/Browser/04-visual-and-accessibility.spec.ts --update-snapshots
+git add tests/Browser/04-visual-and-accessibility.spec.ts-snapshots/
+```
+
+Review the diffed PNGs before committing — that review *is* the approval. `maxDiffPixelRatio: 0.05` tolerates minor font-rendering/anti-aliasing noise between runs without tolerating a real layout change.
+
+**Root cause this replaced**: this test used to `page.goto('/admin/login')` and assert only `screenshot.byteLength > 10000` — a check so loose it couldn't catch a rendering regression, matching neither the WCAG scan's intent nor ADR-016's own already-accepted design (which prescribed `toHaveScreenshot` from the start but was never wired up). Worse, because `AUTH_ENABLED` defaults to `false` and `AutoLoginBypassMiddleware` fires unconditionally server-side, `/admin/login` silently redirected to the *authenticated dashboard* in every CI run — confirmed from a real failure log where the scanned `<body>` carried `fi-body-has-navigation fi-body-has-topbar` (the dashboard shell's own classes). The axe scan was therefore auditing whatever nav happened to be in the dashboard that week, not the login page — a genuinely superficial gate that broke on unrelated dashboard changes. Gate 4's bootstrap now sets `AUTH_ENABLED=true`, so this test (and `auth.setup.ts`, which already had a real-login-form code path that was silently never exercised) finally test what they claim to.
+
+---
+
 ## 3. [DEV-SANDBOX] Cloud Sandbox Agent Hydration (ADR-020)
 
 When operating inside ephemeral cloud sandbox agents (Claude Code web, Codespaces, Docker), running `composer install` without authentication can fail with GitHub API rate limits (HTTP 403 / "Could not authenticate against github.com").
