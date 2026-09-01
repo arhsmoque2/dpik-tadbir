@@ -21,7 +21,23 @@ RUN composer install \
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
-# ---- Stage 2: Production Runtime ----
+# ---- Stage 2: Frontend Assets ----
+# Compiles the Filament admin panel's Vite/Tailwind theme
+# (resources/css/filament/admin/theme.css) into public/build. Without this
+# stage, the runtime image ships only Filament's stock pre-bundled CSS and
+# every custom `bg-[#212631]`-style class in this app's own Blade views and
+# Filament PHP classes renders as plain unstyled HTML.
+FROM node:22-bookworm-slim AS assets
+WORKDIR /app
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+RUN pnpm run build
+
+# ---- Stage 3: Production Runtime ----
 FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
 
 # Install production PHP extensions for Neon Postgres, SQLite, Filament, and Octane
@@ -43,6 +59,7 @@ COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 WORKDIR /app
 
 COPY --from=vendor /app /app
+COPY --from=assets /app/public/build /app/public/build
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 RUN sed -i 's/\r$//' /app/docker-entrypoint.sh \

@@ -1,0 +1,14 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+/*
+ * Scans every place this app writes its own Tailwind classes (Filament
+ * Pages/Resources/Widgets PHP, custom Livewire components, and every
+ * hand-authored Blade view) so arbitrary-value utilities like
+ * `bg-[#212631]` actually get generated. Filament's stock ThemeCss stub
+ * only sources resources/views/filament/**, which misses this app's
+ * Livewire components (app/Livewire/*, resources/views/livewire/*) that
+ * carry the same kind of custom styling (the AI Copilot drawer chrome).
+ */
+@source '../../../../app/Filament/**/*';
+@source '../../../../app/Livewire/**/*';
+@source '../../../../resources/views/**/*.blade.php';

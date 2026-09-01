@@ -255,6 +255,9 @@ jobs:
       - name: Install Node Dependencies
         run: pnpm install
 
+      - name: Build Frontend Assets (Filament Admin Theme)
+        run: pnpm run build
+
       - name: Install Playwright Browsers with OS Dependencies
         run: npx playwright install --with-deps chromium
 
