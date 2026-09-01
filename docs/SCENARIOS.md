@@ -1,12 +1,14 @@
 # DPIK Tadbir: User Scenarios
 
 ## [SCEN-01] On-Demand Email Check via "What's New Today?" Preset
-1. **Entry**: Executive opens the DPIK Tadbir dashboard.
-2. **Progress**: Executive clicks the preset button: **[What's new today?]** (or **[Check my email today]**).
+1. **Entry**: Executive opens the DPIK Tadbir dashboard (a Bundle/Session list, per [`CAP-009`](CAPABILITIES.md#cap-009-executive-ai-command-center--visual-panel-filament-v4)).
+2. **Progress**: Executive taps **Retrieve** with no custom filter set, so the default filter applies (mail sent today, addressed directly — `To:`, not `CC:` — new since the last check only, per [`CAP-019`](CAPABILITIES.md#cap-019-bundle-based-retrieval-default-filter--auto-promotion-engine)).
 3. **Execution**:
-   - The AI calls `outlook-mcp` (`OutlookListInboxDeltaTool` with `concise=True`) to query the executive's individual Outlook inbox directly via Microsoft Graph API using their private session credentials.
-   - The AI reviews and parses the returned email threads, groups topics by client and urgency, and filters out non-critical noise.
-4. **Exit**: AI outputs a concise executive summary directly in the chat drawer highlighting 3 urgent client inquiries and 2 pending approvals. No raw emails are saved locally—only the generated summary and action cards are stored.
+   - The system calls `outlook-mcp` (`OutlookListInboxDeltaTool` with `concise=True`) to query the executive's individual Outlook inbox directly via Microsoft Graph API using their private session credentials.
+   - The matched emails are saved as a new **Bundle** (e.g. `Bundle 1`), a durable list the executive can open and read directly.
+4. **Exit — two valid paths, per [`INTENT-03`](INTENT.md#intent-03-core-operating-principles) item 7**:
+   - **Manual**: the executive opens Bundle 1, reads the retrieved emails, and writes their own notes on the Bundle. No AI is invoked.
+   - **AI-assisted (optional)**: the executive taps "Ask Copilot about this Bundle" and requests a summary; the AI outputs a concise executive summary highlighting urgent client inquiries and pending approvals. No raw emails are saved outside the Bundle — only the generated summary and any resulting action cards are additionally stored.
 
 ## [SCEN-02] Supervised Email Reply & Forward via Outlook
 1. **Entry**: Reviewing the morning briefing, the executive wants to respond to a tender query from Client X.
@@ -65,3 +67,15 @@
    - The new partner connects their individual Outlook account in settings.
    - All subsequent chats, personal notes, personal tasks, and presets are initialized in an isolated state scoped strictly to the partner's `auth()->id()`.
 4. **Exit**: The partner accesses their private AI executive workstation while instantly sharing access to historical Project Register intelligence.
+
+## [SCEN-08] Manual Bundle Review Without AI
+1. **Entry**: A Bundle has just been retrieved (`Bundle 2`, 7 emails) and the executive prefers to read it themselves rather than ask the AI.
+2. **Progress**: Executive opens Bundle 2 from the Sessions list or the Bundles screen.
+3. **Execution**: The executive taps each retrieved email to expand and read it inline, then writes a short free-text note in the Bundle's "My notes" field (e.g. *"VO 2 looks fine, sign off Thursday"*) and saves it.
+4. **Exit**: The Bundle now carries the executive's own note alongside the retrieved emails. No AI request was made, and none was required — this is a first-class path, not a fallback (per [`CAP-019`](CAPABILITIES.md#cap-019-bundle-based-retrieval-default-filter--auto-promotion-engine)). The executive can still tap "Ask Copilot about this Bundle" later without losing the note.
+
+## [SCEN-09] Auto-Promoted Project Filter
+1. **Entry**: Over the course of a week, the executive retrieves four separate Bundles that each happen to include mail concerning project `PC-2023-011`.
+2. **Progress**: The system detects that `PC-2023-011` now accounts for more than 3 sessions/Bundles within the trailing 7 days.
+3. **Execution**: Without any manual configuration, the retrieval filter picker surfaces `PC-2023-011` as a new quick-filter option, visually marked as auto-promoted (per [`CAP-019`](CAPABILITIES.md#cap-019-bundle-based-retrieval-default-filter--auto-promotion-engine)).
+4. **Exit**: The executive can now retrieve or filter directly by `PC-2023-011` in one tap instead of relying on the default today/direct/new filter and manually searching. A project that later falls below the 3-sessions-in-7-days threshold is not force-demoted immediately — it simply stops being reinforced, keeping the rule's plumbing simple ([`ADR-022`](adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md) records this as an open, revisitable choice rather than a settled edge case).
