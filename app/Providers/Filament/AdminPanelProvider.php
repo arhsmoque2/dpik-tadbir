@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\AutoLoginBypassMiddleware;
 use Filament\Http\Middleware\Authenticate;
@@ -28,7 +30,10 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login();
+            ->login()
+            ->registration(Register::class)
+            ->profile(EditProfile::class)
+            ->passwordReset();
 
         // Only register the compiled Vite theme when it's actually been
         // built. PHP-only CI jobs (Gate 2/3) run Pest feature tests that
