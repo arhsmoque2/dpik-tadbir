@@ -4,6 +4,7 @@ namespace App\Services\Ai;
 
 use App\DTOs\AiTurnResponse;
 use App\Mcp\ToolRegistry;
+use App\Models\BundleEmail;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use App\Models\User;
@@ -309,7 +310,7 @@ class AgentService
             if ($bundle !== null) {
                 $emailLines = [];
                 foreach ($bundle->bundleEmails as $email) {
-                    /** @var \App\Models\BundleEmail $email */
+                    /** @var BundleEmail $email */
                     $emailLines[] = "- From: {$email->from_name} <{$email->from_email}> | Subject: {$email->subject} | Snippet: {$email->snippet}";
                 }
                 $emailsText = implode("\n", $emailLines);

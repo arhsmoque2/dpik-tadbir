@@ -4,6 +4,7 @@ namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
 use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
+use App\Models\User;
 use App\Services\BundleService;
 use App\Services\Mcp\OutlookMcpBridge;
 
@@ -59,7 +60,7 @@ class OutlookListInboxDeltaTool extends BaseTool
         }
 
         $user = auth()->user();
-        if ($user instanceof \App\Models\User && count($messages) > 0) {
+        if ($user instanceof User && count($messages) > 0) {
             /** @var list<array<string, mixed>> $messagesList */
             $messagesList = array_values($messages);
 

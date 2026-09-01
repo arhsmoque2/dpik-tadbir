@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BundleResource\Pages;
 
 use App\Filament\Resources\BundleResource;
+use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
@@ -31,7 +32,7 @@ class ViewBundle extends ViewRecord
                 ->action(function (array $data, $record): void {
                     $messageId = (string) $data['message_id'];
                     $user = auth()->user();
-                    if ($user instanceof \App\Models\User) {
+                    if ($user instanceof User) {
                         $bridge = app(OutlookMcpBridge::class)->forUser($user);
                         $result = $bridge->readMessage($messageId, false);
                         $bodyText = (string) ($result['body'] ?? $result['content'] ?? 'No body content returned from Graph API.');
