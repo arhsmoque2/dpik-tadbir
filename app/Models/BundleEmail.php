@@ -27,6 +27,9 @@ class BundleEmail extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Bundle, $this>
+     */
     public function bundle(): BelongsTo
     {
         return $this->belongsTo(Bundle::class);

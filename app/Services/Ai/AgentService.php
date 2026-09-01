@@ -309,6 +309,7 @@ class AgentService
             if ($bundle !== null) {
                 $emailLines = [];
                 foreach ($bundle->bundleEmails as $email) {
+                    /** @var \App\Models\BundleEmail $email */
                     $emailLines[] = "- From: {$email->from_name} <{$email->from_email}> | Subject: {$email->subject} | Snippet: {$email->snippet}";
                 }
                 $emailsText = implode("\n", $emailLines);

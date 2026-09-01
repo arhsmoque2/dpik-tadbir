@@ -28,13 +28,16 @@ class ViewBundle extends ViewRecord
                         })
                         ->required(),
                 ])
-                ->action(function (array $data, $record) {
-                    $messageId = $data['message_id'];
-                    $bridge = app(OutlookMcpBridge::class)->forUser(auth()->user());
-                    $result = $bridge->readMessage($messageId, false);
-                    $bodyText = $result['body'] ?? $result['content'] ?? 'No body content returned from Graph API.';
+                ->action(function (array $data, $record): void {
+                    $messageId = (string) $data['message_id'];
+                    $user = auth()->user();
+                    if ($user instanceof \App\Models\User) {
+                        $bridge = app(OutlookMcpBridge::class)->forUser($user);
+                        $result = $bridge->readMessage($messageId, false);
+                        $bodyText = (string) ($result['body'] ?? $result['content'] ?? 'No body content returned from Graph API.');
 
-                    $this->mountAction('displayLiveBody', ['body' => $bodyText]);
+                        $this->mountAction('displayLiveBody', ['body' => $bodyText]);
+                    }
                 }),
             Actions\Action::make('askCopilot')
                 ->label('Ask Copilot About Bundle')

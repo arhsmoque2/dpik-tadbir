@@ -30,11 +30,17 @@ class Bundle extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<BundleEmail, $this>
+     */
     public function bundleEmails(): HasMany
     {
         return $this->hasMany(BundleEmail::class);

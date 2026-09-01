@@ -22,10 +22,13 @@ class AutoPromotionService
             ->groupBy('project_code')
             ->havingRaw('COUNT(*) >= ?', [$threshold])
             ->get()
-            ->map(fn ($row) => [
-                'project_code' => (string) $row->project_code,
-                'count' => (int) $row->count,
-            ])
+            ->map(function ($row): array {
+                /** @var object{project_code: string, count: int|string} $row */
+                return [
+                    'project_code' => (string) $row->project_code,
+                    'count' => (int) $row->count,
+                ];
+            })
             ->toArray();
     }
 }

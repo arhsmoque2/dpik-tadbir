@@ -12,12 +12,14 @@ class BundleService
 {
     /**
      * Determine filter label automatically based on query parameters.
+     *
+     * @param  array<string, mixed>  $criteria
      */
     public function determineFilterLabel(array $criteria, ?string $projectCode = null): string
     {
         if (! empty($projectCode)) {
             $project = ProjectRegistryEntry::where('project_code', $projectCode)->first();
-            $title = $project?->project_name ?? $projectCode;
+            $title = $project instanceof ProjectRegistryEntry ? (string) $project->project_name : (string) $projectCode;
 
             return "{$projectCode} · {$title}";
         }
@@ -29,6 +31,9 @@ class BundleService
 
     /**
      * Persist a materialized Bundle with its lightweight email pointers.
+     *
+     * @param  array<string, mixed>  $criteria
+     * @param  list<array<string, mixed>>  $messages
      */
     public function createBundle(
         User $user,

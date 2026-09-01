@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property array<string, mixed>|list<array{key: string, label: string, icon: string, url: string}>|null $bottom_nav_slots
+ */
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
@@ -61,9 +64,11 @@ class User extends Authenticatable implements FilamentUser
      */
     public function getBottomNavSlots(): array
     {
-        if (! empty($this->bottom_nav_slots) && is_array($this->bottom_nav_slots)) {
-            /** @var list<array{key: string, label: string, icon: string, url: string}> */
-            return $this->bottom_nav_slots;
+        if (is_array($this->bottom_nav_slots) && $this->bottom_nav_slots !== []) {
+            /** @var list<array{key: string, label: string, icon: string, url: string}> $slots */
+            $slots = $this->bottom_nav_slots;
+
+            return $slots;
         }
 
         return [

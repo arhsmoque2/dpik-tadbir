@@ -58,11 +58,15 @@ class OutlookListInboxDeltaTool extends BaseTool
             $messages = [];
         }
 
-        if (auth()->check() && count($messages) > 0) {
+        $user = auth()->user();
+        if ($user instanceof \App\Models\User && count($messages) > 0) {
+            /** @var list<array<string, mixed>> $messagesList */
+            $messagesList = array_values($messages);
+
             $bundle = $this->bundleService->createBundle(
-                auth()->user(),
+                $user,
                 ['lookback_hours' => $lookback, 'direct_only' => true],
-                $messages,
+                $messagesList,
                 $projectCode
             );
 
