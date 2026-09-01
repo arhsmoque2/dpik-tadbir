@@ -272,6 +272,18 @@ jobs:
           sed -i 's|DB_DATABASE=.*|DB_DATABASE=database/testing.sqlite|g' .env.testing
           sed -i 's|SESSION_DRIVER=.*|SESSION_DRIVER=database|g' .env.testing
           sed -i 's|CACHE_STORE=.*|CACHE_STORE=database|g' .env.testing
+          # AUTH_ENABLED must be true here: AutoLoginBypassMiddleware fires
+          # server-side whenever it's false, regardless of Playwright's
+          # unauthenticated storageState — which meant 04-visual-and-
+          # accessibility.spec.ts's "login page" test was actually auditing
+          # the full authenticated dashboard shell (confirmed via a real CI
+          # failure log: the scanned <body> carried
+          # fi-body-has-navigation/fi-body-has-topbar, the dashboard's own
+          # classes, not the login page's). auth.setup.ts already handles a
+          # real login form correctly when one is present, so this also
+          # finally makes Journeys 01-03 exercise genuine authentication
+          # instead of silently riding the bypass, as ADR-016 intended.
+          echo "AUTH_ENABLED=true" >> .env.testing
           php artisan key:generate --env=testing
           touch database/testing.sqlite
           php artisan migrate:fresh --seed --env=testing --force
