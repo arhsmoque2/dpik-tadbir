@@ -6,16 +6,25 @@
       "group": "Executive Hub",
       "items": [
         {
-          "title": "Dashboard",
+          "title": "AI Sessions",
           "route": "/admin",
-          "icon": "heroicon-o-home",
-          "roles": ["super_admin", "user"]
+          "icon": "heroicon-o-inbox",
+          "roles": ["super_admin", "user"],
+          "note": "Dashboard is a Bundle/Session list (model, provider, timestamp, source Bundle, report-exists) per CAP-009/ADR-022 — not a metrics board."
         },
         {
-          "title": "AI Assistant & Presets",
-          "route": "/admin/ai-assistant",
+          "title": "Bundles",
+          "route": "/admin/bundles",
+          "icon": "heroicon-o-archive-box",
+          "roles": ["super_admin", "user"],
+          "note": "Retrieved mail, materialized per filter execution (CAP-019). Independently readable and annotatable without invoking Copilot."
+        },
+        {
+          "title": "Copilot",
+          "route": "/admin/copilot",
           "icon": "heroicon-o-sparkles",
-          "roles": ["super_admin", "user"]
+          "roles": ["super_admin", "user"],
+          "note": "No 'AI' prefix in UI copy. An optional action on a Bundle (summarize/draft/find), never the entry point to one (INTENT-03 item 7)."
         },
         {
           "title": "Activity Rollups",
@@ -59,5 +68,32 @@
         }
       ]
     }
-  ]
+  ],
+  "mobileNavigation": {
+    "note": "Replaces the desktop sidebar on mobile/TWA viewports, per CAP-020/ADR-022. Not a 1:1 mirror of the desktop groups above — it's a 5-slot bottom bar.",
+    "centerSlot": {
+      "title": "Copilot",
+      "icon": "heroicon-o-sparkles",
+      "fixed": true,
+      "note": "Always center. Never reassignable or hideable, unlike every other slot."
+    },
+    "customizableSlots": 4,
+    "candidateDestinations": [
+      { "id": "home", "title": "Home", "icon": "heroicon-o-squares-2x2", "behavior": "Tapping expands a menu of the full destination set rather than navigating directly." },
+      { "id": "retrieve", "title": "Retrieve", "icon": "heroicon-o-arrow-down-tray", "behavior": "Tapping the icon fetches against the active filter; a chip beneath it names that filter and opens the full filter picker on tap." },
+      { "id": "sessions", "title": "Sessions", "icon": "heroicon-o-inbox" },
+      { "id": "bundles", "title": "Bundles", "icon": "heroicon-o-archive-box" },
+      { "id": "notes", "title": "Notes", "icon": "heroicon-o-document-text" },
+      { "id": "projects", "title": "Projects", "icon": "heroicon-o-book-open" },
+      { "id": "settings", "title": "Settings", "icon": "heroicon-o-cog-6-tooth" }
+    ],
+    "defaultVisible": ["home", "retrieve", "sessions", "settings"],
+    "overflow": {
+      "trigger": "More than 4 candidateDestinations enabled",
+      "control": "More (•••)",
+      "behavior": "Opens a bottom drawer listing the destinations that don't fit in the 4 visible slots."
+    },
+    "activeIconColor": "amber",
+    "activeIconNote": "The active/selected destination's icon turns amber; its label stays neutral."
+  }
 }
