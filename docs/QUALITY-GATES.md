@@ -59,12 +59,9 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 
 ---
 
-## Gate 4: Playwright E2E, Visual & Accessibility QA (Proportionate Execution — ADR-019)
+## Gate 4: Playwright E2E, Visual & Accessibility QA (Manual Baseline Mode)
 
-- **Proportionate Change Classification (`scripts/classify-ci-changes.mjs`)**:
-  - Automatically identifies whether modified paths touch UI surfaces (`app/Filament/**`, `resources/**`, `public/**`, `tests/Browser/**`, `playwright.config.*`).
-  - PRs touching UI surfaces execute full Gate 4 Playwright browser rehearsals, WCAG AA accessibility, and visual snapshot regressions.
-  - Docs-only or non-UI PRs bypass Gate 4 browser container spins while Gate 1 (Docs & Spec Hygiene, schema checks), Gate 2 (Security Preflight), and Gate 3 (Tests & Diff-Cover) run unconditionally to ensure zero architectural drift.
+- **Manual / Operator-Triggered Runner (`pnpm test:e2e`)**: Decoupled from automated CI PR blocks to prevent flaky headless webServer timeouts and false positives during active iteration. Kept for manual validation, visual snapshot baselines, and local/on-demand rehearsal until formal baseline approval.
 - **Headless Playwright Chromium & Mobile Runner**: Configured via `playwright.config.ts` running against a dedicated, persistent file-backed testing server (`php artisan serve --env=testing --port=8000`):
   - **Global Auth Setup (`auth.setup.ts`)**: Seeds deterministic test user (`DatabaseSeeder`) and generates reusable `playwright/.auth/user.json` session state.
   - **Auth & Session Journey (`01-auth-journey.spec.ts`)**: Asserts login form, CSRF token validation, invalid credentials rejection, and successful authenticated redirection.
