@@ -6,24 +6,24 @@ use Illuminate\Support\Facades\Auth;
 
 use function Pest\Livewire\livewire;
 
-test('superadmin can login with remember me and session persists with remember cookie', function () {
+test('superadmin can login with remember me and session persists with remember cookie', function (): void {
     config(['auth.enabled' => true]);
 
-    $user = User::firstOrCreate(
+    $user = User::updateOrCreate(
         ['email' => 'admin@dpik.com.my'],
         [
             'name' => 'Admin DPIK',
-            'password' => bcrypt('password'),
+            'password' => 'password',
             'role' => 'super_admin',
         ]
     );
 
+    \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+
     $component = livewire(Login::class)
-        ->fillForm([
-            'email' => 'admin@dpik.com.my',
-            'password' => 'password',
-            'remember' => true,
-        ])
+        ->set('data.email', 'admin@dpik.com.my')
+        ->set('data.password', 'password')
+        ->set('data.remember', true)
         ->call('authenticate');
 
     $component->assertHasNoFormErrors();

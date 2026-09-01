@@ -2,20 +2,23 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Tests\Support\DatabaseQueryCounter;
 
 abstract class TestCase extends BaseTestCase
 {
     use DatabaseQueryCounter;
-    use LazilyRefreshDatabase;
 
     public function createApplication()
     {
+        putenv('APP_ENV=testing');
+        $_ENV['APP_ENV'] = 'testing';
+        $_SERVER['APP_ENV'] = 'testing';
+
         $app = require __DIR__.'/../bootstrap/app.php';
 
-        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        $app->make(Kernel::class)->bootstrap();
 
         return $app;
     }
