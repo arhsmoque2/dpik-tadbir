@@ -4,6 +4,12 @@
   "description": "Executive Email Copilot & Enterprise Knowledge Workstation for DPIK",
   "ecosystem": "laravel",
 
+  "control_plane": {
+    "entry_point": "tools/tadbir.py",
+    "cli": "python tools/tadbir.py",
+    "composer_prefix": "composer tadbir:"
+  },
+
   "stack": {
     "runtime": "php:^8.4",
     "framework": "laravel:^12.0",
@@ -14,11 +20,13 @@
   "gates": {
     "quick": "composer check:quick",
     "full": "composer check:full",
+    "fast": "python tools/tadbir.py gate",
     "fix": "composer fix",
+    "status": "python tools/tadbir.py status",
     "individual": {
-      "lint": "composer lint",
-      "analyse": "composer analyse",
-      "test": "composer test",
+      "lint": "vendor/bin/pint --test",
+      "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "test": "vendor/bin/pest --ci",
       "test:coverage": "composer test:coverage",
       "test:mutate": "composer test:mutate"
     }
@@ -37,8 +45,8 @@
   },
 
   "phase": {
-    "current": "Feature Integration Complete — OpenRouter Multi-Model Gateway & In-Chat 3-Favorites Runtime Swapper Verified",
-    "next_action": "Merge PR #5, begin multi-executive workspace isolation (ADR-013)",
-    "updated_at": "2026-08-30T23:00:00+08:00"
+    "current": "Session Export & IMAP Control Plane (ADR-024 to ADR-028) Merged & Verified",
+    "next_action": "Run tadbir status, verify runtime gates, and proceed with next milestone",
+    "updated_at": "2026-09-01T23:55:00+08:00"
   }
 }

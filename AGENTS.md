@@ -13,6 +13,29 @@
 5. **Private Isolation**: `PersonalNote` and `PersonalTask` must always be scoped to `auth()->id()`.
 6. **Cloud Sandbox Agent Independence (Pillar 6)**: Ephemeral sandbox agents operate 100% hermetically using in-memory SQLite and mock providers without requiring production secrets.
 
+## 🚨 Mandatory Agent Cold-Start Protocol
+Regardless of your assigned task (investigating a PR, fixing a bug, adding a feature, or running tests), your **FIRST action** in this repository must be running the deterministic control plane:
+
+```bash
+# 1. Full live state probe (git, branch-scoped CI, toolchain, manifest, snip state)
+python tools/tadbir.py status        # or: composer tadbir:status
+
+# 2. First checkout on this machine (or after editing .snip/filters/): register the
+#    snip output filters. status.snip.action tells you when this is needed.
+python tools/tadbir.py snip-setup
+
+# 3. If assigned to investigate a PR:
+python tools/tadbir.py pr <N>
+
+# 4. Before git push — fast local subset (Pint, PHPStan @ phpstan.neon level, Pest):
+python tools/tadbir.py gate
+```
+
+> **Rules**:
+> - Do not run 15-turn discovery loops or busy-poll `gh run view`. `tadbir` emits verified machine-parseable JSON in one shot.
+> - `gate` returning `exit_code: 0` clears the fast subset only. `composer check:full` (FilaCheck, composer-unused, diff-cover ≥ 90) is the authoritative pre-merge gate and CI runs the full set — a green `gate` is necessary, not sufficient.
+> - `tadbir pr` / `ci-wait` exit `0` while CI is still running; a non-zero exit means a real failing conclusion.
+
 ## Cloud Sandbox Agent Quickstart
 When launching in a fresh cloud sandbox (GitHub Codespaces, Claude Code sandbox, Docker):
 ```bash

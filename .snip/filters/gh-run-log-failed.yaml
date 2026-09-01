@@ -1,0 +1,52 @@
+name: "gh-run-log-failed"
+version: 1
+description: "gh run view --log-failed: strip the job<TAB>step<TAB>timestamp prefix and runner boilerplate, keep test failures, PHPStan errors and the diff-cover missing-lines report"
+
+match:
+  command: "gh"
+  subcommand: "run"
+  require_flags: ["--log-failed"]
+
+streams: ["stdout", "stderr"]
+
+pipeline:
+  - action: "strip_ansi"
+  - action: "replace"
+    pattern: "^[^\\t]*\\t[^\\t]*\\t\\S+Z "
+    replacement: ""
+  - action: "remove_lines"
+    pattern: "(##\\[group\\]|##\\[endgroup\\]|Requested labels:|Job defined at:|Waiting for a runner|Runner name:|Runner group:|^Current runner|^GITHUB_|^\\s*$|Cleaning up orphan|Post job cleanup|::add-mask)"
+  - action: "keep_lines"
+    pattern: "(FAIL|FAILED|Error|error:|Exception|✕|✗|⨯|Failed asserting|Expected|Actual|Missing lines|Coverage .*below|below \\d|No such|not found|fatal|Fatal|SQLSTATE|exit code [1-9]|Process completed)"
+  - action: "truncate_lines"
+    max: 200
+  - action: "head"
+    n: 45
+    overflow_msg: "... more failure log (rerun: gh run view <id> --log-failed)"
+  - action: "on_empty"
+    message: "no failing-step log lines matched (rerun: gh run view <id> --log-failed)"
+
+on_error: "passthrough"
+
+tests:
+  - name: "strips the tab prefix and keeps the diff-cover missing lines"
+    input: |
+      Gate 3: Tests	Enforce Diff Coverage	2026-09-01T16:27:52.1234567Z Running diff-cover
+      Gate 3: Tests	Enforce Diff Coverage	2026-09-01T16:27:53.1234567Z -------------
+      Gate 3: Tests	Enforce Diff Coverage	2026-09-01T16:27:53.2000000Z Missing lines 55-56, 126-127
+      Gate 3: Tests	Enforce Diff Coverage	2026-09-01T16:27:53.3000000Z Coverage 71.4% is below the 85% threshold
+      Gate 3: Tests	Enforce Diff Coverage	2026-09-01T16:27:53.4000000Z ##[error]Process completed with exit code 1
+    expected: |
+      Missing lines 55-56, 126-127
+      Coverage 71.4% is below the 85% threshold
+      ##[error]Process completed with exit code 1
+
+  - name: "runner boilerplate is dropped, the pest failure survives"
+    input: |
+      Gate 3: Tests	Run tests	2026-09-01T16:20:01.0000000Z ##[group]Run ./vendor/bin/pest
+      Gate 3: Tests	Run tests	2026-09-01T16:20:11.0000000Z FAILED  Tests\Feature\HomeTest > it loads
+      Gate 3: Tests	Run tests	2026-09-01T16:20:11.1000000Z Failed asserting that 500 is identical to 200.
+      Gate 3: Tests	Run tests	2026-09-01T16:20:11.2000000Z Cleaning up orphan processes
+    expected: |
+      FAILED  Tests\Feature\HomeTest > it loads
+      Failed asserting that 500 is identical to 200.

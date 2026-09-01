@@ -1,0 +1,17 @@
+# DPIK Tadbir project-local snip filter config.
+#
+# snip (https://github.com/edouard-claude/snip) is an optional CLI-output
+# compressor. When it is installed and wired as an agent PreToolUse hook, the
+# filters in ./filters/ compress raw `pest`, `phpstan`, `pint`, `gh run` and
+# `php artisan migrate` output before it reaches the agent context window.
+#
+# The current snip release loads project filter directories only when they are
+# listed in the GLOBAL config (~/.config/snip/config.toml) filters.dir array AND
+# trusted with `snip trust`. `python tools/tadbir.py snip-setup` does both,
+# idempotently, using this repo's absolute path. This file documents intent and
+# is used by `snip verify` once the directory is registered.
+
+mode = "user"
+
+[filters]
+dir = "filters"

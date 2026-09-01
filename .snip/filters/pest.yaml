@@ -1,0 +1,66 @@
+name: "pest"
+version: 1
+description: "Pest/PHPUnit run: keep failure diffs, at file:line pointers, the arrow snippet and the Tests/Duration summary; drop passing checkmarks and PASS headers"
+
+match:
+  command: "pest"
+  exclude_flags: ["--json", "--coverage-clover", "--log-junit", "--version"]
+
+streams: ["stdout", "stderr"]
+
+pipeline:
+  - action: "strip_ansi"
+  - action: "replace"
+    pattern: "^\\s+"
+    replacement: ""
+  - action: "keep_lines"
+    pattern: "(^FAIL |^FAILED |^⨯ |^✗ |Failed asserting|Expected |Actual |^--- |^\\+\\+\\+ |^@@ |^at [^ ]+:[0-9]+|▕|Error:|Exception|Warning:|^Tests:|^Duration:|assertions\\))"
+  - action: "truncate_lines"
+    max: 200
+  - action: "head"
+    n: 60
+    overflow_msg: "... more failure output (rerun: vendor/bin/pest --ci)"
+
+on_error: "passthrough"
+
+tests:
+  - name: "a fully passing run collapses to the two summary lines"
+    input: |
+      PASS  Tests\Unit\ExampleTest
+      it adds
+      it subtracts
+
+      PASS  Tests\Feature\HomeTest
+      the home page loads
+
+      Tests:    42 passed (100 assertions)
+      Duration: 3.45s
+    expected: |
+      Tests:    42 passed (100 assertions)
+      Duration: 3.45s
+
+  - name: "a failing run keeps the diff, the pointer and the arrow snippet"
+    input: |
+      PASS  Tests\Unit\ExampleTest
+      it adds
+
+      FAIL  Tests\Feature\HomeTest
+      the home page loads
+      FAILED  Tests\Feature\HomeTest > the home page loads
+      Failed asserting that 500 is identical to 200.
+
+      at tests/Feature/HomeTest.php:18
+      16▕     $response = $this->get('/');
+      18▕     $response->assertStatus(200);
+
+      Tests:    1 failed, 41 passed (99 assertions)
+      Duration: 4.01s
+    expected: |
+      FAIL  Tests\Feature\HomeTest
+      FAILED  Tests\Feature\HomeTest > the home page loads
+      Failed asserting that 500 is identical to 200.
+      at tests/Feature/HomeTest.php:18
+      16▕     $response = $this->get('/');
+      18▕     $response->assertStatus(200);
+      Tests:    1 failed, 41 passed (99 assertions)
+      Duration: 4.01s

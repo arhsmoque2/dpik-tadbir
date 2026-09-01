@@ -40,3 +40,12 @@ coverage.xml
 /playwright/.auth
 database/testing.sqlite
 database/database.sqlite
+# tadbir control plane: gate-result cache written anywhere find_repo_root lands
+.tadbir/
+.coverage
+__pycache__/
+*.py[cod]
+tools/tadbir_cli/.venv
+tools/tadbir_cli/.pytest_cache
+tools/tadbir_cli/.mypy_cache
+tools/tadbir_cli/.ruff_cache

@@ -1,25 +1,31 @@
 # DPIK Tadbir: Current State
 
 ## Verified Reality Snapshot
-- **Lifecycle Phase**: All 6 Phases Complete — Materialized Bundles, Copilot Scoping, Adaptive Nav & Live Graph API Body Fetch Verified ✅
+- **Lifecycle Phase**: All 6 Phases Complete & Hardened — AI Control Plane, Session Export, Native IMAP/SMTP Probes, and Tadbir Runtime Control Plane Verified ✅
 - **Quality Gates Status**:
   - **Gate 1 (Static Analysis & Hygiene)**:
     - Laravel Pint: `passed` (0 style violations)
-    - Larastan / PHPStan (Level 8): `[OK] No errors` across 112 files
+    - Larastan / PHPStan (Level 8, per `phpstan.neon`): `[OK] No errors` with `--memory-limit=1G`
     - FilaCheck (Filament v4 AST rules): `18/18 rules passed` across all resources
-    - markdownlint: `0 issues in 40 files`
-    - cspell: `0 issues in 40 files`
+    - markdownlint: `0 issues in 42 files`
+    - cspell: `0 issues in 42 files`
     - composer-unused: `0 unused, 0 zombies`
   - **Gate 2 & 3 (Security Preflight, Telemetry & Hermetic Tests)**:
     - Gate 2 standalone security preflight job (Gitleaks + Whitelist, Policy, Write-Safety, and PII storage tests)
-    - 125 Hermetic Pest Tests `passed` (628 assertions) including user-configurable API key encryption, executive whitelist zero-gating, OpenRouter completions & error passthrough, error message PII sanitization in both `ai_runs` and `chat_messages`, `Bundle` model persistence & relationships, `BundleResource` Filament index rendering, `BundleService` auto-naming, `AutoPromotionService` 7-day rolling query, `CopilotBundleScopingTest` in-chat prompt injection, `UserBottomNavSlotsTest` custom preferences, and live Graph API body fetch action on `ViewBundle`.
+    - **187 Hermetic Pest Tests** `passed` (860 assertions) including user-configurable API key encryption, executive whitelist zero-gating, OpenRouter completions & error passthrough, error message PII sanitization in both `ai_runs` and `chat_messages`, `Bundle` model persistence & relationships, `BundleResource` Filament index rendering, `BundleService` auto-naming, `AutoPromotionService` 7-day rolling query, `CopilotBundleScopingTest` in-chat prompt injection, `UserBottomNavSlotsTest` custom preferences, episodic session exports (JSONL / SQLite FTS5), and live socket interception for IMAP/SMTP health diagnostics.
     - 90% diff-cover gate on PRs (`uvx diff-cover`), with exhaustive mutation testing (`pest --mutate`) decoupled to weekly scheduled audits
     - Strict Eloquent hygiene: `Model::preventLazyLoading` and `Model::preventSilentlyDiscardingAttributes` active
   - **Gate 4 (E2E, Visual & Accessibility QA)**:
     - Playwright suite in `tests/Browser` with global auth storageState (`auth.setup.ts`) covering core user journeys (Auth & SSO, Project Register responsive toolbar actions, AI Copilot drawer, Action Cards, and Mail Bundles)
     - WCAG 2.1 Level AA conformance checks via `@axe-core/playwright` without disabling color contrast, backed by `DatabaseSeeder` deterministic fixtures
     - Full-Page viewport screenshot snapshots with `maxDiffPixelRatio: 0.05` for visual regression detection
-- **Governing ADRs (ADR-001 through ADR-023)**:
+  - **Runtime Control Plane (`tadbir`)**:
+    - Zero-runtime-dependency Python CLI (`tools/tadbir.py` + `tools/tadbir_cli/`); `gate`/`test-triage` parse tool output into JSON metrics; `status` scopes CI to the current branch.
+    - 6 project-local snip filters (`.snip/filters/*.yaml`, 14 inline `snip verify` tests) compress raw `pest`/`phpstan`/`pint`/`gh run`/`php artisan migrate` output run through snip's PreToolUse hook. Register per machine with `python tools/tadbir.py snip-setup`.
+    - `gate` is the fast subset; `composer check:full` stays the authoritative pre-merge gate.
+    - Emits raw empirical state (test counts, assertions, exit codes) with no human verdict artifacts.
+
+- **Governing ADRs (ADR-001 through ADR-030)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
   - `docs/adr/ADR-003-outlook-mcp-email-processor-boundary.md` (Zero Raw Email Storage Boundary)
@@ -43,14 +49,20 @@
   - `docs/adr/ADR-021-ai-cost-governance-prompt-caching-and-context-mode-budgets.md` (Anthropic Prompt Caching & Per-Turn Telemetry in `AiRun`)
   - `docs/adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md` (Materialized Bundles, Human-First Review & Adaptive Navigation)
   - `docs/adr/ADR-023-metadata-only-bundle-persistence.md` (Metadata-Only Persistence Directive & Live Graph API Body Fetching)
+  - `docs/adr/ADR-024-google-oauth-superadmin-auto-provisioning.md` (Google OAuth SuperAdmin Auto-Provisioning)
+  - `docs/adr/ADR-025-episodic-session-export-and-cross-agent-fts5-interoperability.md` (Episodic Session Export & Cross-Agent FTS5 Interoperability)
+  - `docs/adr/ADR-026-live-ai-and-mcp-control-plane-json-architecture.md` (Live AI & MCP Control Plane JSON Architecture)
+  - `docs/adr/ADR-027-universal-mail-transport-and-health-diagnostics.md` (Universal Mail Transport & Health Diagnostics)
+  - `docs/adr/ADR-028-closed-loop-skill-synthesis-and-composed-actions.md` (Closed-Loop Skill Synthesis & Composed Actions)
+  - `docs/adr/ADR-029-hermetic-io-stream-and-socket-mocking-architecture.md` (Hermetic I/O Stream & Socket Mocking Architecture)
+  - `docs/adr/ADR-030-tadbir-runtime-control-plane-snip-output-filtering-and-state-doctrine.md` (Tadbir Runtime Control Plane, Snip Output Filtering & State-First Doctrine)
 
 ## Active Invariants & Boundaries
 1. **Email Whitelist & Sovereign Executive Roles**: Account registration is strictly restricted to pre-approved corporate emails (`allowed_registration_emails`), preventing unauthorized public signups ([`ADR-013`](docs/adr/ADR-013-whitelisted-registration-and-sovereign-executive-isolation.md)). `rahman@dpik.com.my`, `smoque@gmail.com`, and `arh.homelab@gmail.com` are permanent un-gated Super Admins; `hilmio@dpik.com.my` (Managing Director) and `hamid@dpik.com.my` (Corporate Administrator) are standard executive users.
 2. **User-Configurable AI Provider Keys & OpenRouter Catalog**: Each executive can configure their private Anthropic (Claude 3.7), Gemini, and OpenRouter API keys via `ExecutiveSettings`, stored encrypted at rest. When unset, Tadbir gracefully falls back to system / SOPS credentials. In-chat 3-favorites swapper (`Cmd+J`) enables zero-reload model switching between executive favorites ([`ADR-018`](docs/adr/ADR-018-openrouter-multi-model-catalog-and-runtime-favorites-swapper.md)).
 3. **Materialized Bundles & Metadata-Only Persistence**: Email retrievals create a materialized `Bundle` with lightweight email pointers (`message_id`, `from_name`, `from_email`, `subject`, `snippet`, `received_at`). Zero raw email body text or HTML attachments are persisted on local disk ([`ADR-022`](docs/adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md), [`ADR-023`](docs/adr/ADR-023-metadata-only-bundle-persistence.md)).
-4. **Copilot Bundle Scoping**: Opening the AI Copilot drawer from a Bundle automatically binds `$session->bundle_id` and injects the materialized Bundle metadata + email pointers directly into the AI system prompt.
-5. **Adaptive Mobile Bottom Navigation**: Executives can configure up to 4 custom bottom navigation slots stored in `$user->bottom_nav_slots`, defaulting to Copilot, Bundles, Notes, and Settings.
-6. **Live Graph API Body Fetching**: Executives can inspect full email body contents live via `OutlookReadMessageTool` directly from `ViewBundle` with zero local disk storage.
+4. **Deterministic Control Plane (`tadbir`)**: Every agent session begins with `python tools/tadbir.py status` and runs `python tools/tadbir.py gate` before pushing. All outputs emit pure machine state metrics ([`ADR-030`](docs/adr/ADR-030-tadbir-runtime-control-plane-snip-output-filtering-and-state-doctrine.md)).
+5. **Cloud Sandbox Protocol**: In Claude Code web, Codespaces, or headless Linux Docker containers, preflights run hermetically via `bash scripts/sandbox-preflight.sh` or `python3 tools/tadbir.py gate` with zero external dependency setup.
 
 ## Single Next Entry Point
-- Merge current feature branch into `main` and trigger Gate 5 CI deployment to Cloud Run.
+- Push current branch to remote and verify Quality Gate CI run.

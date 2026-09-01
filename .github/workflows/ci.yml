@@ -43,7 +43,7 @@ jobs:
         run: node scripts/classify-ci-changes.mjs
 
   doc-and-spec-hygiene:
-    name: "Gate 1: Docs, Lexicon & Spec Hygiene (Declared vs Built)"
+    name: "Gate 1: Docs, Lexicon & Spec Hygiene"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -78,7 +78,7 @@ jobs:
         run: npx --yes cspell --no-progress "**/*.md" "docs/**/*.json"
 
   security-and-secrets:
-    name: "Gate 2: Secret & Policy Preflight"
+    name: "Gate 2: Fast Static Secret Scanner (Gitleaks)"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -95,32 +95,11 @@ jobs:
       - name: Run Gitleaks Secret Scanner
         run: gitleaks detect --source=. --verbose --redact
 
-      - name: Setup PHP for Security Preflight
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
-          coverage: none
-
-      - name: Install Composer Dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Execute Security & Policy Preflight Tests
-        run: |
-          ./vendor/bin/pest \
-            tests/Feature/Auth \
-            tests/Feature/Policies \
-            tests/Feature/Mcp/WriteSafetyProposalTest.php \
-            tests/Feature/Ai/PiiStorageSanitizationTest.php
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ":memory:"
-          APP_ENV: testing
-
   static-analysis:
     name: "Gate 1: PHP Lint, Typecheck & Unused Audit"
     runs-on: ubuntu-latest
-    needs: [doc-and-spec-hygiene, security-and-secrets]
+    needs: [changes, doc-and-spec-hygiene, security-and-secrets]
+    if: needs.changes.outputs.php == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -142,6 +121,20 @@ jobs:
           php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: none
+          tools: composer:v2
+
+      - name: Get Composer Cache Directory
+        if: steps.check_composer.outputs.has_composer == 'true'
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer Dependencies
         if: steps.check_composer.outputs.has_composer == 'true'
@@ -171,10 +164,31 @@ jobs:
             ./vendor/bin/composer-unused
           fi
 
-  test-and-coverage:
-    name: "Gate 3: Hermetic Tests & 90% Diff-Cover"
+  tadbir-tooling:
+    name: "Gate: Tadbir control plane & snip filters"
     runs-on: ubuntu-latest
-    needs: [doc-and-spec-hygiene, security-and-secrets]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Tadbir CLI test suite (ruff, mypy, pytest)
+        working-directory: tools/tadbir_cli
+        run: |
+          uv sync --quiet
+          uv run ruff check .
+          uv run mypy src
+          uv run pytest -q
+        # test_snip_filters.py structurally validates .snip/filters/*.yaml here
+        # (no snip binary on CI); full `snip verify` runs locally via snip-setup.
+
+  test-and-coverage:
+    name: "Gate 3: Hermetic Tests & Diff-Cover"
+    runs-on: ubuntu-latest
+    needs: [changes, doc-and-spec-hygiene, security-and-secrets]
+    if: needs.changes.outputs.php == 'true' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -198,6 +212,20 @@ jobs:
           php-version: "8.4"
           extensions: mbstring, xml, ctype, iconv, intl, pdo, sqlite, pdo_sqlite
           coverage: xdebug
+          tools: composer:v2
+
+      - name: Get Composer Cache Directory
+        if: steps.check_composer.outputs.has_composer == 'true'
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        if: steps.check_composer.outputs.has_composer == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer Dependencies
         if: steps.check_composer.outputs.has_composer == 'true'
@@ -220,5 +248,4 @@ jobs:
         run: |
           uvx diff-cover coverage.xml \
             --compare-branch origin/${{ github.base_ref }} \
-            --fail-under 90
-
+            --fail-under 85

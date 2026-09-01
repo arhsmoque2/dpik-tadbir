@@ -98,7 +98,10 @@
     "test:diff": [
       "@test:coverage",
       "uvx diff-cover coverage.xml --compare-branch origin/main --fail-under 90"
-    ]
+    ],
+    "tadbir:status": "python tools/tadbir.py status",
+    "tadbir:gate": "python tools/tadbir.py gate",
+    "tadbir:pr": "python tools/tadbir.py pr"
   },
   "extra": {
     "laravel": {
