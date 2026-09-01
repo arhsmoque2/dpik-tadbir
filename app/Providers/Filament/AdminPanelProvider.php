@@ -24,11 +24,25 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $panel = $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login();
+
+        // Only register the compiled Vite theme when it's actually been
+        // built. PHP-only CI jobs (Gate 2/3) run Pest feature tests that
+        // render admin views but never run `pnpm run build`, so
+        // Filament\Panel::viteTheme() would throw
+        // ViteManifestNotFoundException resolving public/build/manifest.json.
+        // Those jobs don't need real compiled CSS — only Gate 4 (Playwright)
+        // and the production Docker image build the assets and get the
+        // themed panel; everywhere else falls back to Filament's stock theme.
+        if (file_exists(public_path('build/manifest.json'))) {
+            $panel = $panel->viteTheme('resources/css/filament/admin/theme.css');
+        }
+
+        return $panel
             ->colors([
                 'primary' => Color::Amber,
             ])
