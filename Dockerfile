@@ -29,7 +29,7 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 # Filament PHP classes renders as plain unstyled HTML.
 FROM node:22-bookworm-slim AS assets
 WORKDIR /app
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile

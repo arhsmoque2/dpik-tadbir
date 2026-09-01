@@ -24,7 +24,8 @@ class AutoLoginBypassMiddleware
                 ?? User::firstOrCreate(
                     ['email' => 'admin@dpik.com.my'],
                     [
-                        'name' => 'Admin DPIK',
+                        'first_name' => 'Admin',
+                        'last_name' => 'DPIK',
                         'password' => bcrypt('password'),
                         'role' => 'super_admin',
                     ]

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\Auth\RegistrationWhitelistService;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,13 +13,20 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 /**
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property string|null $name
+ * @property string $email
+ * @property string $role
  * @property array<string, mixed>|list<array{key: string, label: string, icon: string, url: string}>|null $bottom_nav_slots
  */
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasName
 {
     use HasFactory, Notifiable;
 
     protected $fillable = [
+        'first_name',
+        'last_name',
         'name',
         'email',
         'password',
@@ -77,6 +85,39 @@ class User extends Authenticatable implements FilamentUser
             ['key' => 'notes', 'label' => 'Notes', 'icon' => 'heroicon-o-document-text', 'url' => '/admin/personal-notes'],
             ['key' => 'settings', 'label' => 'Settings', 'icon' => 'heroicon-o-cog-6-tooth', 'url' => '/admin/executive-settings'],
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->first_name !== null || $user->last_name !== null) {
+                $fullName = trim("{$user->first_name} {$user->last_name}");
+                if ($fullName !== '') {
+                    $user->name = $fullName;
+                }
+            }
+        });
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getNameAttribute(?string $value): string
+    {
+        $fullName = trim("{$this->first_name} {$this->last_name}");
+
+        return $fullName !== '' ? $fullName : ($value ?? '');
+    }
+
+    public function getFilamentName(): string
+    {
+        $fullName = trim("{$this->first_name} {$this->last_name}");
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        return (string) ($this->name ?: $this->email);
     }
 
     public function canAccessPanel(Panel $panel): bool
