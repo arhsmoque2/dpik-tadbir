@@ -86,8 +86,9 @@ test('all MCP tools return valid schemas and execute expected methods', function
 
     $deltaTool = new OutlookListInboxDeltaTool($bridge);
     expect($deltaTool->schema())->toHaveKey('properties');
-    $deltaRes = $deltaTool->handle(['lookback_hours' => 12]);
-    expect($deltaRes)->toHaveKey('messages');
+    $deltaRes = $deltaTool->handle(['lookback_hours' => 12, 'project_code' => 'PC-2023-011']);
+    expect($deltaRes)->toHaveKey('messages')
+        ->and($deltaRes)->toHaveKey('bundle_id');
 
     $readTool = new OutlookReadMessageTool($bridge);
     expect($readTool->schema())->toHaveKey('properties');

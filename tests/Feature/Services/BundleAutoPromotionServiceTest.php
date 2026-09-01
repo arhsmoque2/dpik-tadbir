@@ -39,7 +39,7 @@ class BundleAutoPromotionServiceTest extends TestCase
         $defaultLabel = $service->determineFilterLabel(['direct_only' => true]);
         expect($defaultLabel)->toContain('Direct Correspondence');
 
-        // Test creation
+        // Test creation with diverse message shapes
         $messages = [
             [
                 'id' => 'MSG_001',
@@ -47,14 +47,24 @@ class BundleAutoPromotionServiceTest extends TestCase
                 'from_email' => 'dr.tan@geotech-consult.com',
                 'subject' => 'Pier 4 VO Review',
                 'snippet' => 'Estimation stands at RM 120k.',
+                'received_at' => '2026-09-01 10:00:00',
+            ],
+            [
+                'message_id' => 'MSG_002',
+                'from' => [
+                    'name' => 'Dato Seri',
+                    'email' => 'dato@dpik.com.my',
+                ],
+                'body' => 'Long body without explicit snippet provided in payload',
             ],
         ];
 
-        $bundle = $service->createBundle($user, ['project_code' => 'PC-2023-011'], $messages, 'PC-2023-011');
+        $bundle = $service->createBundle($user, ['project_code' => 'PC-2023-011'], $messages, 'PC-2023-011', 'Initial notes');
 
         expect($bundle->filter_label)->toBe('PC-2023-011 · Geotechnical Review')
-            ->and($bundle->email_count)->toBe(1)
-            ->and($bundle->bundleEmails)->toHaveCount(1);
+            ->and($bundle->email_count)->toBe(2)
+            ->and($bundle->notes)->toBe('Initial notes')
+            ->and($bundle->bundleEmails)->toHaveCount(2);
     }
 
     public function test_auto_promotion_service_identifies_projects_with_three_or_more_retrievals(): void

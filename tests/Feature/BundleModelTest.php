@@ -43,5 +43,6 @@ test('bundle can be created with metadata and emails relationship', function () 
 
     expect($bundle->bundleEmails)->toHaveCount(1)
         ->and($bundle->bundleEmails->first()->message_id)->toBe('MSG_TEST_001')
-        ->and($email->bundle->id)->toBe($bundle->id);
+        ->and($email->bundle->id)->toBe($bundle->id)
+        ->and($bundle->user->id)->toBe($user->id);
 });
