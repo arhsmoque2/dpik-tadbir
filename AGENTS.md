@@ -7,7 +7,7 @@
 
 ## Core Rules & Invariants
 1. **Separation of Concerns (SoC)**: Respect the progressive lifecycle documents under `docs/`. Never redefine `INTENT.md` or `CAPABILITIES.md` without an ADR.
-2. **Tool Execution Authority**: All AI tools must inherit from `Laravel\Mcp\Server\Tool` and register in `App\Services\Agent\ToolRegistry`.
+2. **Tool Execution Authority**: All AI tools must inherit from `Laravel\Mcp\Server\Tool` and register in `App\Mcp\ToolRegistry` (`app/Mcp/ToolRegistry.php`).
 3. **Write Safety**: Destructive/external mutations must stage proposals; human approval is mandatory.
 4. **Token Efficiency**: Always pass `concise=True` when running bulk email scans against `outlook-mcp`.
 5. **Private Isolation**: `PersonalNote` and `PersonalTask` must always be scoped to `auth()->id()`.
@@ -22,6 +22,12 @@ bash scripts/setup-sandbox.sh
 # Run complete hermetic preflight gate (Pint + PHPStan L8 + Pest + 90% diff-cover)
 bash scripts/sandbox-preflight.sh
 ```
+
+**Re-run `bash scripts/sandbox-preflight.sh` before every push that touches PHP, not just once at session start.** It enforces the same 90% incremental diff-cover gate as CI's own Gate 3 — if it passes locally, Gate 3 passes remotely too. Two real PRs (the OpenRouter/ADR-018 port and the ARH-URUS AI-chat port) each burned 3-5 CI round-trips iterating blind against this gate because `composer install` failed in-session and nobody re-tried hydration before pushing anyway. If plain `composer install` fails with a GitHub API auth error (`Could not authenticate against github.com` — common in ephemeral sandboxes, not a real credentials problem), do **not** give up on local verification for the rest of the session: `bash scripts/setup-sandbox.sh` already falls back to a pre-compiled `vendor.tar.gz` release bundle (Tier 1, <3s, bypasses the API limit entirely) before it ever tries `composer install` — run it again, or unpack the bundle directly:
+```bash
+curl -sL https://github.com/arhsmoque2/dpik-tadbir/releases/download/sandbox-vendor-latest/vendor.tar.gz | tar -xz
+```
+Only fall back to `DEVTOOLS.md`'s Degraded CI-Feedback Protocol (push and read CI logs) if this bundle download itself fails — that's a real air-gapped sandbox, not a GitHub API rate limit.
 
 ## Standard Commands
 ```bash
