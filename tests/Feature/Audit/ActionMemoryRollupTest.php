@@ -52,4 +52,3 @@ test('action memory service logs receipts and generates rollups', function () {
         ->and($weeklyNote->content)->toContain('Reply to JKR Johor on Site Valuation')
         ->and($weeklyNote->tags)->toContain('weekly');
 });
-

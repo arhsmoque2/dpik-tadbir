@@ -31,4 +31,3 @@ Schedule::call(function () {
         dispatch(new GenerateWeeklyRollupJob($user->id));
     }
 })->weeklyOn(5, '17:00')->name('generate-weekly-activity-rollups');
-
