@@ -5,6 +5,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    config(['auth.enabled' => true]);
+});
+
 test('profile page can be rendered for authenticated user', function () {
     $user = User::create([
         'first_name' => 'Ahmad',

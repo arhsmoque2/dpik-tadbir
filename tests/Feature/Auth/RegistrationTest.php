@@ -1,12 +1,16 @@
 <?php
 
+use App\Filament\Pages\Auth\Register;
 use App\Models\AllowedRegistrationEmail;
 use App\Models\User;
 use App\Services\Auth\RegistrationWhitelistService;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
-use App\Filament\Pages\Auth\Register;
+
+beforeEach(function () {
+    config(['auth.enabled' => true]);
+});
 
 test('registration page can be rendered', function () {
     $this->get('/admin/register')
