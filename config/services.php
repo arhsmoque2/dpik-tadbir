@@ -24,4 +24,10 @@ return [
     'registration' => [
         'allowed_emails' => array_filter(array_map('trim', explode(',', (string) env('ALLOWED_REGISTRATION_EMAILS', 'rahman@dpik.com.my,smoque@gmail.com,arh.homelab@gmail.com,hilmio@dpik.com.my,hamid@dpik.com.my')))),
     ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL', 'http://localhost:8000').'/auth/google/callback'),
+    ],
 ];
