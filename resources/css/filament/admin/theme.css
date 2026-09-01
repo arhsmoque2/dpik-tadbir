@@ -1,14 +1,71 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 /*
- * Scans every place this app writes its own Tailwind classes (Filament
- * Pages/Resources/Widgets PHP, custom Livewire components, and every
- * hand-authored Blade view) so arbitrary-value utilities like
- * `bg-[#212631]` actually get generated. Filament's stock ThemeCss stub
- * only sources resources/views/filament/**, which misses this app's
- * Livewire components (app/Livewire/*, resources/views/livewire/*) that
- * carry the same kind of custom styling (the AI Copilot drawer chrome).
+ * Filament Lucent Navy Theme (Deep Executive Navy Accents)
  */
 @source '../../../../app/Filament/**/*';
 @source '../../../../app/Livewire/**/*';
 @source '../../../../resources/views/**/*.blade.php';
+
+@layer base {
+  :root.dark {
+    --bg-outer: #141416;
+    --bg-main-canvas: #1b1c20;
+    --bg-widget-card: #232429;
+    --border-subtle: #2e2f36;
+    --border-active: #3b3c48;
+    --accent-navy: #2563eb;
+    --accent-navy-hover: #1d4ed8;
+    --accent-navy-subtle: rgba(37, 99, 235, 0.18);
+  }
+}
+
+/* Filament Panel Canvas & Rounded Shell */
+body.fi-body {
+  background-color: #141416 !important;
+  color: #f3f4f6 !important;
+}
+
+.fi-main {
+  background-color: #1b1c20 !important;
+  border: 1px solid #26272c !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  padding: 1.5rem !important;
+}
+
+/* Sidebar Styling */
+.fi-sidebar {
+  background-color: #141416 !important;
+  border-right: none !important;
+}
+
+.fi-sidebar-item-active a {
+  background-color: #232429 !important;
+  border: 1px solid #2e2f36 !important;
+  border-left: 3px solid #2563eb !important;
+  border-radius: 0.5rem !important;
+  color: #ffffff !important;
+}
+
+/* Widget Cards & Inputs */
+.fi-section, .fi-wi-stats-overview-stat, .fi-wi-card {
+  background-color: #232429 !important;
+  border: 1px solid #2e2f36 !important;
+  border-radius: 0.75rem !important;
+}
+
+.fi-input, .fi-select-input {
+  background-color: #232429 !important;
+  border: 1px solid #2e2f36 !important;
+  color: #f3f4f6 !important;
+  border-radius: 0.5rem !important;
+}
+
+.fi-btn-primary {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+.fi-btn-primary:hover {
+  background-color: #1d4ed8 !important;
+}
