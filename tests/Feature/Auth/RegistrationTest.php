@@ -3,9 +3,6 @@
 use App\Filament\Pages\Auth\Register;
 use App\Models\AllowedRegistrationEmail;
 use App\Models\User;
-use App\Services\Auth\RegistrationWhitelistService;
-use Filament\Facades\Filament;
-use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 
 beforeEach(function () {
