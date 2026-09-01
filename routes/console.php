@@ -1,5 +1,8 @@
 <?php
 
+use App\Jobs\GenerateDailyRollupJob;
+use App\Jobs\GenerateWeeklyRollupJob;
+use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -18,13 +21,14 @@ Schedule::command('ai:reflect-personalization')->weekly();
 
 // ADR-008 Daily & Weekly Activity Rollup Jobs
 Schedule::call(function () {
-    foreach (\App\Models\User::all() as $user) {
-        dispatch(new \App\Jobs\GenerateDailyRollupJob($user->id));
+    foreach (User::all() as $user) {
+        dispatch(new GenerateDailyRollupJob($user->id));
     }
 })->dailyAt('18:00')->name('generate-daily-activity-rollups');
 
 Schedule::call(function () {
-    foreach (\App\Models\User::all() as $user) {
-        dispatch(new \App\Jobs\GenerateWeeklyRollupJob($user->id));
+    foreach (User::all() as $user) {
+        dispatch(new GenerateWeeklyRollupJob($user->id));
     }
 })->weeklyOn(5, '17:00')->name('generate-weekly-activity-rollups');
+

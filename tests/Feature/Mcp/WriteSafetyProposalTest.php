@@ -3,6 +3,7 @@
 use App\Mcp\Tools\Interactive\ProposeActionCardTool;
 use App\Mcp\Tools\Outlook\OutlookForwardTool;
 use App\Mcp\Tools\Outlook\OutlookReplyTool;
+use App\Models\AiActionReceipt;
 use App\Models\User;
 use App\Services\Ai\ActionApprovalService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -46,7 +47,7 @@ test('outlook reply succeeds with valid approval token and logs action receipt',
     expect($res['status'])->toBe('sent');
     expect($res['success'])->toBeTrue();
 
-    $receipt = \App\Models\AiActionReceipt::where('user_id', $user->id)
+    $receipt = AiActionReceipt::where('user_id', $user->id)
         ->where('action_type', 'outlook_reply')
         ->first();
     expect($receipt)->not->toBeNull()

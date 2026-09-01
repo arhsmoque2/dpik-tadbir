@@ -429,6 +429,7 @@ test('llm gateway throws runtime exception when liveGate is true for unsupported
             'provider' => 'unsupported_provider',
             'model' => 'custom-model',
             'live' => true,
+            'user' => new User(['gemini_api_key' => 'AIzaSyFakeKeyForTesting1234567890']),
         ]
     ))->toThrow(RuntimeException::class, 'Google Gemini API error (HTTP 401): API key invalid');
 });
@@ -583,4 +584,3 @@ test('toGeminiContents resolves tool name from preceding assistant tool_calls wh
     expect($result[2]['parts'][0]['functionResponse']['name'])->toBe('propose_action_card');
     expect($result[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['approved' => true]);
 });
-

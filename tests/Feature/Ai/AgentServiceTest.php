@@ -296,4 +296,3 @@ test('resumeWithToolResult suppresses duplicate user message and guarantees stri
     expect($geminiWire[2]['parts'][0]['functionResponse']['name'])->toBe('propose_action_card');
     expect($geminiWire[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['approved' => true]);
 });
-
