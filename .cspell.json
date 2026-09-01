@@ -373,7 +373,14 @@
     "Gmails",
     "interoperability",
     "rebased",
-    "multitenant"
+    "multitenant",
+    "superadmin",
+    "superadmins",
+    "Superadmin",
+    "Kimi",
+    "Taildrop",
+    "EHLO",
+    "aipromptbuilder"
   ],
   "ignorePaths": [
     "node_modules/**",
