@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewBundle extends ViewRecord
@@ -27,7 +28,7 @@ class ViewBundle extends ViewRecord
                     'body' => (string) ($arguments['body'] ?? 'No body content returned from Graph API.'),
                 ])
                 ->schema([
-                    \Filament\Forms\Components\Textarea::make('body')
+                    Textarea::make('body')
                         ->label('Email Body Content')
                         ->rows(15)
                         ->readOnly(),

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\AiActionReceipt;
+use App\Models\PersonalNote;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,7 +43,7 @@ class GenerateDailyRollupJob implements ShouldQueue
             }
             $content = "Daily Executive Activity Rollup for {$dateStr}:\nTotal Dispatched Actions: {$count}\n\n".implode("\n", $actionLines);
 
-            \App\Models\PersonalNote::create([
+            PersonalNote::create([
                 'user_id' => $user->id,
                 'title' => "Daily Activity Rollup · {$dateStr}",
                 'content' => $content,

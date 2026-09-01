@@ -295,7 +295,7 @@ class AgentService
         ]);
 
         $lastUserMsg = $session->messages()->where('role', 'user')->latest('id')->first();
-        $promptContext = $lastUserMsg?->content ?? 'Resume interactive turn';
+        $promptContext = $lastUserMsg->content ?? 'Resume interactive turn';
 
         return $this->handleUserTurn($session, $promptContext, array_merge($options, ['is_resumption' => true]));
     }
