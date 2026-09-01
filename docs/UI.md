@@ -1,5 +1,7 @@
 # DPIK Tadbir: UI & Interaction Design Contract
 
+> **Concrete screens live in [`docs/ui-spec/`](ui-spec/), not here.** `mockup-preview.html` and `navigation-tree.json` are the canonical, clickable/machine-readable spec — audit them against `CAPABILITIES.md`/`SCENARIOS.md`/`INTENT.md` directly, per [`ADR-022`](adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md). This file stays useful for what doesn't fit in a screenshot: design rationale, token values, and accessibility/formatting rules that apply everywhere. A section describing a specific screen's composition (`UI-11` is the current example) is a stale layout, not a rule — trust `docs/ui-spec/` over it.
+
 ## [UI-01] Archetype & Design Philosophy
 
 DPIK Tadbir is designed under the **Executive Suite & Calm Governance Archetype**, synthesizing the proven design foundations of **Woodfire Premium Tier**, **ARH-URUS**, and **DPIK Tugas**.
@@ -217,13 +219,9 @@ Every list surface is a Filament v4 table resource (see [`DESIGN-07`](DESIGN.md)
 
 ## [UI-11] Dashboard Composition
 
-The dashboard answers *"what needs me today?"* in one screen, top-to-bottom by urgency:
+**Superseded by [`CAP-009`](CAPABILITIES.md#cap-009-executive-ai-command-center--visual-panel-filament-v4) and [`ADR-022`](adr/ADR-022-bundle-based-retrieval-ai-optional-review-and-adaptive-navigation.md).** The stat-card/widget-row composition previously described here is not the current design — see `docs/ui-spec/` for the actual screen.
 
-1. **Stats Overview Row**: 4 stat cards with 7-day trend sparklines — *Unread Urgent Emails*, *Pending Action Cards*, *Tasks Due Today*, *Register Entries This Week*. Each card deep-links to its filtered list view.
-2. **Pending Action Cards Widget**: Staged proposals awaiting approval, rendered as compact dossier rows with inline **[Review]**; polls every 30s.
-3. **Today's Delta Widget**: Latest Outlook delta briefing summary with a **[Run Morning Briefing]** preset button when empty.
-4. **Recent Rollups Widget**: Last 3 daily rollups as excerpt cards.
-5. **Empty Dashboard State**: First-run dashboard renders a guided setup checklist (Connect Outlook → Run first preset → Pin a project) instead of blank widgets.
+The dashboard is a **Bundle/Session list**: session title, AI model, provider, retrieval timestamp, source Bundle, and a report-exists indicator — nothing else by default. No stat cards, no metric widgets; a widget is added only once it traces to a concrete need in `INTENT.md` or an approved scenario in `SCENARIOS.md`. This is deliberate minimalism, not an unfinished state: "expansion must earn its place" governs every future addition to this screen.
 
 ---
 
