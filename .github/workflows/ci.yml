@@ -255,14 +255,16 @@ jobs:
       - name: Install Node Dependencies
         run: pnpm install
 
-      - name: Build Frontend Assets (Filament Admin Theme)
-        run: pnpm run build
-
       - name: Install Playwright Browsers with OS Dependencies
         run: npx playwright install --with-deps chromium
 
       - name: Install Composer Dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Build Frontend Assets (Filament Admin Theme)
+        # Must run after Composer install: the theme's @import resolves
+        # vendor/filament/filament/resources/css/theme.css.
+        run: pnpm run build
 
       - name: Bootstrap Test Environment & File-Backed Database
         run: |
