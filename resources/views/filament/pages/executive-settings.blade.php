@@ -336,10 +336,79 @@
                     wire:loading.attr="disabled"
                     class="px-6 py-2.5 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 inline-flex items-center space-x-2"
                 >
-                    <span wire:loading.remove wire:target="save">Save All Settings</span>
+                    <span wire:loading.remove wire:target="save">Save Personal Settings</span>
                     <span wire:loading wire:target="save">Saving...</span>
                 </button>
             </div>
         </form>
+
+        @if (auth()->user()?->role === 'super_admin' || in_array(auth()->user()?->email, ['smoque@gmail.com', 'arh.homelab@gmail.com', 'rahman@dpik.com.my'], true))
+            <!-- Section 3: Super Admin AI & MCP JSON Control Plane -->
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-200 dark:border-amber-800/60 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="p-1.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">Super Admin</span>
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white">AI & MCP Control Plane (<code class="text-xs text-amber-600 dark:text-amber-400">ai-configuration.json</code>)</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Fine-tune the global System Prompt template, Anti-Hallucination Rules, Context Mode Token Budgets, Memory RRF thresholds, and MCP tool states. Updates hot-reload instantly across all active executive sessions.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button
+                            type="button"
+                            wire:click="formatAiConfigJson"
+                            class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                        >
+                            Format JSON
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="resetAiConfiguration"
+                            wire:confirm="Are you sure you want to reset all AI prompts, rules, and MCP configurations back to factory defaults?"
+                            class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors"
+                        >
+                            Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+
+                @if ($configError)
+                    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800 text-xs text-red-800 dark:text-red-200 font-mono">
+                        {{ $configError }}
+                    </div>
+                @endif
+
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Placeholders supported: <code class="text-amber-600 dark:text-amber-400">{executive_name}</code>, <code class="text-amber-600 dark:text-amber-400">{date}</code>, <code class="text-amber-600 dark:text-amber-400">{tools}</code>, <code class="text-amber-600 dark:text-amber-400">{personalization}</code>, <code class="text-amber-600 dark:text-amber-400">{bundle}</code>, <code class="text-amber-600 dark:text-amber-400">{memory}</code></span>
+                        <span>Hot-reloaded via Cache</span>
+                    </div>
+
+                    <textarea
+                        wire:model="rawAiConfigJson"
+                        rows="22"
+                        spellcheck="false"
+                        class="w-full p-4 text-xs font-mono bg-gray-900 text-gray-100 border border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent leading-relaxed"
+                    ></textarea>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Tip: You can export your session database using <code class="text-gray-700 dark:text-gray-300 font-mono">php artisan session:export</code> or via <a href="/admin/sessions/export/db" class="text-amber-600 hover:underline">/admin/sessions/export/db</a>.
+                    </p>
+                    <button
+                        type="button"
+                        wire:click="saveAiConfiguration"
+                        wire:loading.attr="disabled"
+                        class="px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-emerald-500 inline-flex items-center space-x-2"
+                    >
+                        <span wire:loading.remove wire:target="saveAiConfiguration">Save AI Configuration</span>
+                        <span wire:loading wire:target="saveAiConfiguration">Saving...</span>
+                    </button>
+                </div>
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>

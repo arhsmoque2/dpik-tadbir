@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\User;
+use App\Services\Ai\AiConfigurationService;
 use App\Services\Ai\LlmGatewayService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Notifications\Notification;
@@ -65,6 +66,10 @@ class ExecutiveSettings extends Page
 
     public int $outlookLatencyMs = 0;
 
+    public string $rawAiConfigJson = '';
+
+    public ?string $configError = null;
+
     public function mount(): void
     {
         /** @var User|null $user */
@@ -80,6 +85,12 @@ class ExecutiveSettings extends Page
             $this->microsoft_client_id = $user->microsoft_client_id;
             $this->microsoft_client_secret = $user->microsoft_client_secret;
             $this->microsoft_tenant_id = $user->microsoft_tenant_id;
+        }
+
+        try {
+            $this->rawAiConfigJson = app(AiConfigurationService::class)->getRawJson();
+        } catch (Throwable) {
+            $this->rawAiConfigJson = '{}';
         }
     }
 
@@ -291,5 +302,61 @@ class ExecutiveSettings extends Page
             ->body('Your sovereign AI API keys, favorite models, and Microsoft Graph credentials have been saved securely.')
             ->success()
             ->send();
+    }
+
+    public function saveAiConfiguration(): void
+    {
+        $this->configError = null;
+
+        try {
+            $configService = app(AiConfigurationService::class);
+            $configService->saveRawJson($this->rawAiConfigJson);
+            $this->rawAiConfigJson = $configService->getRawJson();
+
+            Notification::make()
+                ->title('AI & MCP Configuration Saved')
+                ->body('Global System Prompt, Rules, Memory Settings, and MCP tool configurations have been updated and cached.')
+                ->success()
+                ->send();
+        } catch (Throwable $e) {
+            $this->configError = $e->getMessage();
+
+            Notification::make()
+                ->title('Invalid JSON Configuration')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function resetAiConfiguration(): void
+    {
+        $this->configError = null;
+
+        try {
+            $configService = app(AiConfigurationService::class);
+            $configService->resetToDefaults();
+            $this->rawAiConfigJson = $configService->getRawJson();
+
+            Notification::make()
+                ->title('Configuration Reset')
+                ->body('AI & MCP configuration has been restored to factory defaults.')
+                ->info()
+                ->send();
+        } catch (Throwable $e) {
+            $this->configError = $e->getMessage();
+        }
+    }
+
+    public function formatAiConfigJson(): void
+    {
+        $this->configError = null;
+
+        try {
+            $decoded = json_decode($this->rawAiConfigJson, true, 512, JSON_THROW_ON_ERROR);
+            $this->rawAiConfigJson = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: $this->rawAiConfigJson;
+        } catch (Throwable $e) {
+            $this->configError = 'Cannot format invalid JSON: '.$e->getMessage();
+        }
     }
 }
