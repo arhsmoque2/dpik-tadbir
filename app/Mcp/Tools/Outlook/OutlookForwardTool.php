@@ -59,6 +59,18 @@ class OutlookForwardTool extends BaseTool
 
         $success = $this->scopedBridge($this->bridge)->forwardMessage($messageId, $toRecipients, $comment);
 
+        if ($success && $user instanceof \App\Models\User) {
+            app(\App\Services\Audit\ActionMemoryService::class)->logReceipt(
+                user: $user,
+                actionType: 'outlook_forward',
+                description: "Forwarded email [{$messageId}] to ".implode(', ', $toRecipients),
+                targetRecipients: $toRecipients,
+                payload: ['message_id' => $messageId, 'to_recipients' => $toRecipients, 'comment' => $comment],
+                status: 'executed',
+                approvalToken: $token
+            );
+        }
+
         return [
             'status' => $success ? 'forwarded' : 'failed',
             'message_id' => $messageId,

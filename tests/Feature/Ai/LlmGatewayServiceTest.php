@@ -416,15 +416,102 @@ test('probeOpenRouterKey handles connection exceptions', function () {
     expect($res['error_message'])->toContain('Connection timeout');
 });
 
-test('llm gateway throws runtime exception when liveGate is true for unsupported live provider', function () {
+test('llm gateway throws runtime exception when liveGate is true for unsupported live provider and fallback fails', function () {
     $gateway = new LlmGatewayService;
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'API key invalid']], 401),
+    ]);
 
     expect(fn () => $gateway->complete(
         messages: [['role' => 'user', 'content' => 'Hello']],
         options: [
-            'provider' => 'gemini',
-            'model' => 'gemini-2.5-flash',
+            'provider' => 'unsupported_provider',
+            'model' => 'custom-model',
             'live' => true,
         ]
-    ))->toThrow(RuntimeException::class, 'No live integration configured for provider');
+    ))->toThrow(RuntimeException::class, 'Google Gemini API error (HTTP 401): API key invalid');
+});
+
+test('llm gateway executes live gemini integration with http fake', function () {
+    $user = User::create([
+        'name' => 'Gemini Test User',
+        'email' => 'gemini-test@dpik.com.my',
+        'password' => bcrypt('password'),
+        'gemini_api_key' => 'AIzaSyFakeKeyForTesting1234567890',
+    ]);
+    test()->actingAs($user);
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => 'Gemini response text generated live.'],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+            'usageMetadata' => [
+                'promptTokenCount' => 25,
+                'candidatesTokenCount' => 12,
+            ],
+        ], 200),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->complete(
+        messages: [['role' => 'user', 'content' => 'Test query']],
+        options: [
+            'provider' => 'gemini',
+            'model' => 'gemini-2.5-flash',
+            'user' => $user,
+            'live' => true,
+        ]
+    );
+
+    expect($res['content'])->toBe('Gemini response text generated live.')
+        ->and($res['provider'])->toBe('gemini')
+        ->and($res['model'])->toBe('gemini-2.5-flash')
+        ->and($res['input_tokens'])->toBe(25)
+        ->and($res['output_tokens'])->toBe(12);
+});
+
+test('probeGeminiKey handles missing and invalid key formats', function () {
+    $gateway = new LlmGatewayService;
+
+    // Missing key
+    $res = $gateway->probeGeminiKey(null);
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('MISSING_API_KEY');
+
+    // Invalid format
+    $res = $gateway->probeGeminiKey('invalid-prefix-key');
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('INVALID_KEY_FORMAT');
+});
+
+test('probeGeminiKey handles success response', function () {
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['models' => []], 200),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->probeGeminiKey('AIzaSyValidFormatKey12345');
+    expect($res['success'])->toBeTrue()
+        ->and($res['status'])->toBe('connected');
+});
+
+test('probeGeminiKey handles auth error response', function () {
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'API key invalid']], 400),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->probeGeminiKey('AIzaSyInvalidKey12345');
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('AUTH_ERROR');
 });

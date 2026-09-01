@@ -15,3 +15,16 @@ Artisan::command('inspire', function () {
 // deploy pipeline actually invokes schedule:run before relying on it firing
 // in production.
 Schedule::command('ai:reflect-personalization')->weekly();
+
+// ADR-008 Daily & Weekly Activity Rollup Jobs
+Schedule::call(function () {
+    foreach (\App\Models\User::all() as $user) {
+        dispatch(new \App\Jobs\GenerateDailyRollupJob($user->id));
+    }
+})->dailyAt('18:00')->name('generate-daily-activity-rollups');
+
+Schedule::call(function () {
+    foreach (\App\Models\User::all() as $user) {
+        dispatch(new \App\Jobs\GenerateWeeklyRollupJob($user->id));
+    }
+})->weeklyOn(5, '17:00')->name('generate-weekly-activity-rollups');

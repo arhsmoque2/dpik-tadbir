@@ -24,7 +24,6 @@ class CreatePersonalTaskTool extends BaseTool
                 'description' => ['type' => 'string'],
                 'project_code' => ['type' => 'string'],
                 'due_date' => ['type' => 'string'],
-                'user_id' => ['type' => 'integer'],
             ],
         ];
     }
@@ -35,7 +34,8 @@ class CreatePersonalTaskTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
-        $userId = (int) ($arguments['user_id'] ?? auth()->id() ?? 1);
+        $user = auth()->user();
+        $userId = $user?->id ?? (int) ($arguments['user_id'] ?? 1);
         $title = (string) ($arguments['title'] ?? 'Untitled Task');
         $description = isset($arguments['description']) ? (string) $arguments['description'] : null;
         $projectCode = isset($arguments['project_code']) ? (string) $arguments['project_code'] : null;

@@ -26,7 +26,7 @@ test('outlook reply fails closed when approval token is invalid', function () {
     ]);
 })->throws(AuthorizationException::class);
 
-test('outlook reply succeeds with valid approval token', function () {
+test('outlook reply succeeds with valid approval token and logs action receipt', function () {
     $user = User::create([
         'name' => 'Write Safety Tester',
         'email' => 'writesafety@dpik.com.my',
@@ -39,12 +39,19 @@ test('outlook reply succeeds with valid approval token', function () {
 
     $res = $tool->handle([
         'message_id' => 'msg_123',
-        'body' => 'Approved response',
+        'body' => 'Approved reply',
         'approval_token' => $token,
     ]);
 
     expect($res['status'])->toBe('sent');
     expect($res['success'])->toBeTrue();
+
+    $receipt = \App\Models\AiActionReceipt::where('user_id', $user->id)
+        ->where('action_type', 'outlook_reply')
+        ->first();
+    expect($receipt)->not->toBeNull()
+        ->and($receipt->status)->toBe('executed')
+        ->and($receipt->approval_token)->toBe($token);
 });
 
 test('outlook reply rejects a token already consumed once', function () {

@@ -37,5 +37,17 @@ test('action memory service logs receipts and generates rollups', function () {
     $weeklyJob = new GenerateWeeklyRollupJob($user->id);
     $weeklyJob->handle();
 
-    expect(true)->toBeTrue();
+    $dailyNote = \App\Models\PersonalNote::where('user_id', $user->id)
+        ->where('title', 'like', '%Daily Activity Rollup%')
+        ->first();
+    expect($dailyNote)->not->toBeNull()
+        ->and($dailyNote->content)->toContain('Reply to JKR Johor on Site Valuation')
+        ->and($dailyNote->tags)->toContain('daily');
+
+    $weeklyNote = \App\Models\PersonalNote::where('user_id', $user->id)
+        ->where('title', 'like', '%Weekly Activity Rollup%')
+        ->first();
+    expect($weeklyNote)->not->toBeNull()
+        ->and($weeklyNote->content)->toContain('Reply to JKR Johor on Site Valuation')
+        ->and($weeklyNote->tags)->toContain('weekly');
 });

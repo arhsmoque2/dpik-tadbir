@@ -22,7 +22,7 @@
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
         @click="$wire.closeDrawer()"
         aria-hidden="true"
     ></div>
@@ -37,7 +37,7 @@
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
         data-copilot-drawer
-        class="fixed inset-y-0 right-0 z-50 w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col"
+        class="fixed inset-y-0 right-0 z-[60] w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Executive AI Copilot Drawer"

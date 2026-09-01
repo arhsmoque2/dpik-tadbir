@@ -65,11 +65,13 @@ class AgentService
     {
         $startTime = microtime(true);
 
-        ChatMessage::create([
-            'chat_session_id' => $session->id,
-            'role' => 'user',
-            'content' => $prompt,
-        ]);
+        if (empty($options['is_resumption'])) {
+            ChatMessage::create([
+                'chat_session_id' => $session->id,
+                'role' => 'user',
+                'content' => $prompt,
+            ]);
+        }
 
         $user = $session->user;
         if ($user === null) {
@@ -281,19 +283,21 @@ class AgentService
      * Resumes an interactive turn after user modal input or Action Card confirmation.
      *
      * @param  array<string, mixed>  $result
+     * @param  array<string, mixed>  $options
      */
-    public function resumeWithToolResult(ChatSession $session, string $toolUseId, array $result): AiTurnResponse
+    public function resumeWithToolResult(ChatSession $session, string $toolUseId, array $result, array $options = []): AiTurnResponse
     {
         ChatMessage::create([
             'chat_session_id' => $session->id,
             'role' => 'tool',
-            'content' => json_encode($result),
+            'content' => json_encode($result, JSON_THROW_ON_ERROR),
             'metadata' => ['tool_use_id' => $toolUseId],
         ]);
 
-        $prompt = 'User submitted interactive response: '.json_encode($result);
+        $lastUserMsg = $session->messages()->where('role', 'user')->latest('id')->first();
+        $promptContext = $lastUserMsg?->content ?? 'Resume interactive turn';
 
-        return $this->handleUserTurn($session, $prompt);
+        return $this->handleUserTurn($session, $promptContext, array_merge($options, ['is_resumption' => true]));
     }
 
     /**

@@ -17,6 +17,21 @@ class ViewBundle extends ViewRecord
     {
         return [
             Actions\EditAction::make(),
+            Actions\Action::make('displayLiveBody')
+                ->label('Live Email Body Content')
+                ->modalHeading('Live Email Body (Graph API)')
+                ->modalDescription('Full body fetched live from Microsoft Graph API without disk storage.')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Close')
+                ->fillForm(fn (array $arguments): array => [
+                    'body' => (string) ($arguments['body'] ?? 'No body content returned from Graph API.'),
+                ])
+                ->schema([
+                    \Filament\Forms\Components\Textarea::make('body')
+                        ->label('Email Body Content')
+                        ->rows(15)
+                        ->readOnly(),
+                ]),
             Actions\Action::make('fetchLiveEmailBody')
                 ->label('Fetch Full Body Live (Graph API)')
                 ->icon('heroicon-o-arrow-down-tray')

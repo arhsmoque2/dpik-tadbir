@@ -24,7 +24,6 @@ class CreatePersonalNoteTool extends BaseTool
                 'content' => ['type' => 'string'],
                 'project_code' => ['type' => 'string'],
                 'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
-                'user_id' => ['type' => 'integer'],
             ],
         ];
     }
@@ -35,7 +34,8 @@ class CreatePersonalNoteTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
-        $userId = (int) ($arguments['user_id'] ?? auth()->id() ?? 1);
+        $user = auth()->user();
+        $userId = $user?->id ?? (int) ($arguments['user_id'] ?? 1);
         $title = (string) ($arguments['title'] ?? 'Untitled Note');
         $content = (string) ($arguments['content'] ?? '');
         $projectCode = isset($arguments['project_code']) ? (string) $arguments['project_code'] : null;

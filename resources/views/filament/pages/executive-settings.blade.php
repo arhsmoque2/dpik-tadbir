@@ -533,6 +533,87 @@
                 </div>
             </div>
 
+            <!-- Section 4: Adaptive Bottom Navigation Customization (ADR-022) -->
+            <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 font-semibold text-xs">NAV</span>
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Adaptive Floating Navigation Slots</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                Governed by ADR-022. Configure up to 4 quick-access destinations flanking the elevated center AI Copilot FAB button.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Nav Slot 1 -->
+                    <div class="space-y-1.5">
+                        <label for="bottom_nav_slot_1" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            Slot 1 (Left 1)
+                        </label>
+                        <select
+                            id="bottom_nav_slot_1"
+                            wire:model="bottom_nav_slot_1"
+                            class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
+                        >
+                            @foreach ($this->getAvailableBottomNavOptions() as $key => $opt)
+                                <option value="{{ $key }}">{{ $opt['label'] }} ({{ $opt['url'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Nav Slot 2 -->
+                    <div class="space-y-1.5">
+                        <label for="bottom_nav_slot_2" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            Slot 2 (Left 2)
+                        </label>
+                        <select
+                            id="bottom_nav_slot_2"
+                            wire:model="bottom_nav_slot_2"
+                            class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
+                        >
+                            @foreach ($this->getAvailableBottomNavOptions() as $key => $opt)
+                                <option value="{{ $key }}">{{ $opt['label'] }} ({{ $opt['url'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Nav Slot 3 -->
+                    <div class="space-y-1.5">
+                        <label for="bottom_nav_slot_3" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            Slot 3 (Right 1)
+                        </label>
+                        <select
+                            id="bottom_nav_slot_3"
+                            wire:model="bottom_nav_slot_3"
+                            class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
+                        >
+                            @foreach ($this->getAvailableBottomNavOptions() as $key => $opt)
+                                <option value="{{ $key }}">{{ $opt['label'] }} ({{ $opt['url'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Nav Slot 4 -->
+                    <div class="space-y-1.5">
+                        <label for="bottom_nav_slot_4" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            Slot 4 (Right 2)
+                        </label>
+                        <select
+                            id="bottom_nav_slot_4"
+                            wire:model="bottom_nav_slot_4"
+                            class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-gray-900 dark:text-white"
+                        >
+                            @foreach ($this->getAvailableBottomNavOptions() as $key => $opt)
+                                <option value="{{ $key }}">{{ $opt['label'] }} ({{ $opt['url'] }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Master Save Action Toolbar -->
             <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div class="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">

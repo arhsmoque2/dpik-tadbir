@@ -59,6 +59,18 @@ class OutlookReplyTool extends BaseTool
 
         $success = $this->scopedBridge($this->bridge)->sendReply($messageId, $body, $attachments);
 
+        if ($success && $user instanceof \App\Models\User) {
+            app(\App\Services\Audit\ActionMemoryService::class)->logReceipt(
+                user: $user,
+                actionType: 'outlook_reply',
+                description: "Sent email reply to message [{$messageId}]",
+                targetRecipients: null,
+                payload: ['message_id' => $messageId, 'body' => $body, 'attachments' => $attachments],
+                status: 'executed',
+                approvalToken: $token
+            );
+        }
+
         return [
             'status' => $success ? 'sent' : 'failed',
             'message_id' => $messageId,
