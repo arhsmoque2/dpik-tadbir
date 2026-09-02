@@ -341,6 +341,9 @@ test('sendReply falls back to the IMAP password when no SMTP password is set', f
 });
 
 test('sendReply fails closed when the executive has no mailbox credentials at all', function () {
+    // Uses the real MailBridge (not RecordingMailBridge, whose mailer()
+    // override would bypass the credential check entirely) — mailer()'s
+    // own "not configured" guard must throw before any transport is built.
     app()['env'] = 'production';
     ImapFakeRegistry::addMessage(['uid' => 501]);
 
@@ -350,10 +353,9 @@ test('sendReply fails closed when the executive has no mailbox credentials at al
         'password' => bcrypt('password'),
     ]);
 
-    $bridge = (new RecordingMailBridge)->forUser($user);
+    $bridge = app(MailBridge::class)->forUser($user);
 
     expect($bridge->sendReply('501', 'Body'))->toBeFalse();
-    expect(RecordingTransport::$sent)->toBeEmpty();
 
     app()['env'] = 'testing';
 });
