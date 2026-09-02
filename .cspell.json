@@ -404,7 +404,21 @@
     "Kimi",
     "Taildrop",
     "EHLO",
-    "aipromptbuilder"
+    "aipromptbuilder",
+    "snip",
+    "pyyaml",
+    "unparseable",
+    "PreToolUse",
+    "devtool",
+    "SOPS",
+    "Caddyfile",
+    "PGLite",
+    "subcommands",
+    "posix",
+    "Mypy",
+    "mypy",
+    "pytest",
+    "remediation"
   ],
   "ignorePaths": [
     "node_modules/**",

@@ -1,0 +1,51 @@
+name: "pint"
+version: 1
+description: "Laravel Pint style check: keep the changed/failed file list and the summary; drop the per-file progress dots and PASS spam"
+
+match:
+  command: "pint"
+  exclude_flags: ["--format", "--version"]
+
+streams: ["stdout", "stderr"]
+
+pipeline:
+  - action: "strip_ansi"
+  - action: "replace"
+    pattern: "^\\s+"
+    replacement: ""
+  - action: "remove_lines"
+    pattern: "(^[.\\s]*$|^\\.{3,}|Laravel Pint|Preset|Rules|Cache|^\\s*$)"
+  - action: "keep_lines"
+    pattern: "(⨯|✗|✓ .*\\.php|\\bFAIL\\b|\\bPASS\\b|style (issue|error)|\\.php\\b|found \\d+|fixed \\d+|\\d+ files?)"
+  - action: "truncate_lines"
+    max: 160
+  - action: "head"
+    n: 50
+    overflow_msg: "... more files (rerun: vendor/bin/pint --test)"
+  - action: "on_empty"
+    message: "ok (no style changes)"
+
+on_error: "passthrough"
+
+tests:
+  - name: "a clean check produces the ok line"
+    input: |
+      Laravel Pint
+      ................................................................
+    expected: |
+      ok (no style changes)
+
+  - name: "a failing check keeps the file list and the FAIL summary"
+    input: |
+      Laravel Pint
+      ..............⨯...................
+
+        ⨯ app/Services/Ai/AgentService.php
+        ⨯ app/Mcp/Tools/Outlook/OutlookReplyTool.php
+
+      ────────────────────────────────────────────
+        FAIL  ...  2 files, 3 style issues
+    expected: |
+      ⨯ app/Services/Ai/AgentService.php
+      ⨯ app/Mcp/Tools/Outlook/OutlookReplyTool.php
+      FAIL  ...  2 files, 3 style issues

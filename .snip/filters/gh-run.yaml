@@ -1,0 +1,66 @@
+name: "gh-run"
+version: 1
+description: "gh run view / gh run list: keep run + job + step status and the annotations, strip Node deprecation spam and blank padding. Overrides the built-in gh-run filter for this repo."
+
+match:
+  command: "gh"
+  subcommand: "run"
+  exclude_flags: ["--log-failed", "--log", "--json"]
+
+streams: ["stdout", "stderr"]
+
+pipeline:
+  - action: "strip_ansi"
+  - action: "remove_lines"
+    pattern: "(node-version|Node\\.js 1[26]|deprecat|set-output|save-state|::(warning|debug|group|endgroup)|actions/.*was deprecated|^\\s*$|Triggered via|You can see|refs/heads)"
+  - action: "truncate_lines"
+    max: 160
+  - action: "head"
+    n: 45
+    overflow_msg: "... more (rerun: gh run view <id>)"
+  - action: "on_empty"
+    message: "no run output"
+
+on_error: "passthrough"
+
+tests:
+  - name: "a failing run keeps job + step status and the log-failed hint"
+    input: |
+      X main CI · 17482913
+
+      JOBS
+      ✓ Gate 1: Docs in 31s (ID 1)
+      X Gate 3: Tests in 47s (ID 3)
+        ✓ Set up job
+        X Run tests
+        ✓ Post job
+
+      ANNOTATIONS
+      X Process completed with exit code 1
+
+      To see what failed, try: gh run view 17482913 --log-failed
+    expected: |
+      X main CI · 17482913
+      JOBS
+      ✓ Gate 1: Docs in 31s (ID 1)
+      X Gate 3: Tests in 47s (ID 3)
+        ✓ Set up job
+        X Run tests
+        ✓ Post job
+      ANNOTATIONS
+      X Process completed with exit code 1
+      To see what failed, try: gh run view 17482913 --log-failed
+
+  - name: "node deprecation warnings are stripped from a passing run"
+    input: |
+      ✓ main CI · 17480000
+
+      JOBS
+      ✓ Gate 1: Docs in 30s (ID 1)
+      Node.js 16 actions are deprecated. Please update to Node 20.
+      ✓ Gate 3: Tests in 40s (ID 3)
+    expected: |
+      ✓ main CI · 17480000
+      JOBS
+      ✓ Gate 1: Docs in 30s (ID 1)
+      ✓ Gate 3: Tests in 40s (ID 3)

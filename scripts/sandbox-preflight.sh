@@ -26,8 +26,15 @@ BASE_BRANCH="${1:-origin/main}"
 uvx diff-cover coverage.xml --compare-branch "$BASE_BRANCH" --fail-under 90
 
 echo "--> 5. Checking docs & lexicon hygiene..."
-pnpm exec markdownlint-cli2 --config .markdownlint-cli2.jsonc
-pnpm exec cspell --no-progress "**/*.md" "docs/**/*.json"
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm exec markdownlint-cli2 --config .markdownlint-cli2.jsonc
+  pnpm exec cspell --no-progress "**/*.md" "docs/**/*.json"
+elif command -v npx >/dev/null 2>&1; then
+  npx --yes markdownlint-cli2 --config .markdownlint-cli2.jsonc
+  npx --yes cspell --no-progress "**/*.md" "docs/**/*.json"
+else
+  echo "--> Node/pnpm not found — skipping docs hygiene check in minimal container."
+fi
 
 echo "=========================================================="
 echo "  [SUCCESS] All sandbox quality gates passed hermetically! "

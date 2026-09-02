@@ -1,0 +1,66 @@
+name: "phpstan"
+version: 1
+description: "PHPStan/Larastan analyse: keep error file:line + message, the Found N errors line, and memory-crash remediation hints; drop the box-drawing table borders and progress meter"
+
+match:
+  command: "phpstan"
+  exclude_flags: ["--error-format", "--version", "--generate-baseline"]
+
+streams: ["stdout", "stderr"]
+
+pipeline:
+  - action: "strip_ansi"
+  - action: "replace"
+    pattern: "^\\s+"
+    replacement: ""
+  - action: "remove_lines"
+    pattern: "(^[-\\s]*$|^-{3,}|^\\d+/\\d+ \\[|^\\s*$|not yet been checked)"
+  - action: "keep_lines"
+    pattern: "(^\\d+ +[A-Za-z].*|\\.php\\b|^Line\\b|\\[OK\\]|\\[ERROR\\]|Found \\d+ error|memory|exhausted|Fatal error|Internal error|reached the configured|--memory-limit|crashed|Child process|Undefined|expects |should return|Access to an undefined)"
+  - action: "truncate_lines"
+    max: 200
+  - action: "head"
+    n: 50
+    overflow_msg: "... more errors (rerun: vendor/bin/phpstan analyse)"
+  - action: "on_empty"
+    message: "ok (no phpstan output)"
+
+on_error: "passthrough"
+
+tests:
+  - name: "a clean run collapses to the OK line"
+    input: |
+      Note: Using configuration file phpstan.neon.
+       120/120 [============================] 100%
+
+       [OK] No errors
+
+    expected: |
+      [OK] No errors
+
+  - name: "errors keep the file, the line:message and the count"
+    input: |
+       120/120 [============================] 100%
+
+       ------ ----------------------------------------------------------------------
+        Line   app/Services/Ai/LlmGatewayService.php
+       ------ ----------------------------------------------------------------------
+        223    Call to an undefined method App\Services\Ai\LlmGatewayService::x().
+        488    Parameter #1 $contents expects array, string given.
+       ------ ----------------------------------------------------------------------
+
+       [ERROR] Found 2 errors
+
+    expected: |
+      Line   app/Services/Ai/LlmGatewayService.php
+      223    Call to an undefined method App\Services\Ai\LlmGatewayService::x().
+      488    Parameter #1 $contents expects array, string given.
+      [ERROR] Found 2 errors
+
+  - name: "a memory crash keeps the remediation hint"
+    input: |
+      PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted
+      Analysis reached the configured memory limit. Increase it with --memory-limit.
+    expected: |
+      PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted
+      Analysis reached the configured memory limit. Increase it with --memory-limit.
