@@ -8,7 +8,7 @@
     - Larastan / PHPStan (Level 8, per `phpstan.neon`): `[OK] No errors` with `--memory-limit=1G`
     - FilaCheck (Filament v4 AST rules): `18/18 rules passed` across all resources
     - markdownlint: `0 issues in 42 files`
-    - cspell: `0 issues in 42 files`
+    - JSON Schemas & Spec Contracts: `valid` (`docs/ui-spec/`, `docs/testing/`, `docs/lexicon/`)
     - composer-unused: `0 unused, 0 zombies`
   - **Gate 2 & 3 (Security Preflight, Telemetry & Hermetic Tests)**:
     - Gate 2 standalone security preflight job (Gitleaks + Whitelist, Policy, Write-Safety, and PII storage tests)

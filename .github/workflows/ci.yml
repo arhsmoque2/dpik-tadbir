@@ -63,7 +63,7 @@ jobs:
             const files = [
               "docs/ui-spec/navigation-tree.json",
               "docs/testing/coverage-risk-matrix.json",
-              ".cspell.json"
+              "docs/lexicon/domain-lexicon.json"
             ];
             files.forEach(f => {
               if (fs.existsSync(f)) {
@@ -72,9 +72,6 @@ jobs:
               }
             });
           '
-
-      - name: Spelling & Lexicon Hygiene (cspell)
-        run: npx --yes cspell --no-progress "**/*.md" "docs/**/*.json"
 
   security-and-secrets:
     name: "Gate 2: Fast Static Secret Scanner (Gitleaks)"

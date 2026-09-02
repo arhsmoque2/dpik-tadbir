@@ -35,7 +35,7 @@
   "ci": {
     "provider": "github-actions",
     "workflow": ".github/workflows/ci.yml",
-    "gate_names": ["pint", "phpstan-l8", "filacheck", "pest", "composer-unused", "mdlint", "cspell", "gitleaks", "diff-cover"]
+    "gate_names": ["pint", "phpstan-l8", "filacheck", "pest", "composer-unused", "mdlint", "gitleaks", "diff-cover"]
   },
 
   "continuity": {

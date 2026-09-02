@@ -63,7 +63,6 @@ const flags = {
     matches([
       /\.md$/,
       /^docs\//,
-      /^\.cspell\.json$/,
       /^\.markdownlint/,
     ]),
 };

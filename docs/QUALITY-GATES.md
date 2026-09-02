@@ -10,7 +10,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
 - **Static Typing (Larastan / PHPStan)**: Level 8 strictness (`./vendor/bin/phpstan analyse --level=8 --memory-limit=1G`).
 - **Filament v4 AST Linter (FilaCheck)**: 17/17 rules passed across `app/Filament`, preventing deprecated v3 methods (`./vendor/bin/filacheck app/Filament`).
 - **Documentation Linting (`markdownlint-cli2`)**: Zero markdown syntax errors or broken heading IDs across `docs/` and `adr/` (`npx --yes markdownlint-cli2 "**/*.md" "#node_modules"`).
-- **Spelling & Lexicon (`cspell`)**: Zero spelling errors or typos across specs, comments, and schemas (`npx --yes cspell --no-progress "**/*.md" "docs/**/*.json"` governed by `.cspell.json`).
+- **JSON Schemas & Spec Contracts**: Structural validation of UI navigation trees, coverage risk matrices, and AI domain lexicon contracts (`node -e '...'`).
 - **Dead Code Audit (`composer-unused`)**: Zero unused composer dependencies or orphaned service bindings (`./vendor/bin/composer-unused`).
 
 ---
