@@ -58,3 +58,24 @@ test('bridge executes tools in simulated production mode and falls back graceful
     expect($res)->toHaveKey('status', 'unavailable');
     app()['env'] = 'testing';
 });
+
+test('bridge never leaks raw shell/process output into the executive-facing error', function () {
+    // Regression test for the deployed "Outlook MCP bridge error: sh: 1: exec:
+    // uv: not found" leak — a missing binary must fail closed with a clean
+    // message, not the shell's raw stderr, in the chat transcript.
+    app()['env'] = 'production';
+    Config::set('services.outlook_mcp.command', 'non_existent_mcp_command_xyz');
+
+    $bridge = app(OutlookMcpBridge::class)->forUser($this->user);
+    $res = $bridge->callTool('outlook_auth_status');
+
+    expect($res)->toHaveKey('status', 'unavailable');
+    expect($res['error'])
+        ->not->toContain('sh:')
+        ->not->toContain('exec:')
+        ->not->toContain('not found')
+        ->not->toContain('Traceback')
+        ->not->toContain('Stack trace');
+
+    app()['env'] = 'testing';
+});

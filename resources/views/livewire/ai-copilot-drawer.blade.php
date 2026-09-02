@@ -69,6 +69,7 @@
                         @click="open = !open"
                         class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-all font-mono"
                         title="Runtime Model Swapper (ADR-018)"
+                        aria-label="Runtime model swapper"
                     >
                         <svg style="width: 14px; height: 14px; min-width: 14px; color: #C9A36D;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
@@ -136,6 +137,7 @@
                     type="button"
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
                     title="New Session"
+                    aria-label="New session"
                 >
                     <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -144,8 +146,10 @@
                 <button
                     wire:click="closeDrawer"
                     type="button"
+                    data-copilot-drawer-close
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
                     title="Close (Esc)"
+                    aria-label="Close AI Copilot drawer"
                 >
                     <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
