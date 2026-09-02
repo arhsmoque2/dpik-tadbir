@@ -6,5 +6,18 @@
 :8080 {
 	root * /app/public
 	encode zstd gzip
+
+	# 1-year immutable cache for versioned Vite assets, fonts, and images
+	@static {
+		path /build/* *.ico *.png *.jpg *.jpeg *.svg *.woff *.woff2 *.webp
+	}
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	# 24-hour cache for Livewire JS assets with stale-while-revalidate
+	@livewire {
+		path /livewire/*
+	}
+	header @livewire Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
 	php_server
 }

@@ -48,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
         }
 
         return $panel
+            ->spa()
             ->colors([
                 'primary' => Color::Amber,
             ])

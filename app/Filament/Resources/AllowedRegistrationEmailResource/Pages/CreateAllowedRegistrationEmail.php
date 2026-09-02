@@ -11,7 +11,7 @@ class CreateAllowedRegistrationEmail extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['created_by_user_id'] = auth()->id() ?? 1;
+        $data['created_by_user_id'] = auth()->id();
 
         return $data;
     }

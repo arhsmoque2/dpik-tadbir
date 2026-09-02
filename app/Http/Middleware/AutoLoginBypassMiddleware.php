@@ -19,6 +19,10 @@ class AutoLoginBypassMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (! (bool) config('auth.enabled', true)) {
+            if (Auth::guard('web')->check() || Filament::auth()->check()) {
+                return $next($request);
+            }
+
             $user = User::query()->where('role', 'super_admin')->first()
                 ?? User::query()->first()
                 ?? User::firstOrCreate(

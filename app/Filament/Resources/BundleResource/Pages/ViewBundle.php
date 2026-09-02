@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewBundle extends ViewRecord
@@ -17,6 +18,21 @@ class ViewBundle extends ViewRecord
     {
         return [
             Actions\EditAction::make(),
+            Actions\Action::make('displayLiveBody')
+                ->label('Live Email Body Content')
+                ->modalHeading('Live Email Body (Graph API)')
+                ->modalDescription('Full body fetched live from Microsoft Graph API without disk storage.')
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel('Close')
+                ->fillForm(fn (array $arguments): array => [
+                    'body' => (string) ($arguments['body'] ?? 'No body content returned from Graph API.'),
+                ])
+                ->schema([
+                    Textarea::make('body')
+                        ->label('Email Body Content')
+                        ->rows(15)
+                        ->readOnly(),
+                ]),
             Actions\Action::make('fetchLiveEmailBody')
                 ->label('Fetch Full Body Live (Graph API)')
                 ->icon('heroicon-o-arrow-down-tray')

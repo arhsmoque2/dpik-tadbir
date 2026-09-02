@@ -416,15 +416,171 @@ test('probeOpenRouterKey handles connection exceptions', function () {
     expect($res['error_message'])->toContain('Connection timeout');
 });
 
-test('llm gateway throws runtime exception when liveGate is true for unsupported live provider', function () {
+test('llm gateway throws runtime exception when liveGate is true for unsupported live provider and fallback fails', function () {
     $gateway = new LlmGatewayService;
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'API key invalid']], 401),
+    ]);
 
     expect(fn () => $gateway->complete(
         messages: [['role' => 'user', 'content' => 'Hello']],
         options: [
+            'provider' => 'unsupported_provider',
+            'model' => 'custom-model',
+            'live' => true,
+            'user' => new User(['gemini_api_key' => 'AIzaSyFakeKeyForTesting1234567890']),
+        ]
+    ))->toThrow(RuntimeException::class, 'Google Gemini API error (HTTP 401): API key invalid');
+});
+
+test('llm gateway executes live gemini integration with http fake', function () {
+    $user = User::create([
+        'name' => 'Gemini Test User',
+        'email' => 'gemini-test@dpik.com.my',
+        'password' => bcrypt('password'),
+        'gemini_api_key' => 'AIzaSyFakeKeyForTesting1234567890',
+    ]);
+    test()->actingAs($user);
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response([
+            'candidates' => [
+                [
+                    'content' => [
+                        'parts' => [
+                            ['text' => 'Gemini response text generated live.'],
+                        ],
+                        'role' => 'model',
+                    ],
+                    'finishReason' => 'STOP',
+                ],
+            ],
+            'usageMetadata' => [
+                'promptTokenCount' => 25,
+                'candidatesTokenCount' => 12,
+            ],
+        ], 200),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->complete(
+        messages: [['role' => 'user', 'content' => 'Test query']],
+        options: [
             'provider' => 'gemini',
             'model' => 'gemini-2.5-flash',
+            'user' => $user,
             'live' => true,
         ]
-    ))->toThrow(RuntimeException::class, 'No live integration configured for provider');
+    );
+
+    expect($res['content'])->toBe('Gemini response text generated live.')
+        ->and($res['provider'])->toBe('gemini')
+        ->and($res['model'])->toBe('gemini-2.5-flash')
+        ->and($res['input_tokens'])->toBe(25)
+        ->and($res['output_tokens'])->toBe(12);
+});
+
+test('probeGeminiKey handles missing and invalid key formats', function () {
+    $gateway = new LlmGatewayService;
+
+    // Missing key
+    $res = $gateway->probeGeminiKey(null);
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('MISSING_API_KEY');
+
+    // Invalid format
+    $res = $gateway->probeGeminiKey('invalid-prefix-key');
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('INVALID_KEY_FORMAT');
+});
+
+test('probeGeminiKey handles success response', function () {
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['models' => []], 200),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->probeGeminiKey('AIzaSyValidFormatKey12345');
+    expect($res['success'])->toBeTrue()
+        ->and($res['status'])->toBe('connected');
+});
+
+test('probeGeminiKey handles auth error response', function () {
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'API key invalid']], 400),
+    ]);
+
+    $gateway = new LlmGatewayService;
+    $res = $gateway->probeGeminiKey('AIzaSyInvalidKey12345');
+    expect($res['success'])->toBeFalse()
+        ->and($res['error_code'])->toBe('AUTH_ERROR');
+});
+
+test('toGeminiContents translates assistant tool_calls and tool results to Gemini functionResponse wire format', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toGeminiContents');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check both projects'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_1', 'name' => 'query_project_register', 'arguments' => ['query' => 'A']],
+                ['id' => 'call_2', 'name' => 'query_project_register', 'arguments' => ['query' => 'B']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"count":1}', 'tool_call_id' => 'call_1', 'tool_name' => 'query_project_register', 'is_error' => false],
+        ['role' => 'tool', 'content' => '{"error":"not found"}', 'tool_call_id' => 'call_2', 'is_error' => true],
+    ];
+
+    /** @var list<array{role: string, parts: list<array<string, mixed>>}> $result */
+    $result = $method->invoke($gateway, $neutral);
+
+    expect($result)->toHaveCount(3); // user turn, model turn with functionCalls, user turn with merged functionResponses
+    expect($result[0]['role'])->toBe('user');
+    expect($result[0]['parts'][0]['text'])->toBe('Check both projects');
+
+    expect($result[1]['role'])->toBe('model');
+    expect($result[1]['parts'])->toHaveCount(2);
+    expect($result[1]['parts'][0]['functionCall']['name'])->toBe('query_project_register');
+    expect($result[1]['parts'][0]['functionCall']['args'])->toBe(['query' => 'A']);
+    expect($result[1]['parts'][1]['functionCall']['name'])->toBe('query_project_register');
+
+    expect($result[2]['role'])->toBe('user');
+    expect($result[2]['parts'])->toHaveCount(2); // consecutive tool messages merged
+    expect($result[2]['parts'][0]['functionResponse']['name'])->toBe('query_project_register');
+    expect($result[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['count' => 1]);
+    expect($result[2]['parts'][1]['functionResponse']['name'])->toBe('query_project_register');
+    expect($result[2]['parts'][1]['functionResponse']['response']['content'])->toBe(['error' => 'not found']);
+});
+
+test('toGeminiContents resolves tool name from preceding assistant tool_calls when tool_name is omitted', function () {
+    $gateway = new LlmGatewayService;
+    $reflection = new ReflectionClass($gateway);
+    $method = $reflection->getMethod('toGeminiContents');
+    $method->setAccessible(true);
+
+    $neutral = [
+        ['role' => 'user', 'content' => 'Check FT264'],
+        [
+            'role' => 'assistant',
+            'content' => '',
+            'tool_calls' => [
+                ['id' => 'call_suspend_99', 'name' => 'propose_action_card', 'arguments' => ['title' => 'Draft']],
+            ],
+        ],
+        ['role' => 'tool', 'content' => '{"approved":true}', 'tool_call_id' => 'call_suspend_99'],
+    ];
+
+    /** @var list<array{role: string, parts: list<array<string, mixed>>}> $result */
+    $result = $method->invoke($gateway, $neutral);
+
+    expect($result)->toHaveCount(3);
+    expect($result[2]['role'])->toBe('user');
+    expect($result[2]['parts'][0]['functionResponse']['name'])->toBe('propose_action_card');
+    expect($result[2]['parts'][0]['functionResponse']['response']['content'])->toBe(['approved' => true]);
 });

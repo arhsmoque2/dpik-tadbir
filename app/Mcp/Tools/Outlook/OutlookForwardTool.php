@@ -5,6 +5,7 @@ namespace App\Mcp\Tools\Outlook;
 use App\Mcp\BaseTool;
 use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Ai\ActionApprovalService;
+use App\Services\Audit\ActionMemoryService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -58,6 +59,18 @@ class OutlookForwardTool extends BaseTool
         $comment = (string) ($arguments['comment'] ?? '');
 
         $success = $this->scopedBridge($this->bridge)->forwardMessage($messageId, $toRecipients, $comment);
+
+        if ($success) {
+            app(ActionMemoryService::class)->logReceipt(
+                user: $user,
+                actionType: 'outlook_forward',
+                description: "Forwarded email [{$messageId}] to ".implode(', ', $toRecipients),
+                targetRecipients: $toRecipients,
+                payload: ['message_id' => $messageId, 'to_recipients' => $toRecipients, 'comment' => $comment],
+                status: 'executed',
+                approvalToken: $token
+            );
+        }
 
         return [
             'status' => $success ? 'forwarded' : 'failed',

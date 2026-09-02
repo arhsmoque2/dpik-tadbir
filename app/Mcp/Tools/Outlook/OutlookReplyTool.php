@@ -5,6 +5,7 @@ namespace App\Mcp\Tools\Outlook;
 use App\Mcp\BaseTool;
 use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
 use App\Services\Ai\ActionApprovalService;
+use App\Services\Audit\ActionMemoryService;
 use App\Services\Mcp\OutlookMcpBridge;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -58,6 +59,18 @@ class OutlookReplyTool extends BaseTool
         $attachments = (array) ($arguments['attachments'] ?? []);
 
         $success = $this->scopedBridge($this->bridge)->sendReply($messageId, $body, $attachments);
+
+        if ($success) {
+            app(ActionMemoryService::class)->logReceipt(
+                user: $user,
+                actionType: 'outlook_reply',
+                description: "Sent email reply to message [{$messageId}]",
+                targetRecipients: null,
+                payload: ['message_id' => $messageId, 'body' => $body, 'attachments' => $attachments],
+                status: 'executed',
+                approvalToken: $token
+            );
+        }
 
         return [
             'status' => $success ? 'sent' : 'failed',

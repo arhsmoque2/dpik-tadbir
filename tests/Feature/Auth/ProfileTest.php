@@ -64,3 +64,31 @@ test('user model getNameAttribute and getFilamentName fallback safely', function
     expect($userWithFirstLast->name)->toBe('Nur Aisyah')
         ->and($userWithFirstLast->getFilamentName())->toBe('Nur Aisyah');
 });
+
+test('profile page allows user to update password, email, and names simultaneously', function () {
+    $user = User::create([
+        'first_name' => 'Ahmad',
+        'last_name' => 'Ibrahim',
+        'email' => 'ahmad@dpik.com.my',
+        'password' => Hash::make('old-password-123'),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(EditProfile::class)
+        ->fillForm([
+            'first_name' => 'Tan Sri Ahmad',
+            'last_name' => 'Ibrahim',
+            'email' => 'ahmad.ibrahim@dpik.com.my',
+            'currentPassword' => 'old-password-123',
+            'password' => 'new-secure-password-456',
+            'passwordConfirmation' => 'new-secure-password-456',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    $user->refresh();
+    expect($user->email)->toBe('ahmad.ibrahim@dpik.com.my')
+        ->and($user->first_name)->toBe('Tan Sri Ahmad')
+        ->and(Hash::check('new-secure-password-456', (string) $user->password))->toBeTrue();
+});

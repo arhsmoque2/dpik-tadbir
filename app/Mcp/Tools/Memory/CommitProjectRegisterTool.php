@@ -44,7 +44,10 @@ class CommitProjectRegisterTool extends BaseTool
         $projectName = isset($arguments['project_name']) ? (string) $arguments['project_name'] : null;
         $summary = (string) ($arguments['summary'] ?? '');
         $sourceType = (string) ($arguments['source_type'] ?? 'email_summary');
-        $userId = (int) ($arguments['user_id'] ?? auth()->id() ?? 1);
+        $userId = isset($arguments['user_id']) ? (int) $arguments['user_id'] : auth()->id();
+        if ($userId === null || $userId === 0) {
+            throw new \RuntimeException('Cannot commit to project register outside an authenticated session.');
+        }
 
         $extracted = $this->extractor->extract($summary);
 

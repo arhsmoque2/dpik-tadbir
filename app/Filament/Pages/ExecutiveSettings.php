@@ -57,6 +57,14 @@ class ExecutiveSettings extends Page
 
     public ?string $smtp_password = null;
 
+    public ?string $bottom_nav_slot_1 = 'copilot';
+
+    public ?string $bottom_nav_slot_2 = 'bundles';
+
+    public ?string $bottom_nav_slot_3 = 'notes';
+
+    public ?string $bottom_nav_slot_4 = 'settings';
+
     public ?string $imapProbeStatus = null;
 
     public ?string $imapProbeMessage = null;
@@ -103,22 +111,60 @@ class ExecutiveSettings extends Page
         $user = Auth::user();
 
         if ($user) {
-            $this->anthropic_api_key = $user->anthropic_api_key;
-            $this->gemini_api_key = $user->gemini_api_key;
-            $this->openrouter_api_key = $user->openrouter_api_key;
+            try {
+                $this->anthropic_api_key = $user->anthropic_api_key;
+            } catch (Throwable) {
+                $this->anthropic_api_key = null;
+            }
+
+            try {
+                $this->gemini_api_key = $user->gemini_api_key;
+            } catch (Throwable) {
+                $this->gemini_api_key = null;
+            }
+
+            try {
+                $this->openrouter_api_key = $user->openrouter_api_key;
+            } catch (Throwable) {
+                $this->openrouter_api_key = null;
+            }
+
             $this->favorite_model_1 = $user->favorite_model_1 ?? 'anthropic:claude-3-7-sonnet-20250219';
             $this->favorite_model_2 = $user->favorite_model_2 ?? 'openrouter:deepseek/deepseek-r1';
             $this->favorite_model_3 = $user->favorite_model_3 ?? 'gemini:gemini-2.5-flash';
             $this->microsoft_client_id = $user->microsoft_client_id;
-            $this->microsoft_client_secret = $user->microsoft_client_secret;
+
+            try {
+                $this->microsoft_client_secret = $user->microsoft_client_secret;
+            } catch (Throwable) {
+                $this->microsoft_client_secret = null;
+            }
+
             $this->microsoft_tenant_id = $user->microsoft_tenant_id;
             $this->imap_host = $user->imap_host ?? 'mail.dpik.com.my';
             $this->imap_port = $user->imap_port ?? 993;
             $this->imap_username = $user->imap_username ?? $user->email;
-            $this->imap_password = $user->imap_password;
+
+            try {
+                $this->imap_password = $user->imap_password;
+            } catch (Throwable) {
+                $this->imap_password = null;
+            }
+
             $this->smtp_host = $user->smtp_host ?? 'mail.dpik.com.my';
             $this->smtp_port = $user->smtp_port ?? 465;
-            $this->smtp_password = $user->smtp_password ?? $user->imap_password;
+
+            try {
+                $this->smtp_password = $user->smtp_password ?? $user->imap_password;
+            } catch (Throwable) {
+                $this->smtp_password = null;
+            }
+
+            $slots = $user->getBottomNavSlots();
+            $this->bottom_nav_slot_1 = $slots[0]['key'] ?? 'copilot';
+            $this->bottom_nav_slot_2 = $slots[1]['key'] ?? 'bundles';
+            $this->bottom_nav_slot_3 = $slots[2]['key'] ?? 'notes';
+            $this->bottom_nav_slot_4 = $slots[3]['key'] ?? 'settings';
         }
 
         try {
@@ -126,6 +172,22 @@ class ExecutiveSettings extends Page
         } catch (Throwable) {
             $this->rawAiConfigJson = '{}';
         }
+    }
+
+    /**
+     * @return array<string, array{label: string, url: string, icon: string}>
+     */
+    public function getAvailableBottomNavOptions(): array
+    {
+        return [
+            'dashboard' => ['label' => 'Home', 'url' => '/admin', 'icon' => 'heroicon-o-home'],
+            'copilot' => ['label' => 'Copilot', 'url' => '/admin/executive-assistant', 'icon' => 'heroicon-o-sparkles'],
+            'bundles' => ['label' => 'Bundles', 'url' => '/admin/bundles', 'icon' => 'heroicon-o-folder-open'],
+            'notes' => ['label' => 'Notes', 'url' => '/admin/personal-notes', 'icon' => 'heroicon-o-document-text'],
+            'tasks' => ['label' => 'Tasks', 'url' => '/admin/personal-tasks', 'icon' => 'heroicon-o-check-circle'],
+            'projects' => ['label' => 'Projects', 'url' => '/admin/project-registers', 'icon' => 'heroicon-o-folder'],
+            'settings' => ['label' => 'Settings', 'url' => '/admin/executive-settings', 'icon' => 'heroicon-o-cog-6-tooth'],
+        ];
     }
 
     /**
@@ -307,6 +369,25 @@ class ExecutiveSettings extends Page
             return;
         }
 
+        $navOptions = $this->getAvailableBottomNavOptions();
+        $slotKeys = [
+            $this->bottom_nav_slot_1 ?: 'copilot',
+            $this->bottom_nav_slot_2 ?: 'bundles',
+            $this->bottom_nav_slot_3 ?: 'notes',
+            $this->bottom_nav_slot_4 ?: 'settings',
+        ];
+
+        $compiledSlots = [];
+        foreach ($slotKeys as $k) {
+            $opt = $navOptions[$k] ?? $navOptions['copilot'];
+            $compiledSlots[] = [
+                'key' => $k,
+                'label' => $opt['label'],
+                'url' => $opt['url'],
+                'icon' => $opt['icon'],
+            ];
+        }
+
         $user->update([
             'anthropic_api_key' => filled($this->anthropic_api_key) ? trim((string) $this->anthropic_api_key) : null,
             'gemini_api_key' => filled($this->gemini_api_key) ? trim((string) $this->gemini_api_key) : null,
@@ -324,6 +405,7 @@ class ExecutiveSettings extends Page
             'smtp_host' => filled($this->smtp_host) ? trim((string) $this->smtp_host) : 'mail.dpik.com.my',
             'smtp_port' => $this->smtp_port ? (int) $this->smtp_port : 465,
             'smtp_password' => filled($this->smtp_password) ? trim((string) $this->smtp_password) : null,
+            'bottom_nav_slots' => $compiledSlots,
         ]);
 
         try {

@@ -13,7 +13,10 @@ class ExecutiveStatsOverview extends BaseWidget
 {
     protected function getStats(): array
     {
-        $userId = auth()->id() ?? 1;
+        $userId = auth()->id();
+        if ($userId === null) {
+            return [];
+        }
 
         $totalMemory = ProjectRegistryEntry::count();
         $pendingTasks = PersonalTask::where('user_id', $userId)->where('status', 'pending')->count();
