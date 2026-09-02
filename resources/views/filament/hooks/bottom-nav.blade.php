@@ -39,6 +39,7 @@
                 class="flex flex-col items-center justify-center flex-1 transition-all hover:opacity-80"
                 style="color: #FFFFFF; text-decoration: none;"
                 title="{{ $slot['label'] }}"
+                aria-label="{{ $slot['label'] }}"
             >
                 <svg style="width: 18px; height: 18px; min-width: 18px; color: #FFFFFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {!! $renderIcon($slot['key'] ?? '') !!}
@@ -57,6 +58,7 @@
                 class="absolute -top-5 flex items-center justify-center shadow-2xl transition-transform hover:scale-105 active:scale-95 group"
                 style="padding: 8px 16px; border-radius: 9999px; background: linear-gradient(135deg, #D4AF37 0%, #B88E52 100%); border: 2.5px solid #212631; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45); gap: 6px; cursor: pointer;"
                 title="Launch AI Copilot (⌘J)"
+                aria-label="Launch AI Copilot"
             >
                 <svg style="width: 16px; height: 16px; min-width: 16px; color: #111215;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -72,6 +74,7 @@
                 class="flex flex-col items-center justify-center flex-1 transition-all hover:opacity-80"
                 style="color: #FFFFFF; text-decoration: none;"
                 title="{{ $slot['label'] }}"
+                aria-label="{{ $slot['label'] }}"
             >
                 <svg style="width: 18px; height: 18px; min-width: 18px; color: #FFFFFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {!! $renderIcon($slot['key'] ?? '') !!}

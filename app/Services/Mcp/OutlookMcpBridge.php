@@ -93,7 +93,11 @@ class OutlookMcpBridge
                     'tool' => $toolName,
                     'error' => $process->getErrorOutput(),
                 ]);
-                throw new RuntimeException('Outlook MCP bridge error: '.$process->getErrorOutput());
+                // The raw stderr (shell/process output) goes to the log above only.
+                // It must never reach the executive-facing chat transcript — a
+                // "command not found" or stack trace is not an executive-readable
+                // message, and it exposes deployment internals in the UI.
+                throw new RuntimeException('Outlook MCP bridge is unavailable.');
             }
 
             $output = trim($process->getOutput());
@@ -113,8 +117,36 @@ class OutlookMcpBridge
                 'error' => $e->getMessage(),
             ]);
 
-            return ['status' => 'unavailable', 'error' => $e->getMessage()];
+            return ['status' => 'unavailable', 'error' => $this->sanitizeUserFacingError($e->getMessage())];
         }
+    }
+
+    /**
+     * Strips raw shell/stack-trace signatures before an error reaches the
+     * executive-facing chat transcript. The full, unsanitized message is
+     * always logged above this call — this only guards what gets echoed
+     * back into the UI.
+     */
+    protected function sanitizeUserFacingError(string $message): string
+    {
+        $rawSignatures = [
+            '/\bsh:\s*\d+:/i',
+            '/\bcommand not found\b/i',
+            '/No such file or directory/i',
+            '/^The command .+ failed\./i',
+            '/Traceback \(most recent call last\)/',
+            '/Fatal error:/i',
+            '/Stack trace:/i',
+            '/\.php on line \d+/i',
+        ];
+
+        foreach ($rawSignatures as $pattern) {
+            if (preg_match($pattern, $message) === 1) {
+                return 'Outlook MCP bridge is unavailable.';
+            }
+        }
+
+        return $message;
     }
 
     public function getClientId(): ?string
