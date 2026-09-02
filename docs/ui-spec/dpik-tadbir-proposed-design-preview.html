@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DPIK Tadbir — Proposed Design & Architecture Preview (Filament v4)</title>
+  <title>DPIK Tadbir — Executive Intelligence & Command Center (Filament v4)</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
@@ -76,23 +76,6 @@
       box-shadow: 0 0 25px -5px rgba(201, 163, 109, 0.25);
     }
 
-    .active-nav-glow {
-      position: relative;
-    }
-    .active-nav-glow::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 16px;
-      height: 3px;
-      border-radius: 9999px;
-      background: #C9A36D;
-      box-shadow: 0 0 8px #C9A36D;
-    }
-
-    /* Custom Transitions */
     .drawer-transition {
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
     }
@@ -101,7 +84,7 @@
 <body class="flex flex-col relative pb-28 md:pb-8">
 
   <!-- ========================================== -->
-  <!-- TOP NAVIGATION BAR (Filament v4 Topbar)     -->
+  <!-- TOPBAR (Filament v4 Panel Topbar)          -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-30 w-full glass-panel border-b border-brand-navyBorder px-4 lg:px-8 py-3 flex items-center justify-between">
     <!-- Left: Brand / Company Identity -->
@@ -112,22 +95,22 @@
       <div>
         <div class="flex items-center space-x-2">
           <span class="font-bold tracking-tight text-white text-base">DPIK TADBIR</span>
-          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold font-semibold border border-brand-gold/30">ADR-033</span>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold font-semibold border border-brand-gold/30">Executive</span>
         </div>
         <p class="text-[11px] text-slate-400 hidden sm:block">Executive Command Center · DPI Konsult Sdn Bhd</p>
       </div>
     </div>
 
-    <!-- Center: Global Search Bar -->
+    <!-- Center: Global Quick Switcher (Relaticle Cmd+O / Cmd+K Pattern) -->
     <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
       <div class="relative w-full">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
         <input 
           type="text" 
-          placeholder="Search commitments, tenders, emails (Cmd+K)..." 
+          placeholder="Search commitments, project registers, tenders (Cmd+O)..." 
           class="w-full pl-10 pr-12 py-2 text-xs rounded-xl bg-brand-navySurface border border-brand-navyBorder text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold transition-all"
         />
-        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-brand-navyCard border border-brand-navyBorder">⌘K</span>
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-brand-navyCard border border-brand-navyBorder">⌘O</span>
       </div>
     </div>
 
@@ -165,13 +148,13 @@
   <!-- ========================================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
-    <!-- View Switcher & Executive Context Banner -->
+    <!-- Executive Context & Navigation Banner -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-brand-navyCard via-brand-navySurface to-brand-navyCard p-6 rounded-2xl border border-brand-navyBorder relative overflow-hidden">
       <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-brand-gold/5 rounded-full blur-3xl pointer-events-none"></div>
       <div>
         <div class="flex items-center space-x-2 text-xs font-mono text-brand-gold mb-1">
           <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-          <span>EXECUTIVE INTELLIGENCE RADAR · ACTIVE</span>
+          <span>EXECUTIVE RADAR · ACTIVE</span>
         </div>
         <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Good morning, Managing Director</h1>
         <p class="text-xs text-slate-400 mt-1 max-w-xl">
@@ -179,7 +162,7 @@
         </p>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Clean Executive Tabs (Zero Dev Clutter) -->
       <div class="flex flex-wrap items-center gap-1.5 p-1 bg-brand-navyDark/80 rounded-xl border border-brand-navyBorder shrink-0">
         <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-gold text-brand-navyDark font-semibold transition-all">
           <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline mr-1"></i> Command Center
@@ -187,14 +170,17 @@
         <button onclick="switchTab('bundles')" id="tab-btn-bundles" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
           <i data-lucide="mail" class="w-3.5 h-3.5 inline mr-1"></i> Mail Bundles
         </button>
-        <button onclick="switchTab('qa')" id="tab-btn-qa" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
-          <i data-lucide="check-check" class="w-3.5 h-3.5 inline mr-1"></i> Quality Gates (207)
+        <button onclick="switchTab('registers')" id="tab-btn-registers" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
+          <i data-lucide="folder-kanban" class="w-3.5 h-3.5 inline mr-1"></i> Project Registers
+        </button>
+        <button onclick="switchTab('ledger')" id="tab-btn-ledger" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 inline mr-1"></i> Action Ledger
         </button>
       </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 1: COMMAND CENTER (DASHBOARD)          -->
+    <!-- TAB 1: EXECUTIVE COMMAND CENTER            -->
     <!-- ========================================== -->
     <div id="view-dashboard" class="space-y-6">
       
@@ -387,62 +373,67 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 3: QUALITY GATES TELEMETRY             -->
+    <!-- TAB 3: PROJECT REGISTERS                   -->
     <!-- ========================================== -->
-    <div id="view-qa" class="hidden space-y-4">
-      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-6">
-        <div>
-          <div class="flex items-center space-x-2 text-xs font-mono text-brand-emerald mb-1">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
-            <span>5-GATE QUALITY PIPELINE · 100% PASSING</span>
+    <div id="view-registers" class="hidden space-y-4">
+      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white">Compounding Project Registers</h2>
+            <p class="text-xs text-slate-400">Institutional memory cross-referenced across tenders, partner correspondence, and variation orders.</p>
           </div>
-          <h2 class="text-lg font-bold text-white">Empirical QA & CI/CD Verification</h2>
-          <p class="text-xs text-slate-400">All tests hermetically verified via `tools/tadbir.py gate` and GitHub Actions.</p>
+          <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-gold text-brand-navyDark">
+            + New Project Register
+          </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Gate 1 -->
-          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder">
-            <div class="flex items-center justify-between text-xs font-semibold mb-2">
-              <span class="text-slate-300">Gate 1: Static Hygiene</span>
-              <span class="text-brand-emerald font-mono">PASS</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Bintulu Port Expansion (Phase 2)</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold">PC-2023-011</span>
             </div>
-            <p class="text-[11px] text-slate-400">Laravel Pint: 0 violations</p>
-            <p class="text-[11px] text-slate-400">PHPStan: Level 8 (0 errors)</p>
-            <p class="text-[11px] text-slate-400">FilaCheck: 18/18 AST rules</p>
+            <p class="text-[11px] text-slate-400">Lead Partner: Ir. Dr. Tan · Client: Bintulu Port Holdings</p>
+            <p class="text-xs text-slate-300">Active Geotechnical review on Pier 4 foundation stability. Contingency reserve: RM 500,000.</p>
           </div>
 
-          <!-- Gate 2 & 3 -->
-          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder">
-            <div class="flex items-center justify-between text-xs font-semibold mb-2">
-              <span class="text-slate-300">Gate 2 & 3: Hermetic Tests</span>
-              <span class="text-brand-emerald font-mono">207 PASS</span>
+          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Pan Borneo Highway Package 5</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-400">PC-2024-001</span>
             </div>
-            <p class="text-[11px] text-slate-400">Pest: 207 tests (961 assertions)</p>
-            <p class="text-[11px] text-slate-400">RenderHooks: Verified</p>
-            <p class="text-[11px] text-slate-400">Diff-Cover: >= 90% PR Gate</p>
+            <p class="text-[11px] text-slate-400">Lead Partner: Managing Director · Client: JKR Sarawak</p>
+            <p class="text-xs text-slate-300">Tender clarification stage for pre-cast culvert specification.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: ACTION APPROVAL LEDGER              -->
+    <!-- ========================================== -->
+    <div id="view-ledger" class="hidden space-y-4">
+      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-white">Action Approval & Audit Ledger</h2>
+          <p class="text-xs text-slate-400">Cryptographically signed receipts for all outbound AI actions (replies, drafts, database writes).</p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3.5 rounded-xl bg-brand-navySurface border border-brand-navyBorder flex items-center justify-between text-xs">
+            <div class="space-y-0.5">
+              <p class="font-semibold text-white">Authorized Outbound Reply to JKR Sarawak</p>
+              <p class="text-[11px] text-slate-400">Signed by: Managing Director (rahman@dpik.com.my) · Token: 0x7E3...A10</p>
+            </div>
+            <span class="text-[10px] font-mono px-2.5 py-1 rounded-full bg-brand-emerald/15 text-brand-emerald font-semibold">EXECUTED</span>
           </div>
 
-          <!-- Gate 4 -->
-          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder">
-            <div class="flex items-center justify-between text-xs font-semibold mb-2">
-              <span class="text-slate-300">Gate 4: E2E & Visual Diff</span>
-              <span class="text-brand-emerald font-mono">PASS</span>
+          <div class="p-3.5 rounded-xl bg-brand-navySurface border border-brand-navyBorder flex items-center justify-between text-xs">
+            <div class="space-y-0.5">
+              <p class="font-semibold text-white">Created Project Register Commitment (PC-2023-011)</p>
+              <p class="text-[11px] text-slate-400">Signed by: Managing Director · Token: 0x9B1...F44</p>
             </div>
-            <p class="text-[11px] text-slate-400">Playwright toHaveScreenshot</p>
-            <p class="text-[11px] text-slate-400">maxDiffPixelRatio: 0.05</p>
-            <p class="text-[11px] text-slate-400">@axe-core WCAG 2.1 Level AA</p>
-          </div>
-
-          <!-- Gate 5 -->
-          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder">
-            <div class="flex items-center justify-between text-xs font-semibold mb-2">
-              <span class="text-slate-300">Gate 5: Cloud Deployment</span>
-              <span class="text-brand-emerald font-mono">ACTIVE</span>
-            </div>
-            <p class="text-[11px] text-slate-400">Google Cloud Run (Asia-SE1)</p>
-            <p class="text-[11px] text-slate-400">Keyless WIF OIDC Auth</p>
-            <p class="text-[11px] text-slate-400">Neon Postgres 16 Pooler</p>
+            <span class="text-[10px] font-mono px-2.5 py-1 rounded-full bg-brand-emerald/15 text-brand-emerald font-semibold">EXECUTED</span>
           </div>
         </div>
       </div>
@@ -475,7 +466,7 @@
         <select id="model-picker" class="text-[11px] font-mono bg-brand-navySurface border border-brand-navyBorder rounded-lg px-2 py-1 text-brand-gold focus:outline-none focus:border-brand-gold">
           <option value="claude-3-7">Claude 3.7 Sonnet</option>
           <option value="gemini-2-5">Gemini 2.5 Flash</option>
-          <option value="deepseek-r1">DeepSeek R1 (OpenRouter)</option>
+          <option value="deepseek-r1">DeepSeek R1</option>
         </select>
         <button onclick="toggleCopilotDrawer()" class="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-brand-navySurface cursor-pointer">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -494,7 +485,7 @@
       </button>
     </div>
 
-    <!-- Chat Message History Timeline -->
+    <!-- Chat Message History Timeline (Relaticle Conversational UX) -->
     <div id="chat-stream" class="flex-1 p-4 space-y-4 overflow-y-auto text-xs">
       
       <!-- AI Turn 1 -->
@@ -537,13 +528,13 @@
 
     </div>
 
-    <!-- Chat Input Area -->
+    <!-- Chat Input Area (TipTap Mentions & Composer Dock) -->
     <div class="p-4 border-t border-brand-navyBorder bg-brand-navyCard">
       <div class="relative">
         <textarea 
           id="copilot-input"
           rows="2" 
-          placeholder="Ask Copilot about tender commitments, partners, or draft replies..." 
+          placeholder="Ask Copilot about tender commitments, @Projects, or draft replies..." 
           class="w-full pl-3 pr-10 py-2.5 text-xs rounded-xl bg-brand-navySurface border border-brand-navyBorder text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-gold transition-all resize-none"
         ></textarea>
         <button onclick="sendMessage()" class="absolute right-2.5 bottom-2.5 p-1.5 rounded-lg bg-brand-gold hover:bg-brand-goldLight text-brand-navyDark transition-all cursor-pointer">
@@ -568,10 +559,10 @@
       <span class="text-[9px] font-medium mt-1">Mail</span>
     </button>
 
-    <!-- Slot 2: Tasks -->
-    <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
-      <i data-lucide="check-square" class="w-4 h-4"></i>
-      <span class="text-[9px] font-medium mt-1">Tasks</span>
+    <!-- Slot 2: Projects -->
+    <button onclick="switchTab('registers')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Projects</span>
     </button>
 
     <!-- Center Floating Action Anchor: AI Copilot -->
@@ -579,10 +570,10 @@
       <i data-lucide="sparkles" class="w-5 h-5"></i>
     </button>
 
-    <!-- Slot 3: Quality Gates -->
-    <button onclick="switchTab('qa')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
-      <i data-lucide="shield" class="w-4 h-4"></i>
-      <span class="text-[9px] font-medium mt-1">QA (207)</span>
+    <!-- Slot 3: Action Ledger -->
+    <button onclick="switchTab('ledger')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Ledger</span>
     </button>
 
     <!-- Slot 4: Settings -->
@@ -621,15 +612,17 @@
 
     // Tab switcher
     function switchTab(tabId) {
-      ['dashboard', 'bundles', 'qa'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add('hidden');
+      ['dashboard', 'bundles', 'registers', 'ledger'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        if (view) view.classList.add('hidden');
         const btn = document.getElementById(`tab-btn-${t}`);
         if (btn) {
           btn.className = "px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all";
         }
       });
 
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      const targetView = document.getElementById(`view-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-btn-${tabId}`);
       if (activeBtn) {
         activeBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-gold text-brand-navyDark font-semibold transition-all";
