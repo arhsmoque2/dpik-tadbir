@@ -9,7 +9,7 @@
 
 ## 1. Problem Statement
 
-1. **Scale-to-Zero Cold Start Delay**: By default, Cloud Run scales to 0 instances after ~15 minutes of idling. Subsequent executive requests incurred container startup, 5 consecutive `php artisan` cache CLI boots, and unboosted CPU limits, leading to an 8–10 second delay.
+1. **Scale-to-Zero Cold Start Delay**: By default, Cloud Run scales to 0 instances after ~15 minutes of idling. Subsequent executive requests incurred container startup, 5 consecutive `php artisan` cache CLI boots, and standard throttled CPU limits, leading to an 8–10 second delay.
 2. **Missing HTTP Asset Cache Headers**: Caddy served Vite-compiled CSS/JS (`/build/assets/*`) and Livewire assets without `Cache-Control: public, max-age=31536000, immutable`, forcing browsers to make redundant conditional requests on navigation and refresh.
 3. **Full-Page Reload Overhead**: Navigating between Filament resources (Dashboard, Bundles, Settings, Personal Notes) triggered full HTML document reloads and asset re-evaluations, degrading perceived snappiness.
 4. **Settings Persistence Reversion**: When an executive saved AI API keys, favorite models, or mail credentials in `ExecutiveSettings` and clicked "Settings" on the navigation bar, the settings appeared to reset to empty/defaults because `AutoLoginBypassMiddleware` unconditionally overwrote authenticated sessions with the first seeded super admin account on every request when `auth.enabled` was unset.
