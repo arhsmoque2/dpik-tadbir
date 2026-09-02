@@ -1,4 +1,7 @@
 /node_modules
+# Build output, regenerated fresh every run by tools/capabilities/generate.php
+# — never hand-edited, never a source of truth. See docs/testing/capability-roadmap.json.
+/docs/testing/capability-manifest.generated.json
 /public/build
 /public/hot
 /public/storage

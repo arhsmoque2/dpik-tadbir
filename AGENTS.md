@@ -65,6 +65,19 @@ php artisan mcp:serve    # Run native MCP server endpoint
 python -m outlook_mcp    # Run Python Outlook MCP bridge
 ```
 
+## Capability Gate (declared-vs-built, hard-gated both ways)
+
+`docs/testing/capability-roadmap.json` is the **only hand-edited** file in this system — human/ADR-owned intent (`approved` / `planned` / `deferred`) for AI-copilot-chat capabilities, never what's actually built. What's built is derived from the codebase itself: a test declares a capability by placing `// @capability(<key>)` directly above it (Pest: `tests/Feature/**/*.php`; Playwright: `tests/Browser/**/*.spec.ts`), and `tools/capabilities/generate.php` statically scans for these markers — nobody hand-types a "status: implemented" flag anywhere.
+
+`tools/capabilities/diff.php` gates the generated inventory against the roadmap and fails on **either** direction of drift: `approved` in the roadmap with no matching test (or a matching test that fails once `--verify-php`/`--verify-browser` actually runs it) fails the build; a test proving a capability that has **no roadmap entry at all** also fails the build — a capability can't quietly ship without ever being approved.
+
+Installed via `bash scripts/install-git-hooks.sh` (run automatically by `setup-sandbox.sh`):
+- **pre-commit**: static scan + diff only (no test execution) — sub-second, every commit.
+- **pre-push**: runs `scripts/sandbox-preflight.sh` in full, which includes `generate.php --verify-php` + `diff.php` — this is what catches a violation *before* it burns CI minutes, not after.
+- **CI** (`capability-gate` job in `ci.yml`) is the tamper-proof backstop — hooks are bypassable (`--no-verify`) or simply not installed in a fresh clone/sandbox, so CI runs the full `--verify-php --verify-browser` pass unconditionally and is the actual authority, not the hooks.
+
+Adding a new capability: write the test, tag it `@capability(domain.key)`, add a matching entry to `capability-roadmap.json` (state `planned` if not required yet, `approved` once it must be gated). Never hand-edit `docs/testing/capability-manifest.generated.json` — it's build output (gitignored) and gets overwritten the next time anyone runs `generate.php`.
+
 ## 🚢 Mandatory Deployment & Verification Closure Protocol
 
 **Rule**: An agent task involving bug fixes, features, or performance tuning is **NEVER finished at local code edits**. All tasks MUST conclude with verified live deployment to Google Cloud Run:
