@@ -16,12 +16,14 @@ class PersonalNote extends Model
         'title',
         'content',
         'tags',
+        'is_pinned',
     ];
 
     protected function casts(): array
     {
         return [
             'tags' => 'array',
+            'is_pinned' => 'boolean',
         ];
     }
 

@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DPIK Tadbir — Executive Intelligence & Command Center (Filament v4)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              gold: '#C9A36D',
+              goldLight: '#E6C99B',
+              goldDark: '#A37E47',
+              navyDark: '#0A0C10',
+              navyCanvas: '#0F1218',
+              navyCard: '#151922',
+              navySurface: '#1B202C',
+              navyBorder: '#262D3D',
+              navyBorderHover: '#374158',
+              emerald: '#10B981',
+              amber: '#F59E0B',
+              danger: '#EF4444',
+              info: '#3B82F6',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0F1218; }
+    ::-webkit-scrollbar-thumb { background: #262D3D; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C9A36D; }
+    
+    body {
+      background-color: #0A0C10;
+      color: #E2E8F0;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass-panel {
+      background: rgba(21, 25, 34, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid #262D3D;
+    }
+
+    .glass-dock {
+      background: rgba(15, 18, 24, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(201, 163, 109, 0.35);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .glow-gold {
+      box-shadow: 0 0 25px -5px rgba(201, 163, 109, 0.25);
+    }
+
+    .drawer-transition {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="flex flex-col relative pb-28 md:pb-8">
+
+  <!-- ========================================== -->
+  <!-- TOPBAR (Filament v4 Panel Topbar)          -->
+  <!-- ========================================== -->
+  <header class="sticky top-0 z-30 w-full glass-panel border-b border-brand-navyBorder px-4 lg:px-8 py-3 flex items-center justify-between">
+    <!-- Left: Brand / Company Identity -->
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-gold to-brand-goldDark flex items-center justify-center text-brand-navyDark font-bold shadow-md shadow-brand-gold/20">
+        <i data-lucide="shield" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold tracking-tight text-white text-base">DPIK TADBIR</span>
+          <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-brand-gold/15 text-brand-gold font-semibold border border-brand-gold/30">Executive</span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Executive Command Center · DPI Konsult Sdn Bhd</p>
+      </div>
+    </div>
+
+    <!-- Center: Global Quick Switcher (Relaticle Cmd+O / Cmd+K Pattern) -->
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+      <div class="relative w-full">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input 
+          type="text" 
+          placeholder="Search commitments, project registers, tenders (Cmd+O)..." 
+          class="w-full pl-10 pr-12 py-2 text-xs rounded-xl bg-brand-navySurface border border-brand-navyBorder text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold transition-all"
+        />
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-brand-navyCard border border-brand-navyBorder">⌘O</span>
+      </div>
+    </div>
+
+    <!-- Right: Render Hook Actions & Executive Profile -->
+    <div class="flex items-center space-x-3">
+      <!-- RENDER HOOK: GLOBAL_SEARCH_AFTER (AI Copilot Trigger Button) -->
+      <button 
+        onclick="toggleCopilotDrawer()" 
+        class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-brand-navyCard hover:bg-brand-navySurface text-slate-200 hover:text-white border border-brand-gold/40 hover:border-brand-gold text-xs font-medium transition-all shadow-sm group glow-gold cursor-pointer"
+        title="Toggle AI Executive Copilot (Cmd+J)"
+      >
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
+        </span>
+        <span class="font-semibold text-brand-gold">AI Copilot</span>
+        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-brand-navyDark text-slate-400 border border-brand-navyBorder group-hover:border-brand-gold/50">⌘J</span>
+      </button>
+
+      <!-- Executive Profile Avatar -->
+      <div class="flex items-center space-x-2 pl-2 border-l border-brand-navyBorder">
+        <div class="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/50 flex items-center justify-center text-xs font-bold text-brand-gold">
+          MD
+        </div>
+        <div class="hidden lg:block text-left">
+          <p class="text-xs font-medium text-white leading-tight">Ir. Dr. Tan / Rahman</p>
+          <p class="text-[10px] font-mono text-brand-gold">Managing Director</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- MAIN WORKSPACE CONTENT                     -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- Executive Context & Navigation Banner -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-brand-navyCard via-brand-navySurface to-brand-navyCard p-6 rounded-2xl border border-brand-navyBorder relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-brand-gold/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div>
+        <div class="flex items-center space-x-2 text-xs font-mono text-brand-gold mb-1">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>EXECUTIVE RADAR · ACTIVE</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Good morning, Managing Director</h1>
+        <p class="text-xs text-slate-400 mt-1 max-w-xl">
+          Outlook MCP synthesized 4 direct correspondence threads. 1 variation order awaits cryptographic sign-off today.
+        </p>
+      </div>
+
+      <!-- Clean Executive Tabs (Zero Dev Clutter) -->
+      <div class="flex flex-wrap items-center gap-1.5 p-1 bg-brand-navyDark/80 rounded-xl border border-brand-navyBorder shrink-0">
+        <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-gold text-brand-navyDark font-semibold transition-all">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline mr-1"></i> Command Center
+        </button>
+        <button onclick="switchTab('bundles')" id="tab-btn-bundles" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
+          <i data-lucide="mail" class="w-3.5 h-3.5 inline mr-1"></i> Mail Bundles
+        </button>
+        <button onclick="switchTab('registers')" id="tab-btn-registers" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
+          <i data-lucide="folder-kanban" class="w-3.5 h-3.5 inline mr-1"></i> Project Registers
+        </button>
+        <button onclick="switchTab('ledger')" id="tab-btn-ledger" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 inline mr-1"></i> Action Ledger
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: EXECUTIVE COMMAND CENTER            -->
+    <!-- ========================================== -->
+    <div id="view-dashboard" class="space-y-6">
+      
+      <!-- 3-Column Executive Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Column 1: Direct Correspondence Bundles (Zero Raw Email Storage) -->
+        <div class="glass-panel p-5 rounded-2xl border border-brand-navyBorder space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="inbox" class="w-4 h-4 text-brand-gold"></i>
+              <h2 class="text-sm font-semibold text-white">Direct Correspondence</h2>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-navySurface text-slate-400 border border-brand-navyBorder">4 Bundles</span>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Bundle Item 1 -->
+            <div class="p-3.5 rounded-xl bg-brand-navySurface/70 hover:bg-brand-navySurface border border-brand-navyBorder hover:border-brand-gold/40 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold font-medium">PC-2023-011</span>
+                <span class="text-[10px] text-slate-500 font-mono">08:42 AM</span>
+              </div>
+              <h3 class="text-xs font-semibold text-slate-100 group-hover:text-brand-gold transition-colors">Bintulu Port Pier 4 Geotechnical VO</h3>
+              <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Ir. Dr. Tan: Soil test analysis complete. Variation Order stands at RM 120,000 awaiting Director approval.</p>
+              <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-500 font-mono pt-2 border-t border-brand-navyBorder">
+                <span>dr.tan@geotech-consult.com</span>
+                <span class="text-brand-gold font-medium">1 Action Card →</span>
+              </div>
+            </div>
+
+            <!-- Bundle Item 2 -->
+            <div class="p-3.5 rounded-xl bg-brand-navySurface/70 hover:bg-brand-navySurface border border-brand-navyBorder hover:border-brand-gold/40 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-medium">PC-2024-001</span>
+                <span class="text-[10px] text-slate-500 font-mono">Yesterday</span>
+              </div>
+              <h3 class="text-xs font-semibold text-slate-100 group-hover:text-blue-400 transition-colors">Pan Borneo Highway Package 5 Addendum</h3>
+              <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">JKR Sarawak: Clarification issued on culvert pre-cast specification deadlines.</p>
+              <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-500 font-mono pt-2 border-t border-brand-navyBorder">
+                <span>tender@jkr.gov.my</span>
+                <span class="text-slate-400">Archived · Reviewed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Action Approval Ledger (Cryptographic Write-Safety Gates) -->
+        <div class="glass-panel p-5 rounded-2xl border border-brand-navyBorder space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-brand-emerald"></i>
+              <h2 class="text-sm font-semibold text-white">Action Approval Ledger</h2>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-amber/15 text-brand-amber border border-brand-amber/30">1 Pending Sign-off</span>
+          </div>
+
+          <!-- Interactive Action Card -->
+          <div id="action-card-1" class="p-4 rounded-xl bg-gradient-to-br from-brand-navySurface to-brand-navyCard border border-brand-amber/40 shadow-lg space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-amber/20 text-brand-amber font-bold">ACTION PROPOSAL #842</span>
+              <span class="text-[10px] font-mono text-slate-400">Token: 0x9F4A...B2C1</span>
+            </div>
+            <div>
+              <h3 class="text-xs font-bold text-white">Issue Written Reply to JKR & Authorize RM 120k VO</h3>
+              <p class="text-[11px] text-slate-300 mt-1">
+                Draft response pre-compiled via Outlook MCP referencing Pier 4 soil tests. No raw email body persisted.
+              </p>
+            </div>
+            
+            <div class="p-2.5 rounded-lg bg-brand-navyDark border border-brand-navyBorder text-[11px] text-slate-300 font-mono">
+              <span class="text-slate-500">// Proposed Outbound Mail:</span><br/>
+              "DPIK acknowledges geotechnical findings and authorizes VO 04 for Bintulu Pier 4..."
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              <button onclick="approveActionCard('action-card-1')" class="px-3 py-2 rounded-lg bg-brand-emerald hover:bg-emerald-600 text-brand-navyDark font-bold text-xs flex items-center justify-center space-x-1.5 transition-all shadow cursor-pointer">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Approve & Sign</span>
+              </button>
+              <button onclick="rejectActionCard('action-card-1')" class="px-3 py-2 rounded-lg bg-brand-navySurface hover:bg-brand-navyBorder text-slate-300 text-xs font-medium flex items-center justify-center space-x-1.5 transition-all cursor-pointer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                <span>Decline</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Completed Action Receipt Item -->
+          <div class="p-3 rounded-xl bg-brand-navyDark/60 border border-brand-navyBorder text-xs text-slate-400 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-brand-emerald"></i>
+              <span>Task #319 Completed: Pan Borneo Sign-off</span>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500">Receipt #710</span>
+          </div>
+        </div>
+
+        <!-- Column 3: Sovereign Personal Workspace (Tasks & Notes) -->
+        <div class="glass-panel p-5 rounded-2xl border border-brand-navyBorder space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="check-square" class="w-4 h-4 text-brand-info"></i>
+              <h2 class="text-sm font-semibold text-white">Sovereign Tasks & Notes</h2>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-navySurface text-slate-400 border border-brand-navyBorder">Isolated</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <!-- Task 1 -->
+            <div class="p-3 rounded-xl bg-brand-navySurface/70 border border-brand-navyBorder flex items-start space-x-2.5">
+              <input type="checkbox" checked class="mt-0.5 rounded bg-brand-navyCard border-brand-navyBorder text-brand-gold focus:ring-0">
+              <div class="text-xs">
+                <p class="text-slate-200 line-through">Review JKR extension letter annexure</p>
+                <span class="text-[10px] font-mono text-brand-gold">PC-2023-011</span>
+              </div>
+            </div>
+
+            <!-- Task 2 -->
+            <div class="p-3 rounded-xl bg-brand-navySurface/70 border border-brand-navyBorder flex items-start space-x-2.5">
+              <input type="checkbox" class="mt-0.5 rounded bg-brand-navyCard border-brand-navyBorder text-brand-gold focus:ring-0">
+              <div class="text-xs">
+                <p class="text-slate-200 font-medium">Sign Pier 4 VO approval certificate</p>
+                <span class="text-[10px] font-mono text-brand-amber">Due 17:00 Today</span>
+              </div>
+            </div>
+
+            <!-- Note -->
+            <div class="p-3 rounded-xl bg-brand-navyDark/80 border border-brand-navyBorder text-xs text-slate-300 space-y-1">
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                <span>Executive Memo · 02 Sep</span>
+                <i data-lucide="lock" class="w-3 h-3 text-brand-gold"></i>
+              </div>
+              <p class="text-[11px] text-slate-300">Partner meeting: Confirm geotechnical contingency fund allocation before Friday Board convene.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: MAIL BUNDLES (MATERIALIZED VIEW)    -->
+    <!-- ========================================== -->
+    <div id="view-bundles" class="hidden space-y-4">
+      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white">Metadata-Only Mail Bundles</h2>
+            <p class="text-xs text-slate-400">Zero raw email blobs persisted. On-demand Microsoft Graph API synthesis via Outlook MCP.</p>
+          </div>
+          <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-gold text-brand-navyDark">
+            Sync Graph Mailbox
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-brand-navySurface text-[11px] font-mono uppercase text-slate-400 border-b border-brand-navyBorder">
+              <tr>
+                <th class="p-3">Bundle Label</th>
+                <th class="p-3">Project</th>
+                <th class="p-3">Sender</th>
+                <th class="p-3">Emails</th>
+                <th class="p-3">Received</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-navyBorder">
+              <tr class="hover:bg-brand-navySurface/40">
+                <td class="p-3 font-semibold text-white">Direct Correspondence · 02 Sep 2026</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold font-mono text-[10px]">PC-2023-011</span></td>
+                <td class="p-3">Ir. Dr. Tan (Geotech Consult)</td>
+                <td class="p-3">5 messages</td>
+                <td class="p-3 font-mono text-[11px]">Today, 08:42</td>
+                <td class="p-3 text-right"><button class="px-2 py-1 rounded bg-brand-navySurface text-brand-gold text-[11px]">View Synthesis</button></td>
+              </tr>
+              <tr class="hover:bg-brand-navySurface/40">
+                <td class="p-3 font-semibold text-white">Pan Borneo Package 5 Addendum</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px]">PC-2024-001</span></td>
+                <td class="p-3">Tender Secretariat (JKR)</td>
+                <td class="p-3">2 messages</td>
+                <td class="p-3 font-mono text-[11px]">01 Sep 2026</td>
+                <td class="p-3 text-right"><button class="px-2 py-1 rounded bg-brand-navySurface text-brand-gold text-[11px]">View Synthesis</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: PROJECT REGISTERS                   -->
+    <!-- ========================================== -->
+    <div id="view-registers" class="hidden space-y-4">
+      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-white">Compounding Project Registers</h2>
+            <p class="text-xs text-slate-400">Institutional memory cross-referenced across tenders, partner correspondence, and variation orders.</p>
+          </div>
+          <button class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-gold text-brand-navyDark">
+            + New Project Register
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Bintulu Port Expansion (Phase 2)</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-gold/15 text-brand-gold">PC-2023-011</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Lead Partner: Ir. Dr. Tan · Client: Bintulu Port Holdings</p>
+            <p class="text-xs text-slate-300">Active Geotechnical review on Pier 4 foundation stability. Contingency reserve: RM 500,000.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-brand-navySurface border border-brand-navyBorder space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Pan Borneo Highway Package 5</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/15 text-blue-400">PC-2024-001</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Lead Partner: Managing Director · Client: JKR Sarawak</p>
+            <p class="text-xs text-slate-300">Tender clarification stage for pre-cast culvert specification.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: ACTION APPROVAL LEDGER              -->
+    <!-- ========================================== -->
+    <div id="view-ledger" class="hidden space-y-4">
+      <div class="glass-panel p-6 rounded-2xl border border-brand-navyBorder space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-white">Action Approval & Audit Ledger</h2>
+          <p class="text-xs text-slate-400">Cryptographically signed receipts for all outbound AI actions (replies, drafts, database writes).</p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-3.5 rounded-xl bg-brand-navySurface border border-brand-navyBorder flex items-center justify-between text-xs">
+            <div class="space-y-0.5">
+              <p class="font-semibold text-white">Authorized Outbound Reply to JKR Sarawak</p>
+              <p class="text-[11px] text-slate-400">Signed by: Managing Director (rahman@dpik.com.my) · Token: 0x7E3...A10</p>
+            </div>
+            <span class="text-[10px] font-mono px-2.5 py-1 rounded-full bg-brand-emerald/15 text-brand-emerald font-semibold">EXECUTED</span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-brand-navySurface border border-brand-navyBorder flex items-center justify-between text-xs">
+            <div class="space-y-0.5">
+              <p class="font-semibold text-white">Created Project Register Commitment (PC-2023-011)</p>
+              <p class="text-[11px] text-slate-400">Signed by: Managing Director · Token: 0x9B1...F44</p>
+            </div>
+            <span class="text-[10px] font-mono px-2.5 py-1 rounded-full bg-brand-emerald/15 text-brand-emerald font-semibold">EXECUTED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- RENDER HOOK: BODY_END                      -->
+  <!-- 1. LIVEWIRE AI COPILOT DRAWER (Cmd+J)       -->
+  <!-- ========================================== -->
+  <div 
+    id="copilot-drawer" 
+    class="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] glass-panel border-l border-brand-navyBorder shadow-2xl drawer-transition translate-x-full flex flex-col"
+  >
+    <!-- Drawer Header -->
+    <div class="p-4 border-b border-brand-navyBorder flex items-center justify-between bg-brand-navyCard">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-7 h-7 rounded-lg bg-brand-gold/20 text-brand-gold border border-brand-gold/40 flex items-center justify-center">
+          <i data-lucide="bot" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h2 class="text-xs font-bold text-white">Executive AI Copilot</h2>
+          <p class="text-[10px] font-mono text-slate-400">Multi-Model Unified Gateway</p>
+        </div>
+      </div>
+
+      <!-- 3-Favorites Runtime Model Swapper (ADR-018) -->
+      <div class="flex items-center space-x-1.5">
+        <select id="model-picker" class="text-[11px] font-mono bg-brand-navySurface border border-brand-navyBorder rounded-lg px-2 py-1 text-brand-gold focus:outline-none focus:border-brand-gold">
+          <option value="claude-3-7">Claude 3.7 Sonnet</option>
+          <option value="gemini-2-5">Gemini 2.5 Flash</option>
+          <option value="deepseek-r1">DeepSeek R1</option>
+        </select>
+        <button onclick="toggleCopilotDrawer()" class="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-brand-navySurface cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Executive Quick Presets (ADR-004) -->
+    <div class="px-4 py-2.5 bg-brand-navySurface/80 border-b border-brand-navyBorder flex items-center space-x-2 overflow-x-auto text-[11px] whitespace-nowrap">
+      <span class="text-slate-500 font-mono text-[10px]">Presets:</span>
+      <button onclick="runPreset('What commitments are pending sign-off today?')" class="px-2.5 py-1 rounded-full bg-brand-navyCard border border-brand-navyBorder hover:border-brand-gold text-slate-300 hover:text-white transition-all">
+        Pending commitments?
+      </button>
+      <button onclick="runPreset('Synthesize latest Bintulu Port emails')" class="px-2.5 py-1 rounded-full bg-brand-navyCard border border-brand-navyBorder hover:border-brand-gold text-slate-300 hover:text-white transition-all">
+        Bintulu Pier 4 status
+      </button>
+    </div>
+
+    <!-- Chat Message History Timeline (Relaticle Conversational UX) -->
+    <div id="chat-stream" class="flex-1 p-4 space-y-4 overflow-y-auto text-xs">
+      
+      <!-- AI Turn 1 -->
+      <div class="flex items-start space-x-2.5">
+        <div class="w-6 h-6 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px]">
+          AI
+        </div>
+        <div class="space-y-2 flex-1">
+          <div class="p-3.5 rounded-2xl bg-brand-navySurface border border-brand-navyBorder text-slate-200">
+            Good morning Ir. Dr. Tan. I have scanned your Microsoft Graph mailbox via Outlook MCP and cross-referenced with the <strong>PC-2023-011</strong> project memory register.
+            <br/><br/>
+            <strong>Summary:</strong> Ir. Dr. Tan submitted geotechnical confirmation for Pier 4. The requested Variation Order is <strong>RM 120,000</strong>.
+          </div>
+          <div class="text-[10px] font-mono text-slate-500 flex items-center space-x-2">
+            <span>Claude 3.7 Sonnet</span>
+            <span>·</span>
+            <span>Cache: HIT (98.4%)</span>
+            <span>·</span>
+            <span>Latency: 412ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Card Injection inside Chat -->
+      <div class="ml-8 p-3.5 rounded-xl bg-gradient-to-r from-brand-navyCard to-brand-navySurface border border-brand-gold/40 space-y-2">
+        <div class="flex items-center justify-between text-[10px] font-mono text-brand-gold font-semibold">
+          <span>⚡ COMPOSED ACTION CARD</span>
+          <span>Token: 0x88F...42A</span>
+        </div>
+        <p class="text-[11px] text-white font-medium">Prepared Draft Reply to Consultant + Authorized VO 04 Entry</p>
+        <div class="flex space-x-2 pt-1">
+          <button onclick="alert('Action 0x88F signed and queued via Outlook MCP.')" class="px-2.5 py-1 rounded bg-brand-gold text-brand-navyDark font-bold text-[11px] cursor-pointer">
+            Sign & Send Draft
+          </button>
+          <button class="px-2.5 py-1 rounded bg-brand-navyDark text-slate-300 text-[11px]">
+            Edit Parameters
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat Input Area (TipTap Mentions & Composer Dock) -->
+    <div class="p-4 border-t border-brand-navyBorder bg-brand-navyCard">
+      <div class="relative">
+        <textarea 
+          id="copilot-input"
+          rows="2" 
+          placeholder="Ask Copilot about tender commitments, @Projects, or draft replies..." 
+          class="w-full pl-3 pr-10 py-2.5 text-xs rounded-xl bg-brand-navySurface border border-brand-navyBorder text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-gold transition-all resize-none"
+        ></textarea>
+        <button onclick="sendMessage()" class="absolute right-2.5 bottom-2.5 p-1.5 rounded-lg bg-brand-gold hover:bg-brand-goldLight text-brand-navyDark transition-all cursor-pointer">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+      <div class="flex items-center justify-between mt-2 text-[10px] font-mono text-slate-500">
+        <span>Zero raw email retention policy active</span>
+        <span>Enter to send</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- RENDER HOOK: BODY_END                      -->
+  <!-- 2. ADAPTIVE FLOATING MOBILE NAVIGATION DOCK-->
+  <!-- ========================================== -->
+  <nav class="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm glass-dock rounded-full p-2 flex items-center justify-around">
+    <!-- Slot 1: Mail Bundles -->
+    <button onclick="switchTab('bundles')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="mail" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Mail</span>
+    </button>
+
+    <!-- Slot 2: Projects -->
+    <button onclick="switchTab('registers')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Projects</span>
+    </button>
+
+    <!-- Center Floating Action Anchor: AI Copilot -->
+    <button onclick="toggleCopilotDrawer()" class="relative -top-4 w-12 h-12 rounded-full bg-gradient-to-tr from-brand-gold to-brand-goldDark text-brand-navyDark flex items-center justify-center shadow-lg shadow-brand-gold/30 border-2 border-brand-navyDark glow-gold cursor-pointer transition-transform hover:scale-105">
+      <i data-lucide="sparkles" class="w-5 h-5"></i>
+    </button>
+
+    <!-- Slot 3: Action Ledger -->
+    <button onclick="switchTab('ledger')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Ledger</span>
+    </button>
+
+    <!-- Slot 4: Settings -->
+    <button onclick="alert('Executive Settings: Sovereign API Keys & Whitelist active.')" class="flex flex-col items-center justify-center p-2 text-slate-400 hover:text-white transition-all">
+      <i data-lucide="sliders" class="w-4 h-4"></i>
+      <span class="text-[9px] font-medium mt-1">Config</span>
+    </button>
+  </nav>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-150%] opacity-0 pointer-events-none">
+    <div class="px-4 py-3 rounded-xl bg-brand-navyCard border border-brand-gold text-white text-xs shadow-2xl flex items-center space-x-2.5">
+      <i data-lucide="check-circle" class="w-4 h-4 text-brand-emerald"></i>
+      <span id="toast-message">Action Approved & Executed!</span>
+    </div>
+  </div>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Drawer state
+    let drawerOpen = false;
+
+    function toggleCopilotDrawer() {
+      const drawer = document.getElementById('copilot-drawer');
+      drawerOpen = !drawerOpen;
+      if (drawerOpen) {
+        drawer.classList.remove('translate-x-full');
+        document.getElementById('copilot-input').focus();
+      } else {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    // Tab switcher
+    function switchTab(tabId) {
+      ['dashboard', 'bundles', 'registers', 'ledger'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        if (view) view.classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (btn) {
+          btn.className = "px-3 py-1.5 text-xs font-medium rounded-lg text-slate-300 hover:text-white hover:bg-brand-navySurface transition-all";
+        }
+      });
+
+      const targetView = document.getElementById(`view-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-gold text-brand-navyDark font-semibold transition-all";
+      }
+      lucide.createIcons();
+    }
+
+    // Action Card Handlers
+    function approveActionCard(cardId) {
+      const card = document.getElementById(cardId);
+      card.innerHTML = `
+        <div class="p-4 rounded-xl bg-brand-emerald/10 border border-brand-emerald/40 text-brand-emerald text-xs space-y-1">
+          <div class="flex items-center space-x-2 font-bold">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+            <span>ACTION APPROVED & IMMUTABLE RECEIPT ISSUED</span>
+          </div>
+          <p class="text-[11px] text-slate-300">Signed with cryptographic token 0x9F4A...B2C1. Outbound email queued via Outlook MCP.</p>
+        </div>
+      `;
+      showToast("Variation Order RM 120k Signed & Queued");
+      lucide.createIcons();
+    }
+
+    function rejectActionCard(cardId) {
+      const card = document.getElementById(cardId);
+      card.innerHTML = `
+        <div class="p-3 rounded-xl bg-brand-danger/10 border border-brand-danger/40 text-brand-danger text-xs">
+          <span>Action Declined. Proposal archived into decision ledger.</span>
+        </div>
+      `;
+      showToast("Action Declined");
+      lucide.createIcons();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').innerText = msg;
+      toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-150%]', 'opacity-0');
+      }, 3200);
+    }
+
+    function runPreset(prompt) {
+      const input = document.getElementById('copilot-input');
+      input.value = prompt;
+      sendMessage();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('copilot-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatStream = document.getElementById('chat-stream');
+      
+      // User message
+      const userBubble = document.createElement('div');
+      userBubble.className = "flex items-start justify-end space-x-2.5";
+      userBubble.innerHTML = `
+        <div class="p-3 rounded-2xl bg-brand-gold text-brand-navyDark font-medium text-xs max-w-[80%]">
+          ${text}
+        </div>
+      `;
+      chatStream.appendChild(userBubble);
+      input.value = '';
+
+      // AI response simulation
+      setTimeout(() => {
+        const aiBubble = document.createElement('div');
+        aiBubble.className = "flex items-start space-x-2.5";
+        aiBubble.innerHTML = `
+          <div class="w-6 h-6 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px]">
+            AI
+          </div>
+          <div class="space-y-2 flex-1">
+            <div class="p-3.5 rounded-2xl bg-brand-navySurface border border-brand-navyBorder text-slate-200">
+              Query processed for: <em>"${text}"</em>.<br/>
+              Synthesizing domain registers from Neon PostgreSQL and Microsoft Graph API via Outlook MCP.
+            </div>
+            <div class="text-[10px] font-mono text-slate-500">
+              Latency: 388ms · Cache: HIT · Verification: Signed
+            </div>
+          </div>
+        `;
+        chatStream.appendChild(aiBubble);
+        chatStream.scrollTop = chatStream.scrollHeight;
+        lucide.createIcons();
+      }, 400);
+
+      chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    // Keyboard shortcuts: Cmd+J or Ctrl+J
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        toggleCopilotDrawer();
+      }
+      if (e.key === 'Escape' && drawerOpen) {
+        toggleCopilotDrawer();
+      }
+    });
+  </script>
+</body>
+</html>
