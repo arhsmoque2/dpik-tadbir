@@ -7,6 +7,7 @@
   1. `screentest-cli` (`jeffersongoncalves/screentest-cli`): CLI tool for automated screenshot generation of Filament plugins.
   2. `Filament Testing Infrastructure` (`deepwiki.com/filamentphp/filament/13-testing-infrastructure`): DeepWiki documentation on Filament's internal Livewire-based component testing harness.
   3. `Filament v4 Render Hooks` (`msaied.com/public/articles/filament-v4-render-hooks-injecting-ui-into-any-panel-without-hacking-core` by Mohamed Said): Governance and design patterns for non-invasive UI injection into panel shells without publishing core views.
+- **Research Artifact**: [`PR-009: External Research & Audit Transcript — Filament Testing Infrastructure, Render Hook Injection & Screenshot Automation Tooling`](../research/PR-009-filament-testing-render-hooks-and-visual-qa-audit.md)
 
 ---
 
