@@ -4,7 +4,7 @@ namespace App\Filament\Resources\BundleResource\Pages;
 
 use App\Filament\Resources\BundleResource;
 use App\Models\User;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,12 +20,12 @@ class ViewBundle extends ViewRecord
             Actions\EditAction::make(),
             Actions\Action::make('displayLiveBody')
                 ->label('Live Email Body Content')
-                ->modalHeading('Live Email Body (Graph API)')
-                ->modalDescription('Full body fetched live from Microsoft Graph API without disk storage.')
+                ->modalHeading('Live Email Body (IMAP)')
+                ->modalDescription('Full body fetched live from the mailbox over IMAP without disk storage.')
                 ->modalSubmitAction(false)
                 ->modalCancelActionLabel('Close')
                 ->fillForm(fn (array $arguments): array => [
-                    'body' => (string) ($arguments['body'] ?? 'No body content returned from Graph API.'),
+                    'body' => (string) ($arguments['body'] ?? 'No body content returned from the mailbox.'),
                 ])
                 ->schema([
                     Textarea::make('body')
@@ -34,7 +34,7 @@ class ViewBundle extends ViewRecord
                         ->readOnly(),
                 ]),
             Actions\Action::make('fetchLiveEmailBody')
-                ->label('Fetch Full Body Live (Graph API)')
+                ->label('Fetch Full Body Live (IMAP)')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('info')
                 ->schema([
@@ -49,9 +49,9 @@ class ViewBundle extends ViewRecord
                     $messageId = (string) $data['message_id'];
                     $user = auth()->user();
                     if ($user instanceof User) {
-                        $bridge = app(OutlookMcpBridge::class)->forUser($user);
+                        $bridge = app(MailBridge::class)->forUser($user);
                         $result = $bridge->readMessage($messageId, false);
-                        $bodyText = (string) ($result['body'] ?? $result['content'] ?? 'No body content returned from Graph API.');
+                        $bodyText = (string) ($result['body'] ?? $result['content'] ?? 'No body content returned from the mailbox.');
 
                         $this->mountAction('displayLiveBody', ['body' => $bodyText]);
                     }

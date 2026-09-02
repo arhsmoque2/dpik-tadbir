@@ -16,7 +16,7 @@ use App\Models\PersonalNote;
 use App\Models\PersonalTask;
 use App\Models\User;
 use App\Services\Ai\ActionApprovalService;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 use App\Services\Memory\DecisionMarkerExtractor;
 use App\Services\Memory\MemoryRetrievalService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -70,7 +70,7 @@ test('all MCP tools return valid schemas and execute expected methods', function
     $taskRes = $taskTool->handle(['title' => 'My Task', 'priority' => 'high']);
     expect($taskRes['status'])->toBe('created');
 
-    $bridge = new OutlookMcpBridge;
+    $bridge = new MailBridge;
     $draftTool = new OutlookCreateDraftTool($bridge);
     expect($draftTool->schema())->toHaveKey('properties');
     $draftRes = $draftTool->handle(['subject' => 'Draft Subj', 'body' => 'Body', 'to_recipients' => ['test@example.com']]);
@@ -121,26 +121,6 @@ test('outlook forward and reply tools enforce write-safety tokens', function () 
     $replyTool = app(OutlookReplyTool::class);
     expect(fn () => $replyTool->handle(['message_id' => '1', 'approval_token' => 'invalid']))
         ->toThrow(AuthorizationException::class);
-});
-
-test('outlook mcp bridge provides fluent methods for user', function () {
-    $user = User::create([
-        'name' => 'MD User 2',
-        'email' => 'md2@dpik.com.my',
-        'password' => bcrypt('password'),
-    ]);
-
-    $bridge = new OutlookMcpBridge;
-    $bridge->forUser($user);
-
-    expect($bridge->checkAuthStatus())->toBeBool();
-    expect($bridge->callTool('outlook_search_mail', ['query' => 'test']))->toBeArray();
-    expect($bridge->fetchInboxDelta(24, 10, true))->toBeArray();
-    expect($bridge->searchMail('test', 10, true))->toBeArray();
-    expect($bridge->readMessage('msg_123', true))->toBeArray();
-    expect($bridge->createDraft('Subj', 'Body', ['a@b.com']))->toBeArray();
-    expect($bridge->sendReply('msg_123', 'Reply text'))->toBeBool();
-    expect($bridge->forwardMessage('msg_123', ['a@b.com'], 'Fwd comment'))->toBeBool();
 });
 
 test('personal note/task tools fail closed without an authenticated executive', function () {

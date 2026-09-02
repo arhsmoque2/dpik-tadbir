@@ -21,7 +21,7 @@
             </div>
 
             <!-- At-A-Glance Live Service Badges -->
-            <div class="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+            <div class="pt-3 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
                 <!-- AI Direct -->
                 <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1">
                     <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">AI Direct</div>
@@ -90,24 +90,6 @@
                     @else
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                             Unchecked
-                        </span>
-                    @endif
-                </div>
-
-                <!-- M365 Outlook -->
-                <div class="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 text-center space-y-1 col-span-2 sm:col-span-1">
-                    <div class="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Outlook M365</div>
-                    @if ($outlookProbeStatus === 'success')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Active ({{ $outlookLatencyMs }}ms)
-                        </span>
-                    @elseif ($outlookProbeStatus === 'error')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
-                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Error
-                        </span>
-                    @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                            Optional
                         </span>
                     @endif
                 </div>
@@ -348,112 +330,6 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Microsoft 365 & Outlook MCP Integration -->
-                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between space-y-6">
-                    <div class="space-y-5">
-                        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
-                            <div class="flex items-center space-x-2.5">
-                                <span class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-xs">M365</span>
-                                <h3 class="text-base font-semibold text-gray-900 dark:text-white">Microsoft 365 & Outlook</h3>
-                            </div>
-                            @if ($outlookProbeStatus === 'success')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                                    Connected ({{ $outlookLatencyMs }}ms)
-                                </span>
-                            @elseif ($outlookProbeStatus === 'error')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
-                                    Auth Error
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
-                                    Not Configured
-                                </span>
-                            @endif
-                        </div>
-
-                        <!-- Client ID -->
-                        <div class="space-y-1.5">
-                            <label for="microsoft_client_id" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                                Application (Client) ID
-                            </label>
-                            <input
-                                type="text"
-                                id="microsoft_client_id"
-                                wire:model="microsoft_client_id"
-                                placeholder="00000000-0000-0000-0000-000000000000"
-                                class="w-full px-3.5 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white font-mono"
-                            />
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400">
-                                Azure Entra ID Application ID for Microsoft Graph.
-                            </p>
-                        </div>
-
-                        <!-- Client Secret -->
-                        <div class="space-y-1.5">
-                            <label for="microsoft_client_secret" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                                Client Secret Value
-                            </label>
-                            <input
-                                type="password"
-                                id="microsoft_client_secret"
-                                wire:model="microsoft_client_secret"
-                                placeholder="********************"
-                                autocomplete="off"
-                                class="w-full px-3.5 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white font-mono"
-                            />
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400">
-                                OAuth Client Secret value. Stored encrypted at rest.
-                            </p>
-                        </div>
-
-                        <!-- Tenant ID -->
-                        <div class="space-y-1.5">
-                            <label for="microsoft_tenant_id" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-                                Directory (Tenant) ID
-                            </label>
-                            <input
-                                type="text"
-                                id="microsoft_tenant_id"
-                                wire:model="microsoft_tenant_id"
-                                placeholder="00000000-0000-0000-0000-000000000000"
-                                class="w-full px-3.5 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white font-mono"
-                            />
-                            <p class="text-[11px] text-gray-500 dark:text-gray-400">
-                                DPIK Microsoft 365 Tenant ID or "organizations".
-                            </p>
-                        </div>
-
-                        <!-- Outlook Diagnostic Error Card -->
-                        @if ($outlookProbeStatus === 'error')
-                            <div class="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 space-y-2">
-                                <div class="flex items-start space-x-2">
-                                    <span class="text-rose-600 dark:text-rose-400 font-bold text-sm">!</span>
-                                    <div class="text-xs text-rose-800 dark:text-rose-200">
-                                        <p class="font-semibold">{{ $outlookProbeMessage }}</p>
-                                        @if ($outlookProbeRemediation)
-                                            <p class="mt-1 text-[11px] text-rose-700 dark:text-rose-300"><strong>How to fix:</strong> {{ $outlookProbeRemediation }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
-                        <button
-                            type="button"
-                            wire:click="testOutlookConnection"
-                            wire:loading.attr="disabled"
-                            class="px-3.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors inline-flex items-center space-x-1.5"
-                        >
-                            <span wire:loading.remove wire:target="testOutlookConnection">Test Outlook Connection</span>
-                            <span wire:loading wire:target="testOutlookConnection">Connecting...</span>
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Section 3: Top-3 In-Chat Favorite Models (ADR-018) -->

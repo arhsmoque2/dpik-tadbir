@@ -18,14 +18,13 @@ DPIK Tadbir supports a dual-tier configuration architecture:
 |   Tier 1: Executive Sovereign Store (users table - Encrypted)                                      |
 |   ├── anthropic_api_key (Claude 3.7 Sonnet)                                                        |
 |   ├── gemini_api_key (Gemini 2.5 Flash)                                                            |
-|   ├── microsoft_client_id (Azure Entra App ID)                                                     |
-|   ├── microsoft_client_secret (Azure Entra Secret - Encrypted)                                     |
-|   └── microsoft_tenant_id (Azure Tenant ID)                                                        |
+|   ├── imap_host / imap_port / imap_username / imap_password (mailbox, Encrypted)                   |
+|   └── smtp_host / smtp_port / smtp_password (mailbox, Encrypted)                                   |
 |                                                                                                    |
 |   Tier 2: System & Engine Settings (spatie/laravel-settings & config)                              |
 |   ├── ai.default_provider & ai.fallback_provider                                                   |
 |   ├── memory.fts5_token_budget & memory.rrf_k_factor                                               |
-|   ├── outlook.default_lookback_hours & outlook.default_page_size                                   |
+|   ├── company_mail.host & company_mail.drafts_folder                                               |
 |   └── auth.allowed_registration_emails                                                             |
 |                                                                                                    |
 +----------------------------------------------------------------------------------------------------+
@@ -41,9 +40,9 @@ DPIK Tadbir supports a dual-tier configuration architecture:
 | `favorite_model_1` | User (`users`) | Plain Text | `/admin/executive-settings` | `anthropic:claude-3-7-sonnet-20250219` | Provider & Model Tuple | Primary favorite brain for default executive reasoning turns. |
 | `favorite_model_2` | User (`users`) | Plain Text | `/admin/executive-settings` | `openrouter:deepseek/deepseek-r1` | Provider & Model Tuple | Secondary favorite brain for logic, calculations, and code review. |
 | `favorite_model_3` | User (`users`) | Plain Text | `/admin/executive-settings` | `gemini:gemini-2.5-flash` | Provider & Model Tuple | Tertiary favorite brain for ultra high-speed batch summaries. |
-| `microsoft_client_id` | User / System | Plain Text | `/admin/executive-settings` | `env('MICROSOFT_CLIENT_ID')` | UUID v4 (`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`) | Azure Entra ID Application (Client) ID for Microsoft Graph. |
-| `microsoft_client_secret` | User / System | AES-256 | `/admin/executive-settings` | `env('MICROSOFT_CLIENT_SECRET')` | Alphanumeric secret string (~34-40 chars) | Azure Entra ID client secret value for mailbox OAuth authentication. |
-| `microsoft_tenant_id` | User / System | Plain Text | `/admin/executive-settings` | `env('MICROSOFT_TENANT_ID')` | UUID v4 or `organizations` / `common` | Azure Directory (Tenant) ID for corporate M365 tenant boundary. |
+| `imap_host` / `smtp_host` | User / System | Plain Text | `/admin/executive-settings` | `env('COMPANY_MAIL_HOST')`, `mail.dpik.com.my` | Hostname | Shared company mail server every executive mailbox lives on. |
+| `imap_username` | User | Plain Text | `/admin/executive-settings` | User's own email | Email address | IMAP/SMTP login — same as the executive's DPIK email. |
+| `imap_password` / `smtp_password` | User | AES-256 | `/admin/executive-settings` | None | Mailbox password | Per-executive mailbox password (IMAP retrieval / SMTP send). |
 | `ai_default_model` | System | Plain Text | `/admin/settings/ai` | `claude-3-7-sonnet-20250219` | Valid Anthropic model string | Default reasoning model for primary synthesis turns. |
 | `ai_fallback_model` | System | Plain Text | `/admin/settings/ai` | `gemini-2.5-flash` | Valid Google Gemini model string | Failover model for resilient turns under upstream degradations. |
 | `ai_temperature` | User / System | Plain Text | `/admin/settings/ai` | `0.2` | Float between `0.0` and `1.0` | Sampling temperature; low values ensure deterministic extraction. |

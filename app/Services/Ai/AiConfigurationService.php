@@ -153,13 +153,6 @@ class AiConfigurationService
                     'tls' => true,
                     'timeout_seconds' => 30,
                 ],
-                'outlook' => [
-                    'enabled' => true,
-                    'driver' => 'graph_mcp',
-                    'command' => 'uv',
-                    'args' => 'run python -m outlook_mcp.server',
-                    'timeout_seconds' => 30,
-                ],
                 'memory' => [
                     'enabled' => true,
                     'driver' => 'sqlite_fts5',

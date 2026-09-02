@@ -3,19 +3,19 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
-use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Mcp\Tools\Concerns\ScopesMailBridge;
+use App\Services\Mail\MailBridge;
 
 class OutlookReadMessageTool extends BaseTool
 {
-    use ScopesOutlookBridge;
+    use ScopesMailBridge;
 
     protected string $name = 'outlook_read_message';
 
     protected string $description = 'Reads full message contents and attachment metadata by ID.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge
+        protected MailBridge $bridge
     ) {}
 
     /**

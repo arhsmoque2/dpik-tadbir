@@ -18,7 +18,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │                                                                            │
 │  [Application Services Layer]                                              │
 │  • AgentService (Multi-Turn AI Loop + Anti-Hallucination Guard)            │
-│  • OutlookMcpBridge (Per-user Outlook OAuth & Graph API connector)         │
+│  • MailBridge (Per-user IMAP/SMTP mailbox connector)                       │
 │  • RegistrationWhitelistService (Email whitelist registration guard)       │
 │  • MemoryRetrievalService (SQLite FTS5 BM25 + Reciprocal Rank Fusion)      │
 │  • ActionMemoryService (Action receipts & daily/weekly rollup generator)   │

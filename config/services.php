@@ -12,13 +12,12 @@ return [
         'openai_api_key' => env('OPENAI_API_KEY'),
     ],
 
-    'outlook_mcp' => [
-        'command' => env('OUTLOOK_MCP_COMMAND', 'uv'),
-        'args' => env('OUTLOOK_MCP_ARGS', 'run python -m outlook_mcp.server'),
-        'timeout' => (int) env('OUTLOOK_MCP_TIMEOUT', 30),
-        'client_id' => env('MICROSOFT_CLIENT_ID'),
-        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
-        'tenant_id' => env('MICROSOFT_TENANT_ID'),
+    'company_mail' => [
+        'host' => env('COMPANY_MAIL_HOST', 'mail.dpik.com.my'),
+        'imap_port' => (int) env('COMPANY_MAIL_IMAP_PORT', 993),
+        'smtp_port' => (int) env('COMPANY_MAIL_SMTP_PORT', 465),
+        'timeout' => (int) env('COMPANY_MAIL_TIMEOUT', 30),
+        'drafts_folder' => env('COMPANY_MAIL_DRAFTS_FOLDER', 'INBOX.Drafts'),
     ],
 
     'registration' => [

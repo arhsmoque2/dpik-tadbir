@@ -3,22 +3,22 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
-use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
+use App\Mcp\Tools\Concerns\ScopesMailBridge;
 use App\Services\Ai\ActionApprovalService;
 use App\Services\Audit\ActionMemoryService;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class OutlookForwardTool extends BaseTool
 {
-    use ScopesOutlookBridge;
+    use ScopesMailBridge;
 
     protected string $name = 'outlook_forward';
 
     protected string $description = 'Forwards an existing Outlook email message to specified recipients. Requires human confirmation.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge,
+        protected MailBridge $bridge,
         protected ActionApprovalService $approvals
     ) {}
 

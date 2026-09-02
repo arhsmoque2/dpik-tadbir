@@ -41,7 +41,10 @@ RUN pnpm run build
 # ---- Stage 3: Production Runtime ----
 FROM dunglas/frankenphp:1-php8.4-bookworm AS runtime
 
-# Install production PHP extensions for Neon Postgres, SQLite, Filament, and Octane
+# Install production PHP extensions for Neon Postgres, SQLite, Filament, and
+# Octane. imap is required by MailBridge (app/Services/Mail/MailBridge.php)
+# — the company IMAP/SMTP mailbox bridge that replaced the Outlook MCP
+# Python subprocess (see issue #40).
 RUN install-php-extensions \
     pdo_pgsql \
     pgsql \
@@ -51,7 +54,8 @@ RUN install-php-extensions \
     intl \
     bcmath \
     opcache \
-    pcntl
+    pcntl \
+    imap
 
 # Production PHP & OPcache tuning for Laravel Octane + FrankenPHP on Cloud Run
 COPY php/local.ini /usr/local/etc/php/conf.d/local.ini

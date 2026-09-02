@@ -47,7 +47,7 @@ Modeled directly on the proven multi-tier quality gates from **`ARH-FNB-Beelal-C
   - `App\Services\Ai\PiiDetector`
   - `App\Services\Auth\RegistrationWhitelistService`
   - `App\Http\Middleware\RegistrationWhitelistMiddleware`
-  - `App\Services\Mcp\OutlookMcpBridge`
+  - `App\Services\Mail\MailBridge`
   - `App\Services\Mcp\MailDiagnosticService`
   - `App\Services\Memory\MemoryRetrievalService`
   - `App\Services\Audit\ActionMemoryService`

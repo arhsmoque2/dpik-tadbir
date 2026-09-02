@@ -3,19 +3,19 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
-use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Mcp\Tools\Concerns\ScopesMailBridge;
+use App\Services\Mail\MailBridge;
 
 class OutlookSearchMailTool extends BaseTool
 {
-    use ScopesOutlookBridge;
+    use ScopesMailBridge;
 
     protected string $name = 'outlook_search_mail';
 
     protected string $description = 'Searches Outlook mailbox with concise executive mode.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge
+        protected MailBridge $bridge
     ) {}
 
     /**
