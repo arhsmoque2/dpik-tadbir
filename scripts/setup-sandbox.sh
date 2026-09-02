@@ -146,6 +146,8 @@ else
   echo "--> [Notice] Skipping Artisan migrations until vendor/ is hydrated."
 fi
 
+bash "$(dirname "${BASH_SOURCE[0]}")/install-git-hooks.sh" || true
+
 # ------------------------------------------------------------------------------
 # SUMMARY REPORT
 # ------------------------------------------------------------------------------

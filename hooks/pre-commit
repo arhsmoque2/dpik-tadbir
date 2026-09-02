@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Capability gate — fast structural check, every commit.
+#
+# Static scan only: no tests are executed here, only whether every
+# @capability(...) marker found in the codebase has a roadmap entry, and
+# every 'approved' roadmap entry has a marker somewhere. Both directions of
+# drift (declared-but-unbuilt, built-but-undeclared) are hard-gated without
+# running a single test, so this stays sub-second on every commit.
+#
+# Test *execution* (does an approved capability's test actually pass) is
+# the pre-push hook's job, not this one — that's too slow to run on every
+# commit, including WIP ones mid-session.
+#
+# Installed by scripts/install-git-hooks.sh — not automatic on a bare clone.
+set -euo pipefail
+
+if [ ! -f tools/capabilities/generate.php ]; then
+  # Not at repo root, or the tooling isn't present yet on this branch — don't
+  # block a commit that has nothing to do with this mechanism.
+  exit 0
+fi
+
+php tools/capabilities/generate.php
+php tools/capabilities/diff.php

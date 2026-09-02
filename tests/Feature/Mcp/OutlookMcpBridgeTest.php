@@ -59,6 +59,7 @@ test('bridge executes tools in simulated production mode and falls back graceful
     app()['env'] = 'testing';
 });
 
+// @capability(chat.no-raw-backend-errors)
 test('bridge never leaks raw shell/process output into the executive-facing error', function () {
     // Regression test for the deployed "Outlook MCP bridge error: sh: 1: exec:
     // uv: not found" leak — a missing binary must fail closed with a clean

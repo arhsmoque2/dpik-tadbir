@@ -34,6 +34,10 @@ else
   echo "--> Node/pnpm not found — skipping docs hygiene check in minimal container."
 fi
 
+echo "--> 6. Capability gate (docs/testing/capability-roadmap.json vs. codebase)..."
+php tools/capabilities/generate.php --verify-php
+php tools/capabilities/diff.php
+
 echo "=========================================================="
 echo "  [SUCCESS] All sandbox quality gates passed hermetically! "
 echo "=========================================================="

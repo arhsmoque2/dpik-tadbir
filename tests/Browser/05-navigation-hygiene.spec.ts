@@ -19,6 +19,7 @@ const BOTTOM_NAV = '[aria-label="Floating Primary Navigation"]';
 const DRAWER = '[data-copilot-drawer]';
 
 test.describe('Journey 5: Navigation Hygiene (Tier 0)', () => {
+    // @capability(chat.copilot-drawer-close)
     test('AI Copilot drawer exposes a reachable, accessibly-named close control', async ({ page }) => {
         await page.goto('/admin');
         await page.waitForLoadState('domcontentloaded');
@@ -57,6 +58,7 @@ test.describe('Journey 5: Navigation Hygiene (Tier 0)', () => {
         await assertIconControlsHaveAriaLabel(page, DRAWER);
     });
 
+    // @capability(nav.bottom-nav-contract)
     test('default bottom nav renders exactly the four documented default slots plus the fixed Copilot FAB', async ({ page }) => {
         // Source of truth: App\Models\User::getBottomNavSlots() default array
         // (app/Models/User.php) — not docs/ui-spec/navigation-tree.json's

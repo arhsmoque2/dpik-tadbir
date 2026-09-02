@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "DPIK Tadbir",
+  "purpose": "Human/ADR-owned intent for AI-copilot-chat capabilities. This file says what's approved or planned — never what's built. What's actually built is derived from the codebase itself by tools/capabilities/generate.php and never hand-edited here. tools/capabilities/diff.php gates the two against each other: approved-but-unbuilt and built-but-undeclared both fail; planned/deferred entries place no requirement on code.",
+  "states": {
+    "approved": "Required. Must have a @capability-tagged test in the codebase, and that test must pass. Missing or failing hard-fails the capability gate.",
+    "planned": "On the roadmap, not required yet. Absence is fine. If code already proves it, the gate leaves a non-blocking note to promote it to 'approved'.",
+    "deferred": "Explicitly out of scope for now (see linked ADR/decision if any). Absence is fine; presence is fine (not penalized), just not required."
+  },
+  "capabilities": {
+    "chat.copilot-drawer-close": {
+      "state": "approved",
+      "note": "The AI Copilot drawer must always expose a reachable, accessibly-named close control that restores access to primary navigation — the real regression this system was built to catch (2026-09-02 deployed-instance finding)."
+    },
+    "nav.bottom-nav-contract": {
+      "state": "approved",
+      "note": "The default floating bottom nav must render exactly the slots App\\Models\\User::getBottomNavSlots() declares as default. Source of truth is the PHP default array, not docs/ui-spec/navigation-tree.json (which has already drifted once)."
+    },
+    "chat.no-raw-backend-errors": {
+      "state": "approved",
+      "note": "No raw shell/stack-trace signature may ever render in the executive-facing chat transcript (regression: 'Outlook MCP bridge error: sh: 1: exec: uv: not found' leaking verbatim — see issue #40 for the underlying uv-missing root cause, tracked separately from this UI-leak fix)."
+    },
+    "chat.stop-generation": {
+      "state": "planned",
+      "note": "No way to abort a long-running AI turn mid-flight; only a spinner. Table-stakes chat-UX mechanic, not a scope decision — safe to build without a flow-of-events pass."
+    },
+    "chat.regenerate-response": {
+      "state": "planned",
+      "note": "No way to regenerate the last assistant response or edit-and-resend a user message."
+    },
+    "chat.copy-message": {
+      "state": "planned",
+      "note": "No copy-to-clipboard affordance on assistant messages."
+    },
+    "chat.markdown-rendering": {
+      "state": "planned",
+      "note": "Assistant content renders via nl2br(e(...)) only — plain text, no markdown/code-block/list rendering. A structured action summary from the model currently renders as a wall of text."
+    },
+    "chat.message-stream-live-region": {
+      "state": "planned",
+      "note": "The message stream has no aria-live region — new messages arriving via Livewire are not announced to screen readers."
+    },
+    "chat.web-browsing": {
+      "state": "deferred",
+      "note": "Not evaluated. DPIK Tadbir is a bounded executive tool operating only through declared MCP tools (AGENTS.md rule 2) — this needs its own flow-of-events pass before it belongs on this list at all, not a benchmark-driven addition."
+    },
+    "chat.voice-input": {
+      "state": "deferred",
+      "note": "Same as chat.web-browsing — needs a flow-of-events pass, not a benchmark-driven addition."
+    }
+  }
+}
