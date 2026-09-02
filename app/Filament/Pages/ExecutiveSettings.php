@@ -111,22 +111,54 @@ class ExecutiveSettings extends Page
         $user = Auth::user();
 
         if ($user) {
-            $this->anthropic_api_key = $user->anthropic_api_key;
-            $this->gemini_api_key = $user->gemini_api_key;
-            $this->openrouter_api_key = $user->openrouter_api_key;
+            try {
+                $this->anthropic_api_key = $user->anthropic_api_key;
+            } catch (Throwable) {
+                $this->anthropic_api_key = null;
+            }
+
+            try {
+                $this->gemini_api_key = $user->gemini_api_key;
+            } catch (Throwable) {
+                $this->gemini_api_key = null;
+            }
+
+            try {
+                $this->openrouter_api_key = $user->openrouter_api_key;
+            } catch (Throwable) {
+                $this->openrouter_api_key = null;
+            }
+
             $this->favorite_model_1 = $user->favorite_model_1 ?? 'anthropic:claude-3-7-sonnet-20250219';
             $this->favorite_model_2 = $user->favorite_model_2 ?? 'openrouter:deepseek/deepseek-r1';
             $this->favorite_model_3 = $user->favorite_model_3 ?? 'gemini:gemini-2.5-flash';
             $this->microsoft_client_id = $user->microsoft_client_id;
-            $this->microsoft_client_secret = $user->microsoft_client_secret;
+
+            try {
+                $this->microsoft_client_secret = $user->microsoft_client_secret;
+            } catch (Throwable) {
+                $this->microsoft_client_secret = null;
+            }
+
             $this->microsoft_tenant_id = $user->microsoft_tenant_id;
             $this->imap_host = $user->imap_host ?? 'mail.dpik.com.my';
             $this->imap_port = $user->imap_port ?? 993;
             $this->imap_username = $user->imap_username ?? $user->email;
-            $this->imap_password = $user->imap_password;
+
+            try {
+                $this->imap_password = $user->imap_password;
+            } catch (Throwable) {
+                $this->imap_password = null;
+            }
+
             $this->smtp_host = $user->smtp_host ?? 'mail.dpik.com.my';
             $this->smtp_port = $user->smtp_port ?? 465;
-            $this->smtp_password = $user->smtp_password ?? $user->imap_password;
+
+            try {
+                $this->smtp_password = $user->smtp_password ?? $user->imap_password;
+            } catch (Throwable) {
+                $this->smtp_password = null;
+            }
 
             $slots = $user->getBottomNavSlots();
             $this->bottom_nav_slot_1 = $slots[0]['key'] ?? 'copilot';

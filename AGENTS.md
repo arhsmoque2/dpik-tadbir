@@ -64,3 +64,30 @@ composer analyse         # Run PHPStan / Larastan Level 8
 php artisan mcp:serve    # Run native MCP server endpoint
 python -m outlook_mcp    # Run Python Outlook MCP bridge
 ```
+
+## 🚢 Mandatory Deployment & Verification Closure Protocol
+
+**Rule**: An agent task involving bug fixes, features, or performance tuning is **NEVER finished at local code edits**. All tasks MUST conclude with verified live deployment to Google Cloud Run:
+
+1. **Verify Local Quality Gates First**:
+   ```bash
+   python tools/tadbir.py gate
+   ```
+2. **Stage, Commit & Push**:
+   ```bash
+   git add .
+   git commit -m "feat/fix: <clear concise title>"
+   git push origin <branch>
+   ```
+3. **Merge to `main` to Trigger Cloud Run Pipeline**:
+   The Cloud Run deploy workflow (`.github/workflows/deploy.yml`) is automatically triggered via `workflow_run` immediately upon successful completion of `Quality Gate CI` on `main`.
+4. **Monitor & Verify Pipeline to Completion**:
+   ```bash
+   # Check CI run status
+   python tools/tadbir.py ci-wait
+   # Monitor deploy workflow
+   gh run list --workflow="Deploy to Cloud Run" --limit 1
+   ```
+5. **Live Verification Receipt**:
+   Verify post-deploy health check against the live Cloud Run service endpoint (`/up` returning HTTP 200) before declaring the task complete.
+
