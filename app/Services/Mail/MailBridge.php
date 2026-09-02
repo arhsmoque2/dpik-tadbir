@@ -7,7 +7,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use IMAP\Connection;
 use RuntimeException;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
@@ -262,9 +261,10 @@ class MailBridge
     }
 
     /**
+     * @param  \IMAP\Connection  $conn
      * @return array<string, mixed>
      */
-    protected function summarizeMessage(Connection $conn, int $uid, bool $concise): array
+    protected function summarizeMessage($conn, int $uid, bool $concise): array
     {
         $msgno = imap_msgno($conn, $uid);
         $overview = $msgno ? (imap_fetch_overview($conn, (string) $msgno, 0)[0] ?? null) : null;
