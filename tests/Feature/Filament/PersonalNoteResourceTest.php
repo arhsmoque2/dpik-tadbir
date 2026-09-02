@@ -10,6 +10,7 @@ use App\Filament\Resources\PersonalNoteResource\Pages\ListPersonalNotes;
 use App\Models\PersonalNote;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -106,6 +107,7 @@ class PersonalNoteResourceTest extends TestCase
                 'content' => '<p>Soil testing completed by Ir. Tan.</p>',
                 'project_code' => 'PC-2023-011',
                 'tags' => ['geotechnical', 'bintulu'],
+                'is_pinned' => true,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -114,6 +116,7 @@ class PersonalNoteResourceTest extends TestCase
             'user_id' => $user->id,
             'title' => 'Bintulu Port Geotechnical Summary',
             'project_code' => 'PC-2023-011',
+            'is_pinned' => true,
         ]);
     }
 
@@ -150,6 +153,7 @@ class PersonalNoteResourceTest extends TestCase
             'content' => '<p>Initial draft.</p>',
             'project_code' => 'PC-2023-011',
             'tags' => ['draft'],
+            'is_pinned' => false,
         ]);
 
         Livewire::actingAs($user)
@@ -159,6 +163,7 @@ class PersonalNoteResourceTest extends TestCase
                 'content' => '<p>Verified settlement tolerance: 15mm max under full load.</p>',
                 'project_code' => 'PC-2023-099',
                 'tags' => ['geotechnical', 'verified'],
+                'is_pinned' => true,
             ])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -169,7 +174,76 @@ class PersonalNoteResourceTest extends TestCase
             'title' => 'Updated Pier 4 Geotechnical Findings',
             'content' => '<p>Verified settlement tolerance: 15mm max under full load.</p>',
             'project_code' => 'PC-2023-099',
+            'is_pinned' => true,
         ]);
+    }
+
+    public function test_executive_can_toggle_note_pin_state_via_inline_table_action(): void
+    {
+        $user = User::create([
+            'name' => 'Pin Toggle Executive',
+            'email' => 'pin.toggle@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'executive',
+        ]);
+
+        $note = PersonalNote::create([
+            'user_id' => $user->id,
+            'title' => 'Note to Pin',
+            'content' => '<p>Important strategy note.</p>',
+            'is_pinned' => false,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalNotes::class)
+            ->callAction(TestAction::make('toggle_pin')->table($note));
+
+        $this->assertDatabaseHas('personal_notes', [
+            'id' => $note->id,
+            'is_pinned' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalNotes::class)
+            ->callAction(TestAction::make('toggle_pin')->table($note));
+
+        $this->assertDatabaseHas('personal_notes', [
+            'id' => $note->id,
+            'is_pinned' => false,
+        ]);
+    }
+
+    public function test_executive_can_filter_pinned_notes(): void
+    {
+        $user = User::create([
+            'name' => 'Filter Pin Executive',
+            'email' => 'filter.pin@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'executive',
+        ]);
+
+        $pinnedNote = PersonalNote::create([
+            'user_id' => $user->id,
+            'title' => 'Pinned High Priority Note',
+            'content' => '<p>Pinned content.</p>',
+            'is_pinned' => true,
+        ]);
+
+        $unpinnedNote = PersonalNote::create([
+            'user_id' => $user->id,
+            'title' => 'Regular Unpinned Note',
+            'content' => '<p>Regular content.</p>',
+            'is_pinned' => false,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalNotes::class)
+            ->filterTable('is_pinned', true)
+            ->assertCanSeeTableRecords([$pinnedNote])
+            ->assertCanNotSeeTableRecords([$unpinnedNote])
+            ->filterTable('is_pinned', false)
+            ->assertCanSeeTableRecords([$unpinnedNote])
+            ->assertCanNotSeeTableRecords([$pinnedNote]);
     }
 
     public function test_executive_can_delete_note_via_action(): void

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PersonalTaskResource\Pages;
 use App\Models\PersonalTask;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -16,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -84,12 +86,28 @@ class PersonalTaskResource extends Resource
                         'primary' => 'in_progress',
                         'success' => 'completed',
                         'danger' => 'cancelled',
-                    ]),
+                    ])
+                    ->sortable(),
                 TextColumn::make('due_date')
                     ->date()
                     ->sortable(),
             ])
+            ->defaultSort('due_date', 'asc')
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'in_progress' => 'In Progress',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                    ]),
+            ])
             ->actions([
+                Action::make('toggle_complete')
+                    ->label(fn (PersonalTask $record): string => $record->status === 'completed' ? 'Reopen' : 'Complete')
+                    ->icon(fn (PersonalTask $record): string => $record->status === 'completed' ? 'heroicon-o-arrow-uturn-left' : 'heroicon-o-check-circle')
+                    ->color(fn (PersonalTask $record): string => $record->status === 'completed' ? 'gray' : 'success')
+                    ->action(fn (PersonalTask $record) => $record->update(['status' => $record->status === 'completed' ? 'pending' : 'completed'])),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

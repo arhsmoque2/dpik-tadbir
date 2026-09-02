@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PersonalNoteResource\Pages;
 use App\Models\PersonalNote;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -11,9 +12,12 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -44,6 +48,9 @@ class PersonalNoteResource extends Resource
     {
         return $schema
             ->components([
+                Toggle::make('is_pinned')
+                    ->label('Pin to Top')
+                    ->default(false),
                 TextInput::make('title')
                     ->required()
                     ->maxLength(255),
@@ -61,6 +68,10 @@ class PersonalNoteResource extends Resource
     {
         return $table
             ->columns([
+                IconColumn::make('is_pinned')
+                    ->label('Pinned')
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
@@ -72,7 +83,17 @@ class PersonalNoteResource extends Resource
                     ->dateTime()
                     ->sortable(),
             ])
+            ->defaultSort('is_pinned', 'desc')
+            ->filters([
+                TernaryFilter::make('is_pinned')
+                    ->label('Pinned Notes'),
+            ])
             ->actions([
+                Action::make('toggle_pin')
+                    ->label(fn (PersonalNote $record): string => $record->is_pinned ? 'Unpin' : 'Pin')
+                    ->icon(fn (PersonalNote $record): string => $record->is_pinned ? 'heroicon-s-bookmark' : 'heroicon-o-bookmark')
+                    ->color(fn (PersonalNote $record): string => $record->is_pinned ? 'warning' : 'gray')
+                    ->action(fn (PersonalNote $record) => $record->update(['is_pinned' => ! $record->is_pinned])),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

@@ -10,6 +10,7 @@ use App\Filament\Resources\PersonalTaskResource\Pages\ListPersonalTasks;
 use App\Models\PersonalTask;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -169,6 +170,71 @@ class PersonalTaskResourceTest extends TestCase
             'status' => 'completed',
             'description' => 'Completed Pier 4 signoff with JKR.',
         ]);
+    }
+
+    public function test_executive_can_toggle_task_completion_via_inline_table_action(): void
+    {
+        $user = User::create([
+            'name' => 'Toggle Task Executive',
+            'email' => 'toggle.task@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'executive',
+        ]);
+
+        $task = PersonalTask::create([
+            'user_id' => $user->id,
+            'title' => 'Task To Toggle',
+            'status' => 'pending',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalTasks::class)
+            ->callAction(TestAction::make('toggle_complete')->table($task));
+
+        $this->assertDatabaseHas('personal_tasks', [
+            'id' => $task->id,
+            'status' => 'completed',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalTasks::class)
+            ->callAction(TestAction::make('toggle_complete')->table($task));
+
+        $this->assertDatabaseHas('personal_tasks', [
+            'id' => $task->id,
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_executive_can_filter_tasks_by_status(): void
+    {
+        $user = User::create([
+            'name' => 'Filter Task Executive',
+            'email' => 'filter.task@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'executive',
+        ]);
+
+        $pendingTask = PersonalTask::create([
+            'user_id' => $user->id,
+            'title' => 'Pending Geotechnical Review',
+            'status' => 'pending',
+        ]);
+
+        $completedTask = PersonalTask::create([
+            'user_id' => $user->id,
+            'title' => 'Completed Pier 4 Inspection',
+            'status' => 'completed',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListPersonalTasks::class)
+            ->filterTable('status', 'completed')
+            ->assertCanSeeTableRecords([$completedTask])
+            ->assertCanNotSeeTableRecords([$pendingTask])
+            ->filterTable('status', 'pending')
+            ->assertCanSeeTableRecords([$pendingTask])
+            ->assertCanNotSeeTableRecords([$completedTask]);
     }
 
     public function test_executive_can_delete_task_via_action(): void
