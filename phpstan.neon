@@ -15,3 +15,28 @@ parameters:
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         - '#uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types#'
+        # Pre-existing grandfathered writes in Filament resource pages
+        -
+            identifier: architecture.eloquentWriteOutsideAction
+            path: app/Filament/*
+            reportUnmatched: false
+        -
+            identifier: architecture.eloquentWriteOutsideAction
+            path: app/Livewire/*
+            reportUnmatched: false
+        -
+            identifier: architecture.eloquentWriteOutsideAction
+            path: app/Mcp/*
+            reportUnmatched: false
+
+services:
+    -
+        class: App\PHPStan\Rules\EloquentWriteOutsideActionRule
+        arguments:
+            guardedNamespaces:
+                - App\Http\Controllers
+                - App\Livewire
+                - App\Filament
+                - App\Mcp\Tools
+        tags:
+            - phpstan.rules.rule

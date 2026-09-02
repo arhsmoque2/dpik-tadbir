@@ -1,72 +1,80 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../theme.css';
 
 /*
- * Filament Lucent Navy Theme (Deep Executive Navy Accents)
+ * DPIK Tadbir - Calm Executive Enterprise Theme
+ * Eliminates artificial glow and cockpit gadgetry in favor of calm typographic hierarchy.
  */
 @source '../../../../app/Filament/**/*';
 @source '../../../../app/Livewire/**/*';
 @source '../../../../resources/views/**/*.blade.php';
 
-@layer base {
-  :root.dark {
-    --bg-outer: #141416;
-    --bg-main-canvas: #1b1c20;
-    --bg-widget-card: #232429;
-    --border-subtle: #2e2f36;
-    --border-active: #3b3c48;
-    --accent-navy: #2563eb;
-    --accent-navy-hover: #1d4ed8;
-    --accent-navy-subtle: rgba(37, 99, 235, 0.18);
-  }
-}
-
-/* Filament Panel Canvas & Rounded Shell */
+/* Base Body & Panel Canvas */
 body.fi-body {
-  background-color: #141416 !important;
-  color: #f3f4f6 !important;
+  background-color: var(--surface-canvas-bg) !important;
+  color: rgb(31 41 55) !important;
 }
 
+.dark body.fi-body {
+  color: rgb(243 244 246) !important;
+}
+
+/* Main Container Shell */
 .fi-main {
-  background-color: #1b1c20 !important;
-  border: 1px solid #26272c !important;
-  border-radius: 1.25rem !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  background-color: var(--surface-block-bg) !important;
+  border: 1px solid var(--surface-block-border) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
   padding: 1.5rem !important;
-  padding-bottom: 7rem !important;
+  padding-bottom: 5rem !important;
 }
 
-/* Sidebar Styling */
+.dark .fi-main {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sidebar Styling: Muted Neutral */
 .fi-sidebar {
-  background-color: #141416 !important;
-  border-right: none !important;
+  background-color: var(--surface-shell-bg) !important;
+  border-right: 1px solid var(--surface-shell-divider) !important;
 }
 
 .fi-sidebar-item-active a {
-  background-color: #232429 !important;
-  border: 1px solid #2e2f36 !important;
-  border-left: 3px solid #2563eb !important;
-  border-radius: 0.5rem !important;
-  color: #ffffff !important;
+  background-color: var(--surface-card-bg) !important;
+  border: 1px solid var(--surface-card-border) !important;
+  border-left: 3px solid rgb(37 99 235) !important;
+  border-radius: 0.375rem !important;
+  color: rgb(17 24 39) !important;
 }
 
-/* Widget Cards & Inputs */
+.dark .fi-sidebar-item-active a {
+  color: rgb(255 255 255) !important;
+}
+
+/* Section Cards & High-Density Tables */
 .fi-section, .fi-wi-stats-overview-stat, .fi-wi-card {
-  background-color: #232429 !important;
-  border: 1px solid #2e2f36 !important;
-  border-radius: 0.75rem !important;
-}
-
-.fi-input, .fi-select-input {
-  background-color: #232429 !important;
-  border: 1px solid #2e2f36 !important;
-  color: #f3f4f6 !important;
+  background-color: var(--surface-block-bg) !important;
+  border: 1px solid var(--surface-block-border) !important;
   border-radius: 0.5rem !important;
+  box-shadow: none !important;
 }
 
-.fi-btn-primary {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
+/* Inputs & Form Controls */
+.fi-input, .fi-select-input {
+  background-color: var(--surface-input-bg) !important;
+  border: 1px solid var(--surface-input-border) !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.875rem !important;
 }
+
+/* Primary Action Buttons: Muted Navy Focus */
+.fi-btn-primary {
+  background-color: rgb(37 99 235) !important;
+  color: #ffffff !important;
+  border-radius: 0.375rem !important;
+  font-weight: 500 !important;
+}
+
 .fi-btn-primary:hover {
-  background-color: #1d4ed8 !important;
+  background-color: rgb(29 78 216) !important;
 }
