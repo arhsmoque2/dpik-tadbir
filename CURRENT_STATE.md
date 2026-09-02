@@ -25,7 +25,7 @@
     - `gate` is the fast subset; `composer check:full` stays the authoritative pre-merge gate.
     - Emits raw empirical state (test counts, assertions, exit codes) with no human verdict artifacts.
 
-- **Governing ADRs (ADR-001 through ADR-033)**:
+- **Governing ADRs (ADR-001 through ADR-034)**:
   - `docs/adr/ADR-001-stack-selection.md` (Laravel 12 + Filament v4 + MCP; zero local raw email storage)
   - `docs/adr/ADR-002-ai-model-and-provider-governance.md` (Multi-Provider, Fallbacks, Prompts)
   - `docs/adr/ADR-003-outlook-mcp-email-processor-boundary.md` (Zero Raw Email Storage Boundary)
@@ -57,8 +57,8 @@
   - `docs/adr/ADR-029-hermetic-io-stream-and-socket-mocking-architecture.md` (Hermetic I/O Stream & Socket Mocking Architecture)
   - `docs/adr/ADR-030-tadbir-runtime-control-plane-snip-output-filtering-and-state-doctrine.md` (Tadbir Runtime Control Plane, Snip Output Filtering & State-First Doctrine)
   - `docs/adr/ADR-031-cloud-run-cold-start-and-performance-optimization.md` (Cloud Run Cold-Start Mitigation, Caddy Static Asset Caching, Filament SPA Navigation, and Sovereign Settings Persistence)
-  - `docs/adr/ADR-032-relaticle-architectural-patterns-ui-layout-and-subsystem-adoption.md` (Relaticle Architectural Patterns, ChatGPT/Claude-Style UI/UX Layout, and Subsystem Adoption)
   - `docs/adr/ADR-033-render-hook-domain-extraction-and-filament-native-testing-architecture.md` (Filament v4 Render Hook Domain Extraction, Hermetic UI Injection Testing, and Native Component QA Architecture)
+  - `docs/adr/ADR-034-relaticle-chat-adoption-verified-and-phased.md` (Relaticle Chat Adoption — Verified Patterns, Phased Rollout. **Status: Proposed** — implementation not yet started; see the ADR's own phase checklists before assuming any part of this is built.)
 
 ## Implementation Boundaries & Deferred Refinements
 - **Dashboard Design Contract (ADR-022 / CAP-009)**: The default dashboard is strictly a calm Bundle & AI Session list. Stat-card metric widgets (`ExecutiveStatsOverview`) remain decoupled from the default view per ADR-022's human-first, AI-optional directive.
