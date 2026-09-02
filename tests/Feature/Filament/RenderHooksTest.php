@@ -30,13 +30,14 @@ class RenderHooksTest extends TestCase
             'name' => 'Test Executive',
             'email' => 'executive.hook@dpik.com.my',
             'password' => bcrypt('password'),
-            'role' => 'super_admin',
+            'role' => 'executive',
         ]);
 
         $this->actingAs($user);
 
         $output = (string) FilamentView::renderHook(PanelsRenderHook::BODY_END);
 
+        $this->assertStringContainsString('data-copilot-drawer', $output);
         $this->assertStringContainsString('Floating Primary Navigation', $output);
         $this->assertNotEmpty($output);
     }
@@ -47,7 +48,7 @@ class RenderHooksTest extends TestCase
             'name' => 'Test Executive 2',
             'email' => 'executive2.hook@dpik.com.my',
             'password' => bcrypt('password'),
-            'role' => 'super_admin',
+            'role' => 'executive',
         ]);
 
         $this->actingAs($user);
