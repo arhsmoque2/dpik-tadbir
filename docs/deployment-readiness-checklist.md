@@ -35,16 +35,11 @@ Adapted directly from production operational learnings in **`dpik-tugas-laravel`
 
 ---
 
-## 3. Microsoft Graph & Outlook MCP Configuration
+## 3. Company Mail Bridge (IMAP/SMTP) Configuration
 
-- [ ] **Azure Entra ID App Registration**:
-  - Register `DPIK Tadbir Copilot` in Azure Portal under the corporate Microsoft 365 tenant.
-  - Granted Graph API Permissions: `Mail.ReadWrite`, `Mail.Send`, `User.Read`.
-  - Store credentials in Secret Manager:
-    - `MICROSOFT_CLIENT_ID`
-    - `MICROSOFT_CLIENT_SECRET`
-    - `MICROSOFT_TENANT_ID`
-- [ ] **Sovereign Mailbox Consent**: Each whitelisted executive authenticates their individual Outlook account. Confirm zero raw emails are cached locally per [`ADR-003`](adr/ADR-003-outlook-mcp-email-processor-boundary.md).
+- [ ] **`ext-imap` present** in the production image (`Dockerfile`) — required by `MailBridge`.
+- [ ] **Company mail host reachable** from Cloud Run on ports 993 (IMAP/SSL) and 465 (SMTP/SSL) — `mail.dpik.com.my` by default (`COMPANY_MAIL_HOST`).
+- [ ] **Sovereign Mailbox Credentials**: Each whitelisted executive enters their own email + mailbox password in Executive Settings (`imap_username`/`imap_password`). No app registration or Secret Manager credentials required. Confirm zero raw emails are cached locally per [`ADR-035`](adr/ADR-035-outlook-mcp-removal-imap-smtp-mail-bridge.md).
 
 ---
 

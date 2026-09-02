@@ -27,7 +27,7 @@ DPIK Tadbir is structured as a full-stack Laravel 12 application with a Filament
 │  • App\Mcp\Tools\Interactive\* (AskUserQuestion, ProposeActionCard)        │
 │  • App\Mcp\Tools\Memory\* (QueryProjectRegister, CommitProjectRegister)    │
 │  • App\Mcp\Tools\Notes\* (CreatePersonalNote, CreatePersonalTask)          │
-│  • App\Services\Mcp\OutlookMcpBridge (Per-user Graph API client bridge)    │
+│  • App\Services\Mail\MailBridge (Per-user IMAP/SMTP mailbox bridge)       │
 │                                                                            │
 │  [4. Project Register & Hybrid Retrieval Subsystem (ARH Session Reader)]   │
 │  • App\Services\Memory\MemoryRetrievalService (FTS5 BM25 + RRF Reranker)   │
@@ -190,7 +190,7 @@ All tool classes inherit from `Laravel\Mcp\Server\Tool` and implement standardiz
 namespace App\Mcp\Tools\Outlook;
 
 use Laravel\Mcp\Server\Tool;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 
 class OutlookCreateDraftTool extends Tool
 {

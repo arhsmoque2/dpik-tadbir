@@ -72,7 +72,7 @@ flowchart TD
     end
 
     subgraph IntegrationLayer["Integrations & Storage Boundary"]
-        MCP_BRIDGE["OutlookMcpBridge (Graph API Stdio)"]
+        MCP_BRIDGE["MailBridge (IMAP/SMTP)"]
         OUTLOOK["Microsoft Outlook / Graph API"]
         PG_POOL[("Neon PostgreSQL (Pooled Runtime)")]
         PG_DIRECT[("Neon PostgreSQL (Direct Migrations)")]
@@ -151,7 +151,6 @@ flowchart TD
 | **Test Coverage Gate**     | `composer test:coverage`                                         | Full Pest coverage report (`coverage.xml`)             |
 | **Diff Coverage Audit**    | `composer test:diff`                                             | Strict 90% diff-cover threshold on PR branches         |
 | **MCP Server Endpoint**    | `php artisan mcp:serve`                                          | Native Laravel MCP endpoint for external agents        |
-| **Outlook MCP Bridge**     | `python -m outlook_mcp.server`                                   | Local Python Microsoft Graph bridge                    |
 
 ---
 
@@ -198,9 +197,7 @@ Copy `.env.example` to `.env`. Key environment variables:
 | `ANTHROPIC_API_KEY`           | Primary LLM key for Claude 3.7 Sonnet            | System fallback (overridable per user)      |
 | `GEMINI_API_KEY`              | Secondary LLM key for Gemini 2.5 Flash           | System fallback (overridable per user)      |
 | `OPENROUTER_API_KEY`          | Multi-model gateway key for OpenRouter           | System fallback (overridable per user)      |
-| `MICROSOFT_CLIENT_ID`         | Microsoft Entra ID App Client ID                 | Required for Outlook MCP Graph access       |
-| `MICROSOFT_CLIENT_SECRET`     | Microsoft Entra ID Client Secret                 | Required for Outlook MCP Graph access       |
-| `OUTLOOK_MCP_COMMAND`         | Executable used to spawn Outlook MCP             | `uv`                                        |
+| `COMPANY_MAIL_HOST`           | Shared IMAP/SMTP host for all DPIK mailboxes     | `mail.dpik.com.my`                          |
 
 ---
 
@@ -214,7 +211,7 @@ dpik-tadbir/
 │   ├── Http/Middleware/          # RegistrationWhitelistMiddleware
 │   ├── Models/                   # Eloquent models (ProjectRegistryEntry, AiActionReceipt, Notes)
 │   ├── Policies/                 # Strict per-user isolation policies
-│   └── Services/                 # AgentService, OutlookMcpBridge, MemoryRetrievalService
+│   └── Services/                 # AgentService, MailBridge, MemoryRetrievalService
 ├── bootstrap/                    # Framework bootstrap
 ├── config/                       # Application configuration
 ├── database/

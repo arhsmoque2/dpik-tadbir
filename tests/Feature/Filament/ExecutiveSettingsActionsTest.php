@@ -96,7 +96,7 @@ it('handles exception when mount fails to retrieve raw ai config', function () {
         ->assertSet('rawAiConfigJson', '{}');
 });
 
-it('runs testAllConnections including outlook when client id is set', function () {
+it('runs testAllConnections and probes IMAP and SMTP', function () {
     $mockMail = Mockery::mock(MailDiagnosticService::class);
     $mockMail->shouldReceive('probeImap')->andReturn(['status' => 'success', 'latency_ms' => 10, 'message' => 'OK', 'remediation' => null]);
     $mockMail->shouldReceive('probeSmtp')->andReturn(['status' => 'success', 'latency_ms' => 10, 'message' => 'OK', 'remediation' => null]);
@@ -104,7 +104,6 @@ it('runs testAllConnections including outlook when client id is set', function (
 
     Livewire::actingAs($this->superAdmin)
         ->test(ExecutiveSettings::class)
-        ->set('microsoft_client_id', 'azure-client-id-123')
         ->call('testAllConnections')
         ->assertSet('imapProbeStatus', 'success')
         ->assertSet('smtpProbeStatus', 'success');

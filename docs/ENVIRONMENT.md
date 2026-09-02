@@ -38,16 +38,24 @@ This document provides the authoritative, zero-leak reference of all environment
 | `AI_FALLBACK_PROVIDER` | `.env` / Config | Public Config | Local / Cloud | Default: `gemini` | Fallback provider invoked on 429/500 errors. |
 | `AI_FALLBACK_MODEL` | `.env` / Config | Public Config | Local / Cloud | Default: `gemini-2.5-flash` | Fallback model identifier. |
 
-### 1.4 Microsoft Graph & Outlook MCP Bridge
+### 1.4 Company Mail Bridge (IMAP/SMTP)
+
+Every DPIK mailbox lives on the same company mail server — there is no
+Microsoft Entra app registration to provision. `MailBridge`
+(`app/Services/Mail/MailBridge.php`) talks IMAP (retrieval) and SMTP
+(draft/reply/forward) directly, authenticated with each executive's own
+per-user mailbox credentials (`users.imap_username`/`imap_password`,
+`smtp_host`/`smtp_port`/`smtp_password`, set in Executive Settings — not
+via env). See ADR-035 for why the earlier Outlook MCP (Microsoft Graph via
+a Python subprocess) approach was replaced.
 
 | Variable / Secret | Tier / Location | Classification | Required In | Canonical Value | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `MICROSOFT_CLIENT_ID` | GitHub Secret (`secrets.`) | Sensitive Secret | Live MCP Bridge | Azure Entra ID App ID | Application registration ID for Microsoft Graph access. |
-| `MICROSOFT_CLIENT_SECRET` | GitHub Secret (`secrets.`) | Sensitive Secret | Live MCP Bridge | Azure Entra ID Secret | OAuth client secret for mailbox query authorization. |
-| `MICROSOFT_TENANT_ID` | GitHub Secret (`secrets.`) | Sensitive Secret | Live MCP Bridge | Azure 365 Tenant ID | Organization directory tenant identifier. |
-| `OUTLOOK_MCP_COMMAND` | `.env` / Config | Public Config | Local / Cloud | `uv` | Executable used to spawn the Outlook MCP background server. |
-| `OUTLOOK_MCP_ARGS` | `.env` / Config | Public Config | Local / Cloud | `run python -m outlook_mcp.server` | Arguments supplied to spawn the MCP bridge. |
-| `OUTLOOK_MCP_TIMEOUT` | `.env` / Config | Public Config | Local / Cloud | `30` | Subprocess execution timeout in seconds. |
+| `COMPANY_MAIL_HOST` | `.env` / Config | Public Config | Local / Cloud | `mail.dpik.com.my` | Shared IMAP/SMTP host every executive mailbox lives on. |
+| `COMPANY_MAIL_IMAP_PORT` | `.env` / Config | Public Config | Local / Cloud | `993` | IMAP-over-SSL port. |
+| `COMPANY_MAIL_SMTP_PORT` | `.env` / Config | Public Config | Local / Cloud | `465` | SMTP-over-SSL port. |
+| `COMPANY_MAIL_TIMEOUT` | `.env` / Config | Public Config | Local / Cloud | `30` | IMAP connection timeout in seconds. |
+| `COMPANY_MAIL_DRAFTS_FOLDER` | `.env` / Config | Public Config | Local / Cloud | `INBOX.Drafts` | IMAP folder drafts are appended to. |
 
 ### 1.5 Application Security & Whitelist Gating
 

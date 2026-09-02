@@ -2,7 +2,6 @@
 
 use App\Settings\AiSettings;
 use App\Settings\GeneralSettings;
-use App\Settings\OutlookSettings;
 use App\Settings\SafetySettings;
 use Spatie\LaravelSettings\SettingsRepositories\DatabaseSettingsRepository;
 
@@ -10,7 +9,6 @@ return [
     'settings' => [
         GeneralSettings::class,
         AiSettings::class,
-        OutlookSettings::class,
         SafetySettings::class,
     ],
 

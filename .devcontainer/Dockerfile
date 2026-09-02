@@ -8,11 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsqlite3-dev \
     libicu-dev \
     libzip-dev \
+    libc-client-dev \
+    libkrb5-dev \
     unzip \
     git \
     curl \
     ca-certificates \
-    && docker-php-ext-install intl pdo pdo_sqlite zip \
+    && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+    && docker-php-ext-install intl pdo pdo_sqlite zip imap \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && echo "xdebug.mode=coverage,debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \

@@ -17,7 +17,7 @@ To enable zero-ask sandbox independence and hermetic verification, the test suit
 | Capability / Scenario | Test Suite | Test Type | Acceptance Verification Gate |
 | :--- | :--- | :--- | :--- |
 | **`[CAP-001]` Agent Loop & Hallucination Guard** | `tests/Feature/Ai/AgentServiceTest.php` | Unit & Feature | Asserts agent forces retry when claiming action without `AiActionReceipt`. |
-| **`[CAP-002]` Outlook MCP Bridge Client** | `tests/Unit/Mcp/OutlookMcpBridgeTest.php` | Mock / Contract | Validates concise payload transformations, delta queries, token expiry handling. |
+| **`[CAP-002]` Company Mail (IMAP/SMTP) Bridge Client** | `tests/Feature/Mcp/MailBridgeTest.php` | Mock / Integration | Validates concise payload transformations, delta queries, and fail-closed behavior when mailbox credentials are missing or unreachable. |
 | **`[CAP-003]` Executive Presets & Smart Email Scans** | `tests/Feature/Presets/PresetExecutionServiceTest.php` | Feature | Asserts dynamic prompt interpolation and instant delta scan aggregation. |
 | **`[CAP-004]` Write Safety Proposal Gate** | `tests/Feature/Mcp/WriteSafetyProposalTest.php` | Security / Gate | Asserts outbound email dispatch fails if approval token is missing, forged, or expired. |
 | **`[CAP-005]` Project Register Continuous Memory** | `tests/Feature/Memory/ProjectRegisterTest.php` | Integration | Tests markdown storage, tag parsing, and FTS5 synchronization triggers on save. |

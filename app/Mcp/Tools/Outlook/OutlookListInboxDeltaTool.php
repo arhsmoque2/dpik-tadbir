@@ -3,14 +3,14 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
-use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
+use App\Mcp\Tools\Concerns\ScopesMailBridge;
 use App\Models\User;
 use App\Services\BundleService;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 
 class OutlookListInboxDeltaTool extends BaseTool
 {
-    use ScopesOutlookBridge;
+    use ScopesMailBridge;
 
     protected string $name = 'outlook_list_inbox_delta';
 
@@ -19,7 +19,7 @@ class OutlookListInboxDeltaTool extends BaseTool
     protected BundleService $bundleService;
 
     public function __construct(
-        protected OutlookMcpBridge $bridge,
+        protected MailBridge $bridge,
         ?BundleService $bundleService = null
     ) {
         $this->bundleService = $bundleService ?? app(BundleService::class);

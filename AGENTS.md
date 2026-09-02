@@ -62,7 +62,6 @@ composer analyse         # Run PHPStan / Larastan Level 8
 
 # MCP & Sync
 php artisan mcp:serve    # Run native MCP server endpoint
-python -m outlook_mcp    # Run Python Outlook MCP bridge
 ```
 
 ## Capability Gate (declared-vs-built, hard-gated both ways)

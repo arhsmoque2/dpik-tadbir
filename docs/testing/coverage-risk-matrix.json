@@ -13,7 +13,7 @@
         "app/Services/Ai/LlmGatewayService.php",
         "app/Services/Auth/RegistrationWhitelistService.php",
         "app/Http/Middleware/RegistrationWhitelistMiddleware.php",
-        "app/Services/Mcp/OutlookMcpBridge.php",
+        "app/Services/Mail/MailBridge.php",
         "app/Services/Memory/MemoryRetrievalService.php",
         "app/Services/Audit/ActionMemoryService.php",
         "app/Mcp/ToolRegistry.php",

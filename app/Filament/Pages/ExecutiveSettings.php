@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\Ai\AiConfigurationService;
 use App\Services\Ai\LlmGatewayService;
 use App\Services\Mcp\MailDiagnosticService;
-use App\Services\Mcp\OutlookMcpBridge;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
@@ -36,12 +35,6 @@ class ExecutiveSettings extends Page
     public ?string $favorite_model_2 = 'openrouter:deepseek/deepseek-r1';
 
     public ?string $favorite_model_3 = 'gemini:gemini-2.5-flash';
-
-    public ?string $microsoft_client_id = null;
-
-    public ?string $microsoft_client_secret = null;
-
-    public ?string $microsoft_tenant_id = null;
 
     public ?string $imap_host = 'mail.dpik.com.my';
 
@@ -93,14 +86,6 @@ class ExecutiveSettings extends Page
 
     public int $openrouterLatencyMs = 0;
 
-    public ?string $outlookProbeStatus = null;
-
-    public ?string $outlookProbeMessage = null;
-
-    public ?string $outlookProbeRemediation = null;
-
-    public int $outlookLatencyMs = 0;
-
     public string $rawAiConfigJson = '';
 
     public ?string $configError = null;
@@ -132,15 +117,6 @@ class ExecutiveSettings extends Page
             $this->favorite_model_1 = $user->favorite_model_1 ?? 'anthropic:claude-3-7-sonnet-20250219';
             $this->favorite_model_2 = $user->favorite_model_2 ?? 'openrouter:deepseek/deepseek-r1';
             $this->favorite_model_3 = $user->favorite_model_3 ?? 'gemini:gemini-2.5-flash';
-            $this->microsoft_client_id = $user->microsoft_client_id;
-
-            try {
-                $this->microsoft_client_secret = $user->microsoft_client_secret;
-            } catch (Throwable) {
-                $this->microsoft_client_secret = null;
-            }
-
-            $this->microsoft_tenant_id = $user->microsoft_tenant_id;
             $this->imap_host = $user->imap_host ?? 'mail.dpik.com.my';
             $this->imap_port = $user->imap_port ?? 993;
             $this->imap_username = $user->imap_username ?? $user->email;
@@ -288,42 +264,6 @@ class ExecutiveSettings extends Page
         }
     }
 
-    public function testOutlookConnection(): void
-    {
-        /** @var OutlookMcpBridge $bridge */
-        $bridge = app(OutlookMcpBridge::class);
-
-        $result = $bridge->probeOutlookCredentials(
-            $this->microsoft_client_id,
-            $this->microsoft_client_secret,
-            $this->microsoft_tenant_id
-        );
-
-        $this->outlookLatencyMs = $result['latency_ms'];
-
-        if ($result['success']) {
-            $this->outlookProbeStatus = 'success';
-            $this->outlookProbeMessage = 'Microsoft Graph OAuth probe connected successfully.';
-            $this->outlookProbeRemediation = null;
-
-            Notification::make()
-                ->title('Outlook Connection Verified')
-                ->body('Connected to Microsoft 365 Mailbox successfully.')
-                ->success()
-                ->send();
-        } else {
-            $this->outlookProbeStatus = 'error';
-            $this->outlookProbeMessage = $result['error_message'] ?? 'Authentication failed.';
-            $this->outlookProbeRemediation = $result['remediation'] ?? 'Verify credentials in Microsoft Entra Admin Center.';
-
-            Notification::make()
-                ->title('Outlook Probe Failed')
-                ->body($this->outlookProbeMessage)
-                ->danger()
-                ->send();
-        }
-    }
-
     public function save(): void
     {
         /** @var User|null $user */
@@ -333,36 +273,12 @@ class ExecutiveSettings extends Page
             return;
         }
 
-        // Validate UUID formats if filled
-        $uuidRegex = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
-        $clientId = filled($this->microsoft_client_id) ? trim((string) $this->microsoft_client_id) : null;
-        $tenantId = filled($this->microsoft_tenant_id) ? trim((string) $this->microsoft_tenant_id) : null;
         $openrouterKey = filled($this->openrouter_api_key) ? trim((string) $this->openrouter_api_key) : null;
 
         if ($openrouterKey && ! str_starts_with($openrouterKey, 'sk-or-v1-')) {
             Notification::make()
                 ->title('Invalid OpenRouter API Key Format')
                 ->body('OpenRouter API key must begin with "sk-or-v1-".')
-                ->danger()
-                ->send();
-
-            return;
-        }
-
-        if ($clientId && ! preg_match($uuidRegex, $clientId)) {
-            Notification::make()
-                ->title('Invalid Client ID Format')
-                ->body('Microsoft Client ID must be a valid 36-character UUID.')
-                ->danger()
-                ->send();
-
-            return;
-        }
-
-        if ($tenantId && ! in_array(strtolower($tenantId), ['common', 'organizations', 'consumers'], true) && ! preg_match($uuidRegex, $tenantId)) {
-            Notification::make()
-                ->title('Invalid Tenant ID Format')
-                ->body('Microsoft Tenant ID must be a valid 36-character UUID or "organizations".')
                 ->danger()
                 ->send();
 
@@ -395,9 +311,6 @@ class ExecutiveSettings extends Page
             'favorite_model_1' => filled($this->favorite_model_1) ? trim((string) $this->favorite_model_1) : 'anthropic:claude-3-7-sonnet-20250219',
             'favorite_model_2' => filled($this->favorite_model_2) ? trim((string) $this->favorite_model_2) : 'openrouter:deepseek/deepseek-r1',
             'favorite_model_3' => filled($this->favorite_model_3) ? trim((string) $this->favorite_model_3) : 'gemini:gemini-2.5-flash',
-            'microsoft_client_id' => $clientId,
-            'microsoft_client_secret' => filled($this->microsoft_client_secret) ? trim((string) $this->microsoft_client_secret) : null,
-            'microsoft_tenant_id' => $tenantId,
             'imap_host' => filled($this->imap_host) ? trim((string) $this->imap_host) : 'mail.dpik.com.my',
             'imap_port' => $this->imap_port ? (int) $this->imap_port : 993,
             'imap_username' => filled($this->imap_username) ? trim((string) $this->imap_username) : null,
@@ -475,9 +388,6 @@ class ExecutiveSettings extends Page
         $this->testOpenRouterConnection();
         $this->testImapConnection();
         $this->testSmtpConnection();
-        if (filled($this->microsoft_client_id)) {
-            $this->testOutlookConnection();
-        }
 
         Notification::make()
             ->title('Full System Diagnostic Complete')

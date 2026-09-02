@@ -88,10 +88,10 @@ test.describe('Journey 5: Navigation Hygiene (Tier 0)', () => {
         // This asserts the always-true invariant on whatever the drawer
         // currently renders (presets ribbon, empty state, or prior transcript)
         // rather than forcing a live model call — the equivalent deliberate
-        // fault-injection scenario (a missing `uv` binary) is covered
-        // deterministically in tests/Feature/Mcp/OutlookMcpBridgeTest.php,
+        // fault-injection scenario (an unreachable mailbox) is covered
+        // deterministically in tests/Feature/Mcp/MailBridgeTest.php,
         // since Playwright's own CI run boots the app in APP_ENV=testing,
-        // where the Outlook bridge is always mocked and this failure path
+        // where the mail bridge is always mocked and this failure path
         // is unreachable from the browser.
         await assertNoRawBackendErrors(page, '[data-copilot-drawer]');
     });

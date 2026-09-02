@@ -54,7 +54,7 @@
                     <h3 class="text-sm font-semibold tracking-wide text-white flex items-center space-x-2">
                         <span>DPIK Copilot</span>
                         <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-normal tracking-normal {{ $outlookStatus === 'online' ? 'bg-[#429A6A]/20 text-[#429A6A] border border-[#429A6A]/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700' }}">
-                            {{ $outlookStatus === 'online' ? 'Outlook Graph Connected' : 'Outlook Offline' }}
+                            {{ $outlookStatus === 'online' ? 'Mailbox Connected' : 'Mailbox Offline' }}
                         </span>
                     </h3>
                     <p class="text-xs text-[#9CA3AF]">Zero-raw-storage enterprise memory & action dispatcher</p>

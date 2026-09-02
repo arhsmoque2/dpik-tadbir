@@ -3,19 +3,19 @@
 namespace App\Mcp\Tools\Outlook;
 
 use App\Mcp\BaseTool;
-use App\Mcp\Tools\Concerns\ScopesOutlookBridge;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Mcp\Tools\Concerns\ScopesMailBridge;
+use App\Services\Mail\MailBridge;
 
 class OutlookCreateDraftTool extends BaseTool
 {
-    use ScopesOutlookBridge;
+    use ScopesMailBridge;
 
     protected string $name = 'outlook_create_draft';
 
     protected string $description = 'Stages a new email draft in Outlook via Microsoft Graph API.';
 
     public function __construct(
-        protected OutlookMcpBridge $bridge
+        protected MailBridge $bridge
     ) {}
 
     /**

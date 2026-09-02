@@ -148,9 +148,7 @@ jobs:
             ALLOWED_REGISTRATION_EMAILS=${{ vars.ALLOWED_REGISTRATION_EMAILS }}
             ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-            MICROSOFT_CLIENT_ID=${{ secrets.MICROSOFT_CLIENT_ID }}
-            MICROSOFT_CLIENT_SECRET=${{ secrets.MICROSOFT_CLIENT_SECRET }}
-            MICROSOFT_TENANT_ID=${{ secrets.MICROSOFT_TENANT_ID }}
+            COMPANY_MAIL_HOST=${{ vars.COMPANY_MAIL_HOST || 'mail.dpik.com.my' }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_REDIRECT_URI=${{ vars.APP_URL }}/auth/google/callback

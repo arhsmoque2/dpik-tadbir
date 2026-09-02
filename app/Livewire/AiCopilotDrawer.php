@@ -7,7 +7,7 @@ use App\Models\ChatSession;
 use App\Models\ExecutivePreset;
 use App\Models\User;
 use App\Services\Ai\AgentService;
-use App\Services\Mcp\OutlookMcpBridge;
+use App\Services\Mail\MailBridge;
 use App\Services\Presets\PresetExecutionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -104,7 +104,7 @@ class AiCopilotDrawer extends Component
         }
 
         try {
-            $bridge = app(OutlookMcpBridge::class)->forUser($user);
+            $bridge = app(MailBridge::class)->forUser($user);
             $this->outlookStatus = $bridge->checkAuthStatus() ? 'online' : 'offline';
         } catch (\Throwable $e) {
             $this->outlookStatus = 'offline';
