@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Hooks\AdaptiveNavigationHooks;
+use App\Filament\Hooks\CopilotUiHooks;
+use App\Filament\Hooks\GoogleAuthHooks;
 use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Register;
 use App\Filament\Pages\Dashboard;
@@ -13,13 +16,11 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -47,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
             $panel = $panel->viteTheme('resources/css/filament/admin/theme.css');
         }
 
-        return $panel
+        $panel = $panel
             ->spa()
             ->colors([
                 'primary' => Color::Amber,
@@ -58,23 +59,13 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([])
-            ->renderHook(
-                PanelsRenderHook::BODY_END,
-                fn (): string => auth()->check() ? Blade::render('@livewire(\'ai-copilot-drawer\') @include(\'filament.hooks.bottom-nav\')') : ''
-            )
-            ->renderHook(
-                PanelsRenderHook::GLOBAL_SEARCH_AFTER,
-                fn (): string => auth()->check() ? Blade::render('@include(\'filament.hooks.copilot-topbar-button\')') : ''
-            )
-            ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => Blade::render('@include(\'filament.components.google-login-button\')')
-            )
-            ->renderHook(
-                PanelsRenderHook::AUTH_REGISTER_FORM_AFTER,
-                fn (): string => Blade::render('@include(\'filament.components.google-login-button\')')
-            )
+            ->widgets([]);
+
+        $panel = CopilotUiHooks::register($panel);
+        $panel = AdaptiveNavigationHooks::register($panel);
+        $panel = GoogleAuthHooks::register($panel);
+
+        return $panel
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
