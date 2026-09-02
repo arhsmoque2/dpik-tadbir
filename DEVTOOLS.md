@@ -31,7 +31,7 @@ Every Pull Request must satisfy the 5 gates defined in [`.github/workflows/ci.ym
 
 | CI Gate | Command in CI | Primary Agent Failure Mode | Auto-Fix / Prevention Devtool |
 | :--- | :--- | :--- | :--- |
-| **Gate 1: Spec & Lexicon** | `markdownlint-cli2` & `cspell` | Typo in PR description or doc, unregistered acronym (e.g. `HITL`, `NRIC`) | Prettier write + `.cspell.json` dictionary whitelist |
+| **Gate 1: Spec & Docs** | `markdownlint-cli2` & JSON schemas | Markdown syntax or JSON spec contract violation | Prettier write + schema validation |
 | **Gate 2: Secret & Policy**| `gitleaks` & Whitelist tests | Accidental hardcoded token, missing user-scoping assertion | Gitleaks local git hook + Sovereign Policy Test skeletons |
 | **Gate 1: PHP Static** | `pint --test` | Code style violation (indentation, import ordering, anonymous class braces) | `vendor/bin/pint` (100% deterministic auto-formatter) |
 | **Gate 1: PHP Static** | `phpstan analyse --level=8` | Missing method return type, un-annotated Eloquent collection generic | `rector` / `phpstan-fixer` (auto-type declarations) |
