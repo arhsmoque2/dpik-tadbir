@@ -3,9 +3,11 @@
 namespace App\Services\Mail;
 
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use IMAP\Connection;
 use RuntimeException;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
@@ -262,7 +264,7 @@ class MailBridge
     /**
      * @return array<string, mixed>
      */
-    protected function summarizeMessage(\IMAP\Connection $conn, int $uid, bool $concise): array
+    protected function summarizeMessage(Connection $conn, int $uid, bool $concise): array
     {
         $msgno = imap_msgno($conn, $uid);
         $overview = $msgno ? (imap_fetch_overview($conn, (string) $msgno, 0)[0] ?? null) : null;
@@ -273,7 +275,7 @@ class MailBridge
             'id' => (string) $uid,
             'subject' => $subject,
             'from' => $overview->from ?? '',
-            'received_at' => $date ? \Illuminate\Support\Carbon::parse($date)->toIso8601String() : null,
+            'received_at' => $date ? Carbon::parse($date)->toIso8601String() : null,
         ];
 
         if (! $concise) {
@@ -319,7 +321,7 @@ class MailBridge
     }
 
     /**
-     * @return \IMAP\Connection
+     * @return Connection
      */
     protected function openImapConnection(string $folder = 'INBOX')
     {
