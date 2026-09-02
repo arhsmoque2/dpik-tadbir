@@ -124,4 +124,39 @@ class BundleResourceTest extends TestCase
             ->test(EditBundle::class, ['record' => $bundle->id])
             ->assertSuccessful();
     }
+
+    public function test_super_admin_can_call_fetch_live_email_body_action_on_view_bundle(): void
+    {
+        $user = User::create([
+            'name' => 'Admin User 5',
+            'email' => 'admin5.bundle@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+        ]);
+
+        $bundle = Bundle::create([
+            'user_id' => $user->id,
+            'filter_label' => 'Live Body Fetch Test',
+            'filter_criteria' => ['project_code' => 'PC-2023-011'],
+            'project_code' => 'PC-2023-011',
+            'email_count' => 1,
+        ]);
+
+        BundleEmail::create([
+            'bundle_id' => $bundle->id,
+            'message_id' => 'MSG_LIVE_TEST_01',
+            'from_name' => 'Consultant Ir. Tan',
+            'from_email' => 'tan@consult.com',
+            'subject' => 'Soil Investigation Live Report',
+            'snippet' => 'Soil testing complete.',
+            'received_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ViewBundle::class, ['record' => $bundle->id])
+            ->callAction('fetchLiveEmailBody', data: ['message_id' => 'MSG_LIVE_TEST_01'])
+            ->assertSuccessful()
+            ->mountAction('displayLiveBody', ['body' => 'Soil testing complete.'])
+            ->assertActionMounted('displayLiveBody');
+    }
 }

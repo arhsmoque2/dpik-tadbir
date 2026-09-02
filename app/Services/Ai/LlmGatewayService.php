@@ -220,20 +220,10 @@ class LlmGatewayService
             return $this->invokeAnthropic($model, $messages, $tools, $key, $options);
         }
 
-        // 'gemini' (the configured fallback_provider) and any other
-        // provider name have no live invoke path at all — there is no
-        // invokeGemini(). Previously this fell straight through to
-        // mockCompletion() even when $liveGate was true, so a missing/bad
-        // anthropic key silently degraded every executive's chat to a
-        // canned keyword-matched reply recorded as a normal 'completed'
-        // AiRun (rehearsed live: real HTTP request, real drawer send, real
-        // response — "DPIK Tadbir Copilot ready..." for any question,
-        // telemetry showing success). Only mock silently when genuinely
-        // testing (matches every existing Pest fixture, which relies on
-        // this path); otherwise throw so AgentService's existing
-        // upstream-failure handling (friendly message, PII-redacted
-        // recordFailure, status: 'failed') takes over instead of a false
-        // "completed" response with fabricated content.
+        if ($provider === 'gemini' && $liveGate) {
+            return $this->invokeGemini($model, $messages, $tools, $key, $options);
+        }
+
         if ($liveGate) {
             throw new RuntimeException("No live integration configured for provider '{$provider}' — configure an API key in Executive Settings.");
         }
@@ -675,12 +665,312 @@ class LlmGatewayService
     }
 
     /**
+     * Invoke Google Gemini generateContent REST API.
+     *
+     * @param  list<array<string, mixed>>  $messages
+     * @param  list<array<string, mixed>>  $tools
+     * @param  array<string, mixed>  $options
+     * @return array{content: string, tool_calls: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string, provider: string, model: string, input_tokens?: int, output_tokens?: int}
+     */
+    protected function invokeGemini(
+        string $model,
+        array $messages,
+        array $tools,
+        string $key,
+        array $options
+    ): array {
+        if (empty($key)) {
+            throw new RuntimeException('Google Gemini API key is missing or unconfigured. Please configure your key in Executive Settings.');
+        }
+
+        $systemPrompt = (string) ($options['system'] ?? '');
+        $payload = [
+            'contents' => $this->toGeminiContents($messages),
+            'generationConfig' => [
+                'maxOutputTokens' => (int) ($options['max_tokens'] ?? 4096),
+                'temperature' => 0.2,
+            ],
+        ];
+
+        if ($systemPrompt !== '') {
+            $payload['systemInstruction'] = [
+                'parts' => [
+                    ['text' => $systemPrompt],
+                ],
+            ];
+        }
+
+        if ($tools !== []) {
+            $payload['tools'] = [
+                [
+                    'functionDeclarations' => array_map(fn (array $t): array => [
+                        'name' => (string) ($t['name'] ?? ''),
+                        'description' => (string) ($t['description'] ?? ''),
+                        'parameters' => $t['parameters'] ?? ['type' => 'object', 'properties' => (object) []],
+                    ], $tools),
+                ],
+            ];
+        }
+
+        $cleanModel = str_starts_with($model, 'models/') ? substr($model, 7) : $model;
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$cleanModel}:generateContent?key={$key}";
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->timeout(45)->post($url, $payload);
+
+        if (! $response->successful()) {
+            $body = $response->json() ?? [];
+            $errorDesc = is_array($body['error'] ?? null)
+                ? (string) ($body['error']['message'] ?? $response->body())
+                : (string) ($body['error'] ?? $response->body());
+
+            throw new RuntimeException("Google Gemini API error (HTTP {$response->status()}): {$errorDesc}");
+        }
+
+        /** @var array{candidates?: list<array{content?: array{parts?: list<array<string, mixed>>}, finishReason?: string}>, usageMetadata?: array{promptTokenCount?: int, candidatesTokenCount?: int}} $data */
+        $data = $response->json() ?? [];
+        $candidate = $data['candidates'][0] ?? [];
+        $parts = $candidate['content']['parts'] ?? [];
+
+        $textParts = [];
+        $toolCalls = [];
+
+        foreach ($parts as $part) {
+            if (isset($part['text'])) {
+                $textParts[] = (string) $part['text'];
+            }
+            if (isset($part['functionCall'])) {
+                $fc = (array) $part['functionCall'];
+                $toolCalls[] = [
+                    'id' => uniqid('call_gemini_'),
+                    'name' => (string) ($fc['name'] ?? ''),
+                    'arguments' => (array) ($fc['args'] ?? []),
+                ];
+            }
+        }
+
+        $finishReason = (string) ($candidate['finishReason'] ?? '');
+        $stopReason = ($finishReason === 'TOOL_CALL' || $toolCalls !== []) ? 'tool_use' : 'end_turn';
+
+        return [
+            'content' => implode("\n", $textParts),
+            'tool_calls' => $toolCalls,
+            'stop_reason' => $stopReason,
+            'provider' => 'gemini',
+            'model' => $model,
+            'input_tokens' => (int) ($data['usageMetadata']['promptTokenCount'] ?? 0),
+            'output_tokens' => (int) ($data['usageMetadata']['candidatesTokenCount'] ?? 0),
+        ];
+    }
+
+    /**
+     * Translate the gateway's neutral message shape into Google Gemini's
+     * contents format. Gemini requires tool results as `functionResponse` parts
+     * inside a user-role turn with correlated tool names and response objects.
+     * Consecutive tool results from the same turn are merged into a single user
+     * turn matching Gemini multi-tool semantics.
+     *
+     * @param  list<array<string, mixed>>  $messages
+     * @return list<array{role: string, parts: list<array<string, mixed>>}>
+     */
+    private function toGeminiContents(array $messages): array
+    {
+        $out = [];
+        foreach ($messages as $m) {
+            $role = (string) ($m['role'] ?? 'user');
+
+            if ($role === 'assistant') {
+                $parts = [];
+                $text = (string) ($m['content'] ?? '');
+                if ($text !== '') {
+                    $parts[] = ['text' => $text];
+                }
+
+                if (! empty($m['tool_calls'])) {
+                    foreach ($m['tool_calls'] as $tc) {
+                        $parts[] = [
+                            'functionCall' => [
+                                'name' => (string) ($tc['name'] ?? ''),
+                                'args' => $tc['arguments'] ?? (object) [],
+                            ],
+                        ];
+                    }
+                }
+
+                if ($parts !== []) {
+                    $out[] = [
+                        'role' => 'model',
+                        'parts' => $parts,
+                    ];
+                }
+
+                continue;
+            }
+
+            if ($role === 'tool') {
+                $toolName = (string) ($m['tool_name'] ?? $m['name'] ?? '');
+                if ($toolName === '' && ! empty($m['tool_call_id'])) {
+                    foreach (array_reverse($messages) as $prevMsg) {
+                        if (! empty($prevMsg['tool_calls'])) {
+                            foreach ($prevMsg['tool_calls'] as $tc) {
+                                if (($tc['id'] ?? '') === $m['tool_call_id']) {
+                                    $toolName = (string) ($tc['name'] ?? '');
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                if ($toolName === '') {
+                    $toolName = 'unknown_tool';
+                }
+
+                $rawContent = (string) ($m['content'] ?? '');
+                $decoded = json_decode($rawContent, true);
+                $responseObject = is_array($decoded) ? $decoded : ['output' => $rawContent];
+
+                $part = [
+                    'functionResponse' => [
+                        'name' => $toolName,
+                        'response' => [
+                            'name' => $toolName,
+                            'content' => $responseObject,
+                        ],
+                    ],
+                ];
+
+                $lastIndex = array_key_last($out);
+                $lastIsToolResultTurn = $lastIndex !== null
+                    && $out[$lastIndex]['role'] === 'user'
+                    && isset($out[$lastIndex]['parts'][0]['functionResponse']);
+
+                if ($lastIsToolResultTurn) {
+                    $out[$lastIndex]['parts'][] = $part;
+                } else {
+                    $out[] = [
+                        'role' => 'user',
+                        'parts' => [$part],
+                    ];
+                }
+
+                continue;
+            }
+
+            $parts = [];
+            $text = (string) ($m['content'] ?? '');
+            if ($text !== '') {
+                $parts[] = ['text' => $text];
+            }
+
+            if ($parts !== []) {
+                $out[] = [
+                    'role' => 'user',
+                    'parts' => $parts,
+                ];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Performs a live connection and credential verification probe against Google Gemini.
+     *
+     * @return array{
+     *     success: bool,
+     *     status: string,
+     *     latency_ms: int,
+     *     error_code: ?string,
+     *     error_message: ?string,
+     *     remediation: ?string
+     * }
+     */
+    public function probeGeminiKey(?string $apiKey): array
+    {
+        $key = trim((string) $apiKey);
+
+        if (empty($key)) {
+            return [
+                'success' => false,
+                'status' => 'unconfigured',
+                'latency_ms' => 0,
+                'error_code' => 'MISSING_API_KEY',
+                'error_message' => 'Client Error: Google Gemini API key is required.',
+                'remediation' => 'Provide a valid Google Gemini API key starting with "AIzaSy".',
+            ];
+        }
+
+        if (! str_starts_with($key, 'AIzaSy')) {
+            return [
+                'success' => false,
+                'status' => 'invalid_format',
+                'latency_ms' => 0,
+                'error_code' => 'INVALID_KEY_FORMAT',
+                'error_message' => 'Format Error: Google Gemini API key must begin with "AIzaSy".',
+                'remediation' => 'Generate and copy your key from Google AI Studio at https://aistudio.google.com.',
+            ];
+        }
+
+        $startTime = microtime(true);
+
+        try {
+            $response = Http::timeout(8)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$key}");
+            $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'status' => 'connected',
+                    'latency_ms' => $latencyMs,
+                    'error_code' => null,
+                    'error_message' => null,
+                    'remediation' => null,
+                ];
+            }
+
+            $body = $response->json() ?? [];
+            $errorDesc = is_array($body['error'] ?? null)
+                ? (string) ($body['error']['message'] ?? $response->body())
+                : (string) ($body['error'] ?? $response->body());
+
+            return [
+                'success' => false,
+                'status' => 'auth_failed',
+                'latency_ms' => $latencyMs,
+                'error_code' => 'AUTH_ERROR',
+                'error_message' => "HTTP {$response->status()}: {$errorDesc}",
+                'remediation' => 'Verify your Google Gemini API key at https://aistudio.google.com.',
+            ];
+        } catch (Throwable $e) {
+            $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+
+            return [
+                'success' => false,
+                'status' => 'network_error',
+                'latency_ms' => $latencyMs,
+                'error_code' => 'CONNECTION_FAILED',
+                'error_message' => 'Network / Connection error: '.$e->getMessage(),
+                'remediation' => 'Ensure the server has outbound internet connectivity to generativelanguage.googleapis.com.',
+            ];
+        }
+    }
+
+    /**
      * @param  list<array<string, mixed>>  $messages
      * @param  list<array<string, mixed>>  $tools
      * @return array{content: string, tool_calls?: list<array{id: string, name: string, arguments: array<string, mixed>}>, stop_reason: string}
      */
     protected function mockCompletion(array $messages, array $tools): array
     {
+        $lastMsg = end($messages);
+        if (is_array($lastMsg) && ($lastMsg['role'] ?? '') === 'tool') {
+            return [
+                'content' => 'Interactive action processed successfully. Dispatched action receipt recorded.',
+                'stop_reason' => 'end_turn',
+            ];
+        }
+
         $lastUserMsg = '';
         foreach (array_reverse($messages) as $m) {
             if (($m['role'] ?? '') === 'user') {

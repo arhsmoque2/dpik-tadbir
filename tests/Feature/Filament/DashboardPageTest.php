@@ -34,8 +34,8 @@ class DashboardPageTest extends TestCase
             ->assertSee('Executive AI Sessions')
             ->assertSee('Tender Analysis PC-2023-011')
             ->assertSee('New Session')
+            ->assertSee('Bundles')
             ->assertSee('Notes')
-            ->assertSee('Projects')
             ->assertSee('Settings');
     }
 

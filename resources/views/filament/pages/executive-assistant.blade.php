@@ -31,8 +31,62 @@
         </div>
     </div>
 
+    <!-- Tab Switcher Navigation -->
+    <div class="flex items-center space-x-2 border-b border-[#323946] pb-2">
+        <button
+            @click="activeTab = 'sessions'"
+            type="button"
+            :class="activeTab === 'sessions' ? 'bg-[#C9A36D] text-zinc-950 font-bold' : 'bg-[#212631] text-zinc-300 hover:text-white border border-[#323946]'"
+            class="px-4 py-2 rounded-lg text-xs tracking-wide transition-all flex items-center space-x-2"
+        >
+            <svg style="width: 15px; height: 15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <span>Executive AI Sessions</span>
+        </button>
+
+        <button
+            @click="activeTab = 'tasks'"
+            type="button"
+            :class="activeTab === 'tasks' ? 'bg-[#C9A36D] text-zinc-950 font-bold' : 'bg-[#212631] text-zinc-300 hover:text-white border border-[#323946]'"
+            class="px-4 py-2 rounded-lg text-xs tracking-wide transition-all flex items-center space-x-2"
+        >
+            <svg style="width: 15px; height: 15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Personal Action Tasks</span>
+        </button>
+
+        <div class="flex-1"></div>
+
+        <div class="flex items-center space-x-2">
+            <a
+                href="/admin/sessions/export/json"
+                target="_blank"
+                class="px-3 py-1.5 rounded-lg bg-[#282E3C] hover:bg-[#323946] text-xs text-zinc-200 hover:text-white border border-[#323946] transition-colors flex items-center space-x-1.5"
+                title="Export Sessions as JSON"
+            >
+                <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export JSON</span>
+            </a>
+            <a
+                href="/admin/sessions/export/markdown"
+                target="_blank"
+                class="px-3 py-1.5 rounded-lg bg-[#282E3C] hover:bg-[#323946] text-xs text-zinc-200 hover:text-white border border-[#323946] transition-colors flex items-center space-x-1.5"
+                title="Export Sessions as Markdown"
+            >
+                <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export Markdown</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Live Executive AI Sessions Register -->
-    <div class="bg-[#212631] rounded-xl border border-[#323946] overflow-hidden shadow-sm">
+    <div x-show="activeTab === 'sessions'" class="bg-[#212631] rounded-xl border border-[#323946] overflow-hidden shadow-sm">
         <div class="px-6 py-4 border-b border-[#323946] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 text-[#C9A36D] flex items-center justify-center">
@@ -138,6 +192,86 @@
                         </svg>
                         <span>Start New Session</span>
                     </button>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- Personal Action Tasks View -->
+    <div x-show="activeTab === 'tasks'" class="bg-[#212631] rounded-xl border border-[#323946] overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-[#323946] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 text-[#C9A36D] flex items-center justify-center">
+                    <svg style="width: 18px; height: 18px; min-width: 18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-white">Personal Action Tasks & Reminders</h3>
+                    <p class="text-xs text-zinc-300">Private tasks captured from Copilot actions or direct entry</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <a
+                    href="/admin/personal-tasks"
+                    class="px-3.5 py-1.5 rounded-lg bg-[#282E3C] hover:bg-[#323946] text-xs text-zinc-200 hover:text-white border border-[#323946] transition-colors flex items-center space-x-1.5"
+                >
+                    <span>Manage All Tasks</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="divide-y divide-[#323946]">
+            @php
+                $tasks = \App\Models\PersonalTask::where('user_id', auth()->id())->latest('updated_at')->take(15)->get();
+            @endphp
+
+            @forelse($tasks as $task)
+                <div class="p-4 hover:bg-[#282E3C]/60 transition-colors flex items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3 min-w-0 flex-1">
+                        <button
+                            wire:click="toggleTaskStatus({{ $task->id }})"
+                            type="button"
+                            class="w-6 h-6 rounded-full border flex items-center justify-center transition-colors {{ $task->status === 'completed' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-zinc-500 hover:border-[#C9A36D]' }}"
+                            title="Toggle Task Status"
+                        >
+                            @if($task->status === 'completed')
+                                <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                </svg>
+                            @endif
+                        </button>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium {{ $task->status === 'completed' ? 'line-through text-zinc-500' : 'text-white' }} truncate">
+                                {{ $task->title }}
+                            </p>
+                            <p class="text-xs text-zinc-400 mt-0.5 flex items-center space-x-2">
+                                @if($task->project_code)
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                        {{ $task->project_code }}
+                                    </span>
+                                @endif
+                                @if($task->due_date)
+                                    <span>Due {{ $task->due_date->format('d M Y') }}</span>
+                                    <span>·</span>
+                                @endif
+                                <span>{{ $task->created_at->diffForHumans() }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="px-2 py-0.5 text-[11px] rounded-full {{ $task->status === 'completed' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-zinc-700 text-zinc-300' }}">
+                            {{ ucfirst($task->status) }}
+                        </span>
+                    </div>
+                </div>
+            @empty
+                <div class="p-8 text-center text-zinc-400">
+                    <p class="text-sm font-medium text-zinc-300">No personal tasks recorded</p>
+                    <p class="text-xs text-zinc-400 mt-1">Ask Copilot to capture action items or create tasks in the Personal Tasks resource.</p>
                 </div>
             @endforelse
         </div>

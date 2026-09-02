@@ -32,6 +32,7 @@ body.fi-body {
   border-radius: 1.25rem !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
   padding: 1.5rem !important;
+  padding-bottom: 7rem !important;
 }
 
 /* Sidebar Styling */

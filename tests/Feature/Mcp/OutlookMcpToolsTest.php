@@ -12,6 +12,8 @@ use App\Mcp\Tools\Outlook\OutlookListInboxDeltaTool;
 use App\Mcp\Tools\Outlook\OutlookReadMessageTool;
 use App\Mcp\Tools\Outlook\OutlookReplyTool;
 use App\Mcp\Tools\Outlook\OutlookSearchMailTool;
+use App\Models\PersonalNote;
+use App\Models\PersonalTask;
 use App\Models\User;
 use App\Services\Ai\ActionApprovalService;
 use App\Services\Mcp\OutlookMcpBridge;
@@ -139,4 +141,16 @@ test('outlook mcp bridge provides fluent methods for user', function () {
     expect($bridge->createDraft('Subj', 'Body', ['a@b.com']))->toBeArray();
     expect($bridge->sendReply('msg_123', 'Reply text'))->toBeBool();
     expect($bridge->forwardMessage('msg_123', ['a@b.com'], 'Fwd comment'))->toBeBool();
+});
+
+test('personal note/task tools fail closed without an authenticated executive', function () {
+    // No actingAs(): auth()->user() is null. The tools must refuse rather than
+    // fall back to a default user_id (sovereign workspace isolation, ADR-013).
+    expect(fn () => (new CreatePersonalNoteTool)->handle(['title' => 'x', 'content' => 'y']))
+        ->toThrow(RuntimeException::class);
+    expect(fn () => (new CreatePersonalTaskTool)->handle(['title' => 'x']))
+        ->toThrow(RuntimeException::class);
+
+    expect(PersonalNote::count())->toBe(0);
+    expect(PersonalTask::count())->toBe(0);
 });

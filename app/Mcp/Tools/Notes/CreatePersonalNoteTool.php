@@ -4,6 +4,7 @@ namespace App\Mcp\Tools\Notes;
 
 use App\Mcp\BaseTool;
 use App\Models\PersonalNote;
+use RuntimeException;
 
 class CreatePersonalNoteTool extends BaseTool
 {
@@ -24,7 +25,6 @@ class CreatePersonalNoteTool extends BaseTool
                 'content' => ['type' => 'string'],
                 'project_code' => ['type' => 'string'],
                 'tags' => ['type' => 'array', 'items' => ['type' => 'string']],
-                'user_id' => ['type' => 'integer'],
             ],
         ];
     }
@@ -35,7 +35,11 @@ class CreatePersonalNoteTool extends BaseTool
      */
     public function handle(array $arguments): array
     {
-        $userId = (int) ($arguments['user_id'] ?? auth()->id() ?? 1);
+        $user = auth()->user();
+        if ($user === null) {
+            throw new RuntimeException('Cannot create a personal note outside an authenticated executive session.');
+        }
+        $userId = $user->id;
         $title = (string) ($arguments['title'] ?? 'Untitled Note');
         $content = (string) ($arguments['content'] ?? '');
         $projectCode = isset($arguments['project_code']) ? (string) $arguments['project_code'] : null;

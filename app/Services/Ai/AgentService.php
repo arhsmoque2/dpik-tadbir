@@ -65,11 +65,13 @@ class AgentService
     {
         $startTime = microtime(true);
 
-        ChatMessage::create([
-            'chat_session_id' => $session->id,
-            'role' => 'user',
-            'content' => $prompt,
-        ]);
+        if (empty($options['is_resumption'])) {
+            ChatMessage::create([
+                'chat_session_id' => $session->id,
+                'role' => 'user',
+                'content' => $prompt,
+            ]);
+        }
 
         $user = $session->user;
         if ($user === null) {
@@ -168,13 +170,18 @@ class AgentService
                         'role' => 'tool',
                         'content' => $resultContent,
                         'tool_call_id' => $toolCall['id'],
+                        'tool_name' => $toolCall['name'],
                         'is_error' => $isError,
                     ];
                     ChatMessage::create([
                         'chat_session_id' => $session->id,
                         'role' => 'tool',
                         'content' => $resultContent,
-                        'metadata' => ['tool_use_id' => $toolCall['id'], 'is_error' => $isError],
+                        'metadata' => [
+                            'tool_use_id' => $toolCall['id'],
+                            'tool_name' => $toolCall['name'],
+                            'is_error' => $isError,
+                        ],
                     ]);
                 }
             }
@@ -281,19 +288,37 @@ class AgentService
      * Resumes an interactive turn after user modal input or Action Card confirmation.
      *
      * @param  array<string, mixed>  $result
+     * @param  array<string, mixed>  $options
      */
-    public function resumeWithToolResult(ChatSession $session, string $toolUseId, array $result): AiTurnResponse
+    public function resumeWithToolResult(ChatSession $session, string $toolUseId, array $result, array $options = []): AiTurnResponse
     {
+        $toolName = (string) ($options['tool_name'] ?? '');
+        if ($toolName === '') {
+            $lastAssistantMsg = $session->messages()->where('role', 'assistant')->latest('id')->first();
+            if ($lastAssistantMsg !== null && is_array($lastAssistantMsg->tool_calls)) {
+                foreach ($lastAssistantMsg->tool_calls as $tc) {
+                    if (($tc['id'] ?? '') === $toolUseId) {
+                        $toolName = (string) ($tc['name'] ?? '');
+                        break;
+                    }
+                }
+            }
+        }
+
         ChatMessage::create([
             'chat_session_id' => $session->id,
             'role' => 'tool',
-            'content' => json_encode($result),
-            'metadata' => ['tool_use_id' => $toolUseId],
+            'content' => json_encode($result, JSON_THROW_ON_ERROR),
+            'metadata' => [
+                'tool_use_id' => $toolUseId,
+                'tool_name' => $toolName,
+            ],
         ]);
 
-        $prompt = 'User submitted interactive response: '.json_encode($result);
+        $lastUserMsg = $session->messages()->where('role', 'user')->latest('id')->first();
+        $promptContext = $lastUserMsg->content ?? 'Resume interactive turn';
 
-        return $this->handleUserTurn($session, $prompt);
+        return $this->handleUserTurn($session, $promptContext, array_merge($options, ['is_resumption' => true]));
     }
 
     /**
@@ -399,10 +424,27 @@ class AgentService
             if ($msg->role === 'tool') {
                 /** @var array<string, mixed> $metadata */
                 $metadata = (array) ($msg->metadata ?? []);
+                $toolCallId = (string) ($metadata['tool_use_id'] ?? $metadata['tool_call_id'] ?? '');
+                $toolName = (string) ($metadata['tool_name'] ?? $metadata['name'] ?? '');
+
+                if ($toolName === '' && $toolCallId !== '') {
+                    foreach ($history as $prevMsg) {
+                        if ($prevMsg->role === 'assistant' && is_array($prevMsg->tool_calls)) {
+                            foreach ($prevMsg->tool_calls as $tc) {
+                                if (($tc['id'] ?? '') === $toolCallId) {
+                                    $toolName = (string) ($tc['name'] ?? '');
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $messages[] = [
                     'role' => 'tool',
                     'content' => (string) $msg->content,
-                    'tool_call_id' => (string) ($metadata['tool_use_id'] ?? $metadata['tool_call_id'] ?? ''),
+                    'tool_call_id' => $toolCallId,
+                    'tool_name' => $toolName,
                     'is_error' => (bool) ($metadata['is_error'] ?? false),
                 ];
 
