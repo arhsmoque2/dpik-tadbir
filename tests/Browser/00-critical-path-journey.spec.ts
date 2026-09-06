@@ -129,4 +129,22 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // rather than just that the button was clickable.
         await expect(dispatchButton).toBeHidden({ timeout: 15000 });
     });
+
+    await test.step('Step 6 — leave a clean session behind for whatever runs next', async () => {
+        // tools/capabilities/generate.php's --verify-browser mode runs each
+        // capability's test as a separate `playwright test -g <title>`
+        // subprocess, all sharing the one already-seeded DB for the whole CI
+        // job — and AiCopilotDrawer::ensureActiveSession() reuses this
+        // seeded user's *latest* session rather than creating one per test.
+        // Files are scanned in sorted-path order (00- before 05-), so this
+        // capability verifies before 05-navigation-hygiene.spec.ts's —
+        // without this, this test's own populated conversation becomes the
+        // "latest" session, and the next capability's separate verification
+        // run inherits it, reproducing this same mobile-viewport scroll race
+        // (confirmed: this is what broke 'chat.copilot-drawer-close' in CI
+        // right after this test was added). Starting fresh (Step 2) isn't
+        // enough on its own — leaving fresh behind is what protects whoever
+        // verifies next.
+        await page.locator('[data-copilot-drawer]').getByRole('button', { name: 'New session' }).click();
+    });
 });
