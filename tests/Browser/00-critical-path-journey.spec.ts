@@ -63,7 +63,11 @@ test('critical path: login → chat interface → UI inquiry → email action st
         await expect(promptInput.first()).toBeVisible();
 
         await promptInput.first().fill('How do I use the executive inbox?');
-        await promptInput.first().press('Control+Enter');
+        // Driving the form's real submit control rather than the Cmd/Ctrl+Enter
+        // Alpine shortcut (@keydown.ctrl.enter on the textarea) — that
+        // shortcut isn't reliably observed by Playwright's synthesized
+        // keyboard events in headless Chromium, where this "Send" button is.
+        await drawer.getByRole('button', { name: /^send$/i }).click();
 
         // The mock's default branch (LlmGatewayService::mockCompletion) —
         // no tool call, just a direct reply. Confirms the round trip works
@@ -76,7 +80,7 @@ test('critical path: login → chat interface → UI inquiry → email action st
         const promptInput = drawer.locator('textarea');
 
         await promptInput.first().fill('Please draft a reply confirming our attendance.');
-        await promptInput.first().press('Control+Enter');
+        await drawer.getByRole('button', { name: /^send$/i }).click();
 
         // Mocked as a propose_action_card tool call (LlmGatewayService
         // mockCompletion's 'draft' branch) — deterministic, no live AI call.
