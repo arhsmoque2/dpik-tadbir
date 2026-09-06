@@ -55,6 +55,19 @@ test('critical path: login → chat interface → UI inquiry → email action st
         await copilotTrigger.first().click();
 
         await expect(page.locator('[data-copilot-drawer]')).toBeVisible({ timeout: 10000 });
+
+        // Force a fresh chat session rather than reusing whatever session
+        // already exists for this seeded user. AiCopilotDrawer::
+        // ensureActiveSession() reuses the latest existing session — without
+        // this, this test's own history accumulates across repeated runs
+        // (and across the chromium/mobile-chrome projects sharing the same
+        // seeded login within one CI run), making later assertions
+        // (a specific reply's text, a specific action card) increasingly
+        // likely to match multiple stale elements instead of just this
+        // run's. Confirmed via local repro: without this, the 2nd+ run
+        // against the same DB hits a strict-mode violation on step 3's
+        // assertion.
+        await page.locator('[data-copilot-drawer]').getByRole('button', { name: 'New session' }).click();
     });
 
     await test.step('Step 3 — UI-related inquiry: ask a general question and get a real assistant reply', async () => {
@@ -71,7 +84,18 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // Alpine shortcut (@keydown.ctrl.enter on the textarea) — that
         // shortcut isn't reliably observed by Playwright's synthesized
         // keyboard events in headless Chromium, where this "Send" button is.
-        await drawer.getByRole('button', { name: /^send$/i }).click();
+        //
+        // force: true — confirmed via a local trace (not just guessed) that
+        // this button is always the correct, visible, enabled target; the
+        // plain click intermittently fails its hit-test on mobile-chrome
+        // because focusing the textarea just above triggers the emulated
+        // device's native "scroll input into view" behavior, which races
+        // Playwright's own scroll-then-click and lands the hit-test on
+        // whatever's mid-scroll under that pixel (the drawer header one
+        // retry, the message stream the next) — scroll noise, not a real
+        // occlusion. If this starts failing for a different reason, don't
+        // just re-add force blindly: pull the trace first.
+        await drawer.getByRole('button', { name: /^send$/i }).click({ force: true });
 
         // The mock's default branch (LlmGatewayService::mockCompletion) —
         // no tool call, just a direct reply. Confirms the round trip works
@@ -84,7 +108,8 @@ test('critical path: login → chat interface → UI inquiry → email action st
         const promptInput = drawer.locator('textarea');
 
         await promptInput.first().fill('Please draft a reply confirming our attendance.');
-        await drawer.getByRole('button', { name: /^send$/i }).click();
+        // force: true — same mobile-viewport scroll race as Step 3's Send click.
+        await drawer.getByRole('button', { name: /^send$/i }).click({ force: true });
 
         // Mocked as a propose_action_card tool call (LlmGatewayService
         // mockCompletion's 'draft' branch) — deterministic, no live AI call.
