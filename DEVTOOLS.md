@@ -77,6 +77,28 @@ curl -sL https://github.com/arhsmoque2/dpik-tadbir/releases/download/sandbox-ven
 > **Degraded CI-Feedback Protocol (Air-Gapped Sandboxes)**:  
 > If operating in a network sandbox with complete external proxy isolation where `vendor/` cannot be populated, do not attempt blind install loops. Instead, operate in **Degraded CI-Feedback Mode**: push your semantic code changes and inspect machine-parseable GitHub Actions logs for Pint, PHPStan, and Diff-Cover findings.
 
+### 3.1 Outstanding sandbox-parity requests (infra, not code)
+
+Degraded Mode above is a fallback for when the sandbox genuinely can't be
+fixed mid-session — it isn't the target state. The gap between "a cloud
+agent session" and "CI" is entirely infrastructure/provisioning, not
+anything an agent can patch in the repo. Each row was hit for real (most
+recently 2026-09-06, a `status`/`gate`/capability-check session) and is
+independently actionable by whoever owns sandbox/session provisioning —
+work through them in order; #1–#3 alone would let an agent run the entire
+local gate stack (Pint/PHPStan/Pest/diff-cover/capability-gate) exactly
+like CI does, with zero handoff to "push and read CI logs instead."
+
+| # | Gap | Symptom | Ask |
+|---|---|---|---|
+| 1 | No usable GitHub token in-session | `GITHUB_TOKEN`/`GH_TOKEN` are the literal placeholder `proxy-injected`, which `scripts/setup-sandbox.sh`'s own `is_plausible_github_token()` correctly rejects — so `composer install` runs fully unauthenticated and hits GitHub API rate limits mid-resolution of the dependency tree | Inject a real scoped token (or `COMPOSER_AUTH`) into cloud-agent sessions |
+| 2 | Tier-1 fast path is stale/missing | `sandbox-vendor-latest` release's `vendor.tar.gz` 404'd this session, forcing the slow Tier-2 `composer install` path straight into #1 | Verify/fix whatever publishes that release asset on `composer.lock` changes — confirm it's actually current, not just present |
+| 3 | Cold `vendor/`+`node_modules/` every session | ~15+ min before any real gate can run at all | Pre-baked session image/cache with `vendor/`/`node_modules/` warm, keyed to `composer.lock`/`pnpm-lock.yaml` hash, refreshed on lockfile change |
+| 4 | No PHP coverage driver | `apt-get install php8.4-xdebug` → 403 through the sandbox's outbound proxy | Allow that package through, or bake Xdebug/PCOV into the base image, so `scripts/sandbox-preflight.sh`'s diff-cover step can run locally |
+| 5 | PPA hosts blocked | `apt-get update` gets 403 on `ppa.launchpadcontent.net` (deadsnakes, ondrej/php) inside `setup-sandbox.sh` — currently silently ignored | Allowlist those hosts, or explicitly document they're expected-unreachable so this stops looking like an investigation-worthy failure each session |
+| 6 | Playwright browser version mismatch | Pre-installed Chromium's revision doesn't match what `@playwright/test` wants, and its CDN download is blocked too, so `pnpm exec playwright test` fails outright locally | Keep the pre-installed Chromium's revision in lockstep with `pnpm-lock.yaml`'s `@playwright/test` version, or allow the CDN download through |
+| 7 | `snip` not installed/trusted | `python tools/tadbir.py status` reports `"installed": false, "trusted": false"` | Pre-install and trust `snip` in the session image, or confirm this is meant to stay a manual `tools/tadbir.py snip-setup` step per agent |
+
 ---
 
 ## 4. [DEV-CASCADE] The Deterministic Pre-Push Auto-Fix Cascade

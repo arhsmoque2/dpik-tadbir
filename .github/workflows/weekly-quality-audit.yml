@@ -1,8 +1,15 @@
 name: Weekly Quality & Mutation Audit
 
+# DISABLED (2026-09-06): both jobs below are currently broken by CI-config
+# bugs, not app regressions — a broken decoupled gate gives negative value
+# (red noise nobody investigates, or worse, gets ignored on faith). Schedule
+# trigger removed; workflow_dispatch kept so a future fix can be verified by
+# hand before restoring the cron. Root cause + recommended fix for each job
+# are recorded in docs/testing/weekly-audit-findings.md — read that before
+# re-enabling, verify the fix actually runs green once, then restore:
+#   schedule:
+#     - cron: '0 2 * * 0' # Every Sunday at 02:00 UTC
 on:
-  schedule:
-    - cron: '0 2 * * 0' # Every Sunday at 02:00 UTC
   workflow_dispatch:
 
 permissions:
