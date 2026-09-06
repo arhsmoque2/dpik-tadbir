@@ -302,6 +302,13 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: |
           cp .env.example .env
+          # APP_ENV=testing (not .env.example's default 'local') so
+          # App\Services\Ai\LlmGatewayService's liveGate takes the
+          # deterministic mockCompletion() path instead of attempting a
+          # real provider call with no API key configured in this job —
+          # required by any Browser spec that drives the chat send flow
+          # (tests/Browser/00-critical-path-journey.spec.ts).
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate --seed --force
@@ -309,11 +316,11 @@ jobs:
           curl --silent --show-error --retry 10 --retry-connrefused --retry-delay 2 --max-time 5 \
             --output /dev/null http://127.0.0.1:8000/admin/login
 
-      - name: Run Navigation Hygiene Journey (structural checks only — no pixel baseline required)
+      - name: Run Critical Path & Navigation Hygiene Journeys (structural checks only — no pixel baseline required)
         if: steps.check_composer.outputs.has_composer == 'true'
         env:
           CI_URL: http://127.0.0.1:8000
-        run: pnpm exec playwright test tests/Browser/05-navigation-hygiene.spec.ts
+        run: pnpm exec playwright test tests/Browser/00-critical-path-journey.spec.ts tests/Browser/05-navigation-hygiene.spec.ts
 
       - name: Upload Playwright report on failure
         if: failure() && steps.check_composer.outputs.has_composer == 'true'
@@ -378,6 +385,13 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: |
           cp .env.example .env
+          # APP_ENV=testing (not .env.example's default 'local') so
+          # App\Services\Ai\LlmGatewayService's liveGate takes the
+          # deterministic mockCompletion() path instead of attempting a
+          # real provider call with no API key configured in this job —
+          # required by any Browser spec that drives the chat send flow
+          # (tests/Browser/00-critical-path-journey.spec.ts).
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate --seed --force

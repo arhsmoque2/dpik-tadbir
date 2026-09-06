@@ -47,6 +47,10 @@
     "chat.voice-input": {
       "state": "deferred",
       "note": "Same as chat.web-browsing — needs a flow-of-events pass, not a benchmark-driven addition."
+    },
+    "journey.critical-path-login-to-mail-dispatch": {
+      "state": "approved",
+      "note": "The single chained end-to-end flow (tests/Browser/00-critical-path-journey.spec.ts): sign in, open the AI Copilot drawer, get a real reply to a general inquiry, then have a prompt stage and get approve an email action card. Distinct from the other @capability entries above, which prove one surface in isolation — this proves those surfaces actually compose into the sequence an executive follows. Extend this same test with new test.step()s as new capabilities land on this literal path; don't fork a parallel journey file."
     }
   }
 }
