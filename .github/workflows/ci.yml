@@ -302,6 +302,13 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: |
           cp .env.example .env
+          # APP_ENV=testing (not .env.example's default 'local') so
+          # App\Services\Ai\LlmGatewayService's liveGate takes the
+          # deterministic mockCompletion() path instead of attempting a
+          # real provider call with no API key configured in this job —
+          # required by any Browser spec that drives the chat send flow
+          # (tests/Browser/00-critical-path-journey.spec.ts).
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate --seed --force
@@ -378,6 +385,13 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: |
           cp .env.example .env
+          # APP_ENV=testing (not .env.example's default 'local') so
+          # App\Services\Ai\LlmGatewayService's liveGate takes the
+          # deterministic mockCompletion() path instead of attempting a
+          # real provider call with no API key configured in this job —
+          # required by any Browser spec that drives the chat send flow
+          # (tests/Browser/00-critical-path-journey.spec.ts).
+          sed -i 's/^APP_ENV=.*/APP_ENV=testing/' .env
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate --seed --force
