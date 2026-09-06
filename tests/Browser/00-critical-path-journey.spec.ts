@@ -62,7 +62,11 @@ test('critical path: login → chat interface → UI inquiry → email action st
         const promptInput = drawer.locator('textarea');
         await expect(promptInput.first()).toBeVisible();
 
-        await promptInput.first().fill('How do I use the executive inbox?');
+        // Deliberately avoids "inbox"/"delta"/"draft" — LlmGatewayService's
+        // mockCompletion() keys off those literal substrings for its other
+        // branches (checked before its plain default reply), and this step
+        // asserts on that default reply specifically.
+        await promptInput.first().fill('How do I use the AI copilot here?');
         // Driving the form's real submit control rather than the Cmd/Ctrl+Enter
         // Alpine shortcut (@keydown.ctrl.enter on the textarea) — that
         // shortcut isn't reliably observed by Playwright's synthesized
