@@ -156,6 +156,15 @@ function runPlaywrightTitle(string $repoRoot, string $file, string $title): bool
     );
     exec($cmd, $output, $exitCode);
 
+    if ($exitCode !== 0) {
+        // Without this, a --verify-browser failure is silent in CI: diff.php
+        // only ever reports "does not pass", never why — the actual
+        // Playwright assertion/trace output was captured here and then
+        // discarded. Print it so the next failure is debuggable from the
+        // job log alone, not blind.
+        fwrite(STDERR, "capabilities:generate: playwright -g {$title} failed (exit {$exitCode}):\n".implode("\n", $output)."\n");
+    }
+
     return $exitCode === 0;
 }
 

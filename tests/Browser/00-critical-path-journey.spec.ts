@@ -66,8 +66,20 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // likely to match multiple stale elements instead of just this
         // run's. Confirmed via local repro: without this, the 2nd+ run
         // against the same DB hits a strict-mode violation on step 3's
-        // assertion.
-        await page.locator('[data-copilot-drawer]').getByRole('button', { name: 'New session' }).click();
+        // assertion. force: true for the same mobile-viewport scroll-race
+        // reason as the Send button below.
+        const drawer = page.locator('[data-copilot-drawer]');
+        await drawer.getByRole('button', { name: 'New session' }).click({ force: true });
+
+        // "New session" triggers an async Livewire request that morphs the
+        // drawer's DOM (clearing the message stream). Proceeding immediately
+        // races that request: Step 3's fill()+click() can land on the
+        // pre-reset component an instant before Livewire replaces it,
+        // silently dropping the input. Confirmed via a local trace — the
+        // send appeared to succeed but the message never actually reached
+        // the (new) component. Wait for the empty-state placeholder that
+        // only renders once the reset has actually landed.
+        await expect(drawer.getByText('Executive Workspace Ready')).toBeVisible({ timeout: 10000 });
     });
 
     await test.step('Step 3 — UI-related inquiry: ask a general question and get a real assistant reply', async () => {
@@ -144,7 +156,14 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // (confirmed: this is what broke 'chat.copilot-drawer-close' in CI
         // right after this test was added). Starting fresh (Step 2) isn't
         // enough on its own — leaving fresh behind is what protects whoever
-        // verifies next.
-        await page.locator('[data-copilot-drawer]').getByRole('button', { name: 'New session' }).click();
+        // verifies next. force: true for the same mobile-viewport scroll-race
+        // reason as the other clicks in this test; then wait for the
+        // empty-state placeholder so the reset has actually landed before
+        // this browser context closes — a click with no confirmation
+        // followed immediately by the test (and browser) ending risks the
+        // async Livewire request never completing at all.
+        const drawer = page.locator('[data-copilot-drawer]');
+        await drawer.getByRole('button', { name: 'New session' }).click({ force: true });
+        await expect(drawer.getByText('Executive Workspace Ready')).toBeVisible({ timeout: 10000 });
     });
 });
