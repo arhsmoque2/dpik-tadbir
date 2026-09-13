@@ -38,6 +38,7 @@ class RenderHooksTest extends TestCase
         $output = (string) FilamentView::renderHook(PanelsRenderHook::BODY_END);
 
         $this->assertStringContainsString('data-copilot-drawer', $output);
+        $this->assertStringContainsString('data-chat-quick-switcher', $output);
         $this->assertStringContainsString('Floating Primary Navigation', $output);
         $this->assertNotEmpty($output);
     }
@@ -59,6 +60,23 @@ class RenderHooksTest extends TestCase
         $this->assertStringContainsString('AI Copilot', $output);
     }
 
+    public function test_authenticated_executive_renders_chat_sidebar_nav_on_sidebar_nav_end(): void
+    {
+        $user = User::create([
+            'name' => 'Test Executive 3',
+            'email' => 'executive3.hook@dpik.com.my',
+            'password' => bcrypt('password'),
+            'role' => 'executive',
+        ]);
+
+        $this->actingAs($user);
+
+        $output = (string) FilamentView::renderHook(PanelsRenderHook::SIDEBAR_NAV_END);
+
+        $this->assertStringContainsString('data-chat-sidebar-nav', $output);
+        $this->assertStringContainsString('Recent Chats', $output);
+    }
+
     public function test_unauthenticated_visitor_gets_empty_copilot_and_bottom_nav_hooks(): void
     {
         $bodyEnd = (string) FilamentView::renderHook(PanelsRenderHook::BODY_END);
@@ -66,6 +84,9 @@ class RenderHooksTest extends TestCase
 
         $globalSearchAfter = (string) FilamentView::renderHook(PanelsRenderHook::GLOBAL_SEARCH_AFTER);
         $this->assertSame('', trim($globalSearchAfter));
+
+        $sidebarNavEnd = (string) FilamentView::renderHook(PanelsRenderHook::SIDEBAR_NAV_END);
+        $this->assertSame('', trim($sidebarNavEnd));
     }
 
     public function test_auth_surfaces_render_google_sso_button_hooks(): void

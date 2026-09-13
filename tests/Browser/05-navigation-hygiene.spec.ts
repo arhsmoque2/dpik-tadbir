@@ -95,4 +95,23 @@ test.describe('Journey 5: Navigation Hygiene (Tier 0)', () => {
         // is unreachable from the browser.
         await assertNoRawBackendErrors(page, '[data-copilot-drawer]');
     });
+
+    test('chat sidebar nav and quick switcher dialog have accessible names and reachable close', async ({ page }) => {
+        await page.goto('/admin');
+        await page.waitForLoadState('domcontentloaded');
+
+        // Verify sidebar nav controls have accessible names if visible on desktop
+        const sidebarNav = page.locator('[data-chat-sidebar-nav]');
+        if (await sidebarNav.isVisible()) {
+            await assertIconControlsHaveAriaLabel(page, '[data-chat-sidebar-nav]');
+        }
+
+        // Verify quick switcher dialog has reachable close control
+        await page.keyboard.press('Control+o');
+        const switcher = page.locator('[data-chat-quick-switcher]');
+        if (await switcher.isVisible()) {
+            await assertIconControlsHaveAriaLabel(page, '[data-chat-quick-switcher]');
+            await assertDialogHasReachableClose(page, '[data-chat-quick-switcher]', BOTTOM_NAV);
+        }
+    });
 });

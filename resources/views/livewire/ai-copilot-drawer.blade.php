@@ -133,6 +133,17 @@
                 </div>
 
                 <button
+                    type="button"
+                    wire:click="$dispatch('open-quick-switcher')"
+                    class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
+                    title="Search all conversations (Cmd+O)"
+                    aria-label="Search all conversations"
+                >
+                    <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+                <button
                     wire:click="newSession"
                     type="button"
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
@@ -179,7 +190,31 @@
             id="copilot-message-stream"
             class="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin"
         >
+            @php
+                $lastDateGroup = null;
+            @endphp
             @forelse($this->messages as $msg)
+                @php
+                    $msgDate = $msg->created_at ? $msg->created_at->format('Y-m-d') : null;
+                    $dateChip = null;
+                    if ($msgDate !== $lastDateGroup && $msg->created_at) {
+                        $lastDateGroup = $msgDate;
+                        if ($msg->created_at->isToday()) {
+                            $dateChip = 'Today';
+                        } elseif ($msg->created_at->isYesterday()) {
+                            $dateChip = 'Yesterday';
+                        } else {
+                            $dateChip = $msg->created_at->format('M d, Y');
+                        }
+                    }
+                @endphp
+                @if($dateChip)
+                    <div class="flex justify-center my-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#18191E] border border-[#2C2F38] text-zinc-400">
+                            {{ $dateChip }}
+                        </span>
+                    </div>
+                @endif
                 @if($msg->role === 'user')
                     <div class="flex justify-end">
                         <div class="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#C9A36D]/15 border border-[#C9A36D]/30 px-4 py-3 text-sm text-white shadow-sm">

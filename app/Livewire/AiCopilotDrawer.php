@@ -370,8 +370,11 @@ class AiCopilotDrawer extends Component
         $this->suspendedToolCall = null;
         $this->inputPrompt = '';
         $this->statusMessage = '';
+
+        $this->dispatch('chat-sessions-updated');
     }
 
+    #[On('switch-copilot-session')]
     public function switchSession(int $sessionId): void
     {
         $user = Auth::user();
@@ -386,6 +389,7 @@ class AiCopilotDrawer extends Component
         if ($session !== null) {
             $this->activeSessionId = $session->id;
             $this->suspendedToolCall = null;
+            $this->dispatch('chat-sessions-updated');
         }
     }
 
