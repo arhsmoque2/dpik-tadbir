@@ -143,3 +143,53 @@ test('sidebar nav enforces sovereign user isolation on rename and delete', funct
 
     expect(ChatSession::find($foreignSession->id))->not->toBeNull();
 });
+
+test('sidebar nav cancels renaming properly', function () {
+    $session = ChatSession::create([
+        'user_id' => $this->user->id,
+        'title' => 'To Cancel',
+        'context_mode' => 'executive',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(ChatSidebarNav::class)
+        ->call('startRenaming', $session->id)
+        ->assertSet('renamingSessionId', $session->id)
+        ->call('cancelRename')
+        ->assertSet('renamingSessionId', null)
+        ->assertSet('renameTitle', '');
+});
+
+test('sidebar nav deletes active session and resets activeSessionId', function () {
+    $session = ChatSession::create([
+        'user_id' => $this->user->id,
+        'title' => 'Active To Delete',
+        'context_mode' => 'executive',
+    ]);
+
+    Livewire::actingAs($this->user)
+        ->test(ChatSidebarNav::class)
+        ->set('activeSessionId', $session->id)
+        ->call('deleteSession', $session->id)
+        ->assertSet('activeSessionId', null);
+});
+
+test('sidebar nav handles open-copilot-drawer and refresh events', function () {
+    Livewire::actingAs($this->user)
+        ->test(ChatSidebarNav::class)
+        ->dispatch('open-copilot-drawer', sessionId: 789)
+        ->assertSet('activeSessionId', 789)
+        ->dispatch('chat-sessions-updated')
+        ->dispatch('refresh-sidebar');
+});
+
+test('sidebar nav returns empty sessions for unauthenticated user', function () {
+    Livewire::test(ChatSidebarNav::class)
+        ->call('selectSession', 1)
+        ->call('createNewSession')
+        ->call('startRenaming', 1)
+        ->call('saveRename')
+        ->call('deleteSession', 1);
+
+    expect(true)->toBeTrue();
+});

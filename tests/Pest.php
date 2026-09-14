@@ -3,6 +3,16 @@
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
+if (! defined('SE_UID')) {
+    define('SE_UID', 1);
+}
+if (! defined('FT_UID')) {
+    define('FT_UID', 1);
+}
+if (! defined('IMAP_OPENTIMEOUT')) {
+    define('IMAP_OPENTIMEOUT', 1);
+}
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

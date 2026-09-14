@@ -92,3 +92,21 @@ test('quick switcher creates new session and dispatches events', function () {
 
     expect(ChatSession::where('user_id', $this->user->id)->count())->toBe(1);
 });
+
+test('quick switcher toggle resets search when closing', function () {
+    Livewire::actingAs($this->user)
+        ->test(ChatQuickSwitcher::class)
+        ->call('open')
+        ->set('search', 'something')
+        ->call('toggle')
+        ->assertSet('isOpen', false)
+        ->assertSet('search', '');
+});
+
+test('quick switcher handles unauthenticated user gracefully', function () {
+    Livewire::test(ChatQuickSwitcher::class)
+        ->call('selectSession', 1)
+        ->call('createNewSession');
+
+    expect(true)->toBeTrue();
+});

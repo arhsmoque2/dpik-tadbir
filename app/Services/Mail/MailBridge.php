@@ -14,16 +14,6 @@ use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Email;
 use Throwable;
 
-if (! defined('SE_UID')) {
-    define('SE_UID', 1);
-}
-if (! defined('FT_UID')) {
-    define('FT_UID', 1);
-}
-if (! defined('IMAP_OPENTIMEOUT')) {
-    define('IMAP_OPENTIMEOUT', 1);
-}
-
 /**
  * Replaces the former OutlookMcpBridge (Microsoft Graph via a Python
  * subprocess — see issue #40 / ADR-003). Every DPIK mailbox lives on the
