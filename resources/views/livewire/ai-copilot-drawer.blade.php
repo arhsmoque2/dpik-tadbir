@@ -23,6 +23,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        style="z-index: 50;"
         @click="$wire.closeDrawer()"
         aria-hidden="true"
     ></div>
@@ -37,44 +38,45 @@
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
         data-copilot-drawer
-        class="fixed inset-y-0 right-0 z-[60] w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col"
+        class="fixed inset-y-0 right-0 z-[60] w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col overflow-hidden"
+        style="z-index: 60;"
         role="dialog"
         aria-modal="true"
         aria-label="Executive AI Copilot Drawer"
     >
         <!-- Header -->
-        <div class="px-5 py-4 border-b border-[#2C2F38] bg-[#18191E] flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+        <div class="px-3 sm:px-5 py-3 sm:py-4 border-b border-[#2C2F38] bg-[#18191E] flex items-center justify-between gap-1.5 sm:gap-2 min-w-0 w-full">
+            <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 shrink">
                 <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 border border-[#C9A36D]/30 flex items-center justify-center text-[#C9A36D] shrink-0">
                     <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
-                <div>
-                    <h3 class="text-sm font-semibold tracking-wide text-white flex items-center space-x-2">
-                        <span>DPIK Copilot</span>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-normal tracking-normal {{ $outlookStatus === 'online' ? 'bg-[#429A6A]/20 text-[#429A6A] border border-[#429A6A]/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700' }}">
+                <div class="min-w-0">
+                    <h3 class="text-sm font-semibold tracking-wide text-white flex items-center space-x-1.5 min-w-0">
+                        <span class="truncate">DPIK Copilot</span>
+                        <span class="hidden sm:inline-block shrink-0 text-[10px] px-1.5 py-0.5 rounded font-mono font-normal tracking-normal {{ $outlookStatus === 'online' ? 'bg-[#429A6A]/20 text-[#429A6A] border border-[#429A6A]/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700' }}">
                             {{ $outlookStatus === 'online' ? 'Mailbox Connected' : 'Mailbox Offline' }}
                         </span>
                     </h3>
-                    <p class="text-xs text-[#9CA3AF]">Zero-raw-storage enterprise memory & action dispatcher</p>
+                    <p class="text-xs text-[#9CA3AF] truncate hidden sm:block">Zero-raw-storage enterprise memory & action dispatcher</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5">
+            <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
                 <!-- Two-Tier Model Selector (ADR-018 / UI-14) -->
                 <div class="relative" x-data="{ open: @entangle('isModelSwapperOpen') }">
                     <button
                         type="button"
                         @click="open = !open"
-                        class="inline-flex items-center space-x-1.5 px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-all font-mono"
+                        class="inline-flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1 text-xs rounded-full bg-[#18191E] hover:bg-[#21232B] text-zinc-300 hover:text-white border border-[#2C2F38] hover:border-[#C9A36D]/40 transition-all font-mono"
                         title="Runtime Model Swapper (ADR-018)"
                         aria-label="Runtime model swapper"
                     >
                         <svg style="width: 14px; height: 14px; min-width: 14px; color: #C9A36D;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                         </svg>
-                        <span class="truncate max-w-[170px]">{{ $this->getActiveModelBadgeLabel() }}</span>
+                        <span class="hidden sm:inline truncate max-w-[120px] md:max-w-[170px]">{{ $this->getActiveModelBadgeLabel() }}</span>
                         <svg style="width: 12px; height: 12px; min-width: 12px; color: #A1A1AA;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -133,6 +135,17 @@
                 </div>
 
                 <button
+                    type="button"
+                    wire:click="$dispatch('open-quick-switcher')"
+                    class="hidden sm:flex p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
+                    title="Search all conversations (Cmd+O)"
+                    aria-label="Search all conversations"
+                >
+                    <svg style="width: 16px; height: 16px; min-width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+                <button
                     wire:click="newSession"
                     type="button"
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
@@ -145,6 +158,7 @@
                 </button>
                 <button
                     wire:click="closeDrawer"
+                    @click="isOpen = false"
                     type="button"
                     data-copilot-drawer-close
                     class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
@@ -179,7 +193,31 @@
             id="copilot-message-stream"
             class="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin"
         >
+            @php
+                $lastDateGroup = null;
+            @endphp
             @forelse($this->messages as $msg)
+                @php
+                    $msgDate = $msg->created_at ? $msg->created_at->format('Y-m-d') : null;
+                    $dateChip = null;
+                    if ($msgDate !== $lastDateGroup && $msg->created_at) {
+                        $lastDateGroup = $msgDate;
+                        if ($msg->created_at->isToday()) {
+                            $dateChip = 'Today';
+                        } elseif ($msg->created_at->isYesterday()) {
+                            $dateChip = 'Yesterday';
+                        } else {
+                            $dateChip = $msg->created_at->format('M d, Y');
+                        }
+                    }
+                @endphp
+                @if($dateChip)
+                    <div class="flex justify-center my-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#18191E] border border-[#2C2F38] text-zinc-400">
+                            {{ $dateChip }}
+                        </span>
+                    </div>
+                @endif
                 @if($msg->role === 'user')
                     <div class="flex justify-end">
                         <div class="max-w-[85%] rounded-2xl rounded-tr-sm bg-[#C9A36D]/15 border border-[#C9A36D]/30 px-4 py-3 text-sm text-white shadow-sm">

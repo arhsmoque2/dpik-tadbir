@@ -20,6 +20,14 @@
       "state": "approved",
       "note": "No raw shell/stack-trace signature may ever render in the executive-facing chat transcript (regression: 'Outlook MCP bridge error: sh: 1: exec: uv: not found' leaking verbatim — see issue #40 for the underlying uv-missing root cause, tracked separately from this UI-leak fix)."
     },
+    "chat.sidebar-history": {
+      "state": "approved",
+      "note": "Sidebar conversation history listing recent sessions with inline rename, delete, and session switching actions."
+    },
+    "chat.quick-switcher": {
+      "state": "approved",
+      "note": "Cmd+O / Ctrl+O quick switcher palette allowing modal search across conversation titles and rapid session switching."
+    },
     "chat.stop-generation": {
       "state": "planned",
       "note": "No way to abort a long-running AI turn mid-flight; only a spinner. Table-stakes chat-UX mechanic, not a scope decision — safe to build without a flow-of-events pass."

@@ -69,7 +69,14 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // assertion. force: true for the same mobile-viewport scroll-race
         // reason as the Send button below.
         const drawer = page.locator('[data-copilot-drawer]');
-        await drawer.getByRole('button', { name: 'New session' }).click({ force: true });
+        // Wait for slide-over entry transition (300ms) to complete so header buttons are within the viewport
+        await page.waitForTimeout(350);
+        const newSessionBtn = drawer.getByRole('button', { name: 'New session' });
+        await expect(newSessionBtn).toBeVisible({ timeout: 5000 });
+        await Promise.all([
+            page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
+            newSessionBtn.click(),
+        ]);
 
         // "New session" triggers an async Livewire request that morphs the
         // drawer's DOM (clearing the message stream). Proceeding immediately
@@ -107,7 +114,10 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // retry, the message stream the next) — scroll noise, not a real
         // occlusion. If this starts failing for a different reason, don't
         // just re-add force blindly: pull the trace first.
-        await drawer.getByRole('button', { name: /^send$/i }).click({ force: true });
+        await Promise.all([
+            page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
+            drawer.getByRole('button', { name: /^send$/i }).click({ force: true }),
+        ]);
 
         // The mock's default branch (LlmGatewayService::mockCompletion) —
         // no tool call, just a direct reply. Confirms the round trip works
@@ -121,7 +131,10 @@ test('critical path: login → chat interface → UI inquiry → email action st
 
         await promptInput.first().fill('Please draft a reply confirming our attendance.');
         // force: true — same mobile-viewport scroll race as Step 3's Send click.
-        await drawer.getByRole('button', { name: /^send$/i }).click({ force: true });
+        await Promise.all([
+            page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
+            drawer.getByRole('button', { name: /^send$/i }).click({ force: true }),
+        ]);
 
         // Mocked as a propose_action_card tool call (LlmGatewayService
         // mockCompletion's 'draft' branch) — deterministic, no live AI call.
@@ -163,7 +176,12 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // followed immediately by the test (and browser) ending risks the
         // async Livewire request never completing at all.
         const drawer = page.locator('[data-copilot-drawer]');
-        await drawer.getByRole('button', { name: 'New session' }).click({ force: true });
+        const newSessionBtn = drawer.getByRole('button', { name: 'New session' });
+        await expect(newSessionBtn).toBeVisible({ timeout: 5000 });
+        await Promise.all([
+            page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
+            newSessionBtn.click(),
+        ]);
         await expect(drawer.getByText('Executive Workspace Ready')).toBeVisible({ timeout: 10000 });
     });
 });

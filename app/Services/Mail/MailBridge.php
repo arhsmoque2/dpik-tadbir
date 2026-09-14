@@ -326,7 +326,7 @@ class MailBridge
      */
     protected function openImapConnection(string $folder = 'INBOX')
     {
-        if (! function_exists('imap_open')) {
+        if (! function_exists('imap_open') && ! function_exists(__NAMESPACE__.'\imap_open')) {
             throw new RuntimeException('IMAP mail bridge is unavailable.');
         }
 
