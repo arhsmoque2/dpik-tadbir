@@ -69,9 +69,13 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // assertion. force: true for the same mobile-viewport scroll-race
         // reason as the Send button below.
         const drawer = page.locator('[data-copilot-drawer]');
+        // Wait for slide-over entry transition (300ms) to complete so header buttons are within the viewport
+        await page.waitForTimeout(350);
+        const newSessionBtn = drawer.getByRole('button', { name: 'New session' });
+        await expect(newSessionBtn).toBeVisible({ timeout: 5000 });
         await Promise.all([
             page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
-            drawer.getByRole('button', { name: 'New session' }).click({ force: true }),
+            newSessionBtn.click(),
         ]);
 
         // "New session" triggers an async Livewire request that morphs the
@@ -172,9 +176,11 @@ test('critical path: login → chat interface → UI inquiry → email action st
         // followed immediately by the test (and browser) ending risks the
         // async Livewire request never completing at all.
         const drawer = page.locator('[data-copilot-drawer]');
+        const newSessionBtn = drawer.getByRole('button', { name: 'New session' });
+        await expect(newSessionBtn).toBeVisible({ timeout: 5000 });
         await Promise.all([
             page.waitForResponse((resp) => resp.url().includes('/livewire/') && resp.status() === 200),
-            drawer.getByRole('button', { name: 'New session' }).click({ force: true }),
+            newSessionBtn.click(),
         ]);
         await expect(drawer.getByText('Executive Workspace Ready')).toBeVisible({ timeout: 10000 });
     });
