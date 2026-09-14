@@ -294,6 +294,10 @@ jobs:
         if: steps.check_composer.outputs.has_composer == 'true'
         run: pnpm install --frozen-lockfile
 
+      - name: Build Frontend Assets
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: pnpm run build
+
       - name: Install Playwright Chromium
         if: steps.check_composer.outputs.has_composer == 'true'
         run: pnpm exec playwright install --with-deps chromium
@@ -376,6 +380,10 @@ jobs:
       - name: Install Node Dependencies
         if: steps.check_composer.outputs.has_composer == 'true'
         run: pnpm install --frozen-lockfile
+
+      - name: Build Frontend Assets
+        if: steps.check_composer.outputs.has_composer == 'true'
+        run: pnpm run build
 
       - name: Install Playwright Chromium
         if: steps.check_composer.outputs.has_composer == 'true'
