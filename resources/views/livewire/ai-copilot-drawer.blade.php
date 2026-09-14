@@ -23,6 +23,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        style="z-index: 50;"
         @click="$wire.closeDrawer()"
         aria-hidden="true"
     ></div>
@@ -38,30 +39,31 @@
         x-transition:leave-end="translate-x-full"
         data-copilot-drawer
         class="fixed inset-y-0 right-0 z-[60] w-full max-w-lg md:max-w-xl bg-[#111215] text-[#F3F4F6] border-l border-[#2C2F38] shadow-2xl flex flex-col"
+        style="z-index: 60;"
         role="dialog"
         aria-modal="true"
         aria-label="Executive AI Copilot Drawer"
     >
         <!-- Header -->
-        <div class="px-5 py-4 border-b border-[#2C2F38] bg-[#18191E] flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+        <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-[#2C2F38] bg-[#18191E] flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
                 <div class="w-8 h-8 rounded-lg bg-[#C9A36D]/15 border border-[#C9A36D]/30 flex items-center justify-center text-[#C9A36D] shrink-0">
                     <svg style="width: 20px; height: 20px; min-width: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
-                <div>
-                    <h3 class="text-sm font-semibold tracking-wide text-white flex items-center space-x-2">
-                        <span>DPIK Copilot</span>
-                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono font-normal tracking-normal {{ $outlookStatus === 'online' ? 'bg-[#429A6A]/20 text-[#429A6A] border border-[#429A6A]/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700' }}">
+                <div class="min-w-0">
+                    <h3 class="text-sm font-semibold tracking-wide text-white flex items-center space-x-1.5 sm:space-x-2">
+                        <span class="truncate">DPIK Copilot</span>
+                        <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded font-mono font-normal tracking-normal {{ $outlookStatus === 'online' ? 'bg-[#429A6A]/20 text-[#429A6A] border border-[#429A6A]/30' : 'bg-zinc-800 text-zinc-400 border border-zinc-700' }}">
                             {{ $outlookStatus === 'online' ? 'Mailbox Connected' : 'Mailbox Offline' }}
                         </span>
                     </h3>
-                    <p class="text-xs text-[#9CA3AF]">Zero-raw-storage enterprise memory & action dispatcher</p>
+                    <p class="text-xs text-[#9CA3AF] truncate hidden sm:block">Zero-raw-storage enterprise memory & action dispatcher</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5">
+            <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
                 <!-- Two-Tier Model Selector (ADR-018 / UI-14) -->
                 <div class="relative" x-data="{ open: @entangle('isModelSwapperOpen') }">
                     <button
@@ -135,7 +137,7 @@
                 <button
                     type="button"
                     wire:click="$dispatch('open-quick-switcher')"
-                    class="p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
+                    class="hidden sm:flex p-1.5 rounded-md hover:bg-[#21232B] text-[#9CA3AF] hover:text-white transition-colors"
                     title="Search all conversations (Cmd+O)"
                     aria-label="Search all conversations"
                 >

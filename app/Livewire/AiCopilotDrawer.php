@@ -181,6 +181,7 @@ class AiCopilotDrawer extends Component
             $this->statusMessage = 'Turn processing failed: '.$e->getMessage();
         } finally {
             $this->isProcessing = false;
+            unset($this->messages);
         }
     }
 
@@ -253,6 +254,7 @@ class AiCopilotDrawer extends Component
             $this->statusMessage = 'Approval failed: '.$e->getMessage();
         } finally {
             $this->isProcessing = false;
+            unset($this->messages);
         }
     }
 
@@ -321,6 +323,7 @@ class AiCopilotDrawer extends Component
             $this->choiceNotes = '';
         } finally {
             $this->isProcessing = false;
+            unset($this->messages);
         }
     }
 
@@ -350,6 +353,7 @@ class AiCopilotDrawer extends Component
             $this->suspendedToolCall = $suspended;
         } finally {
             $this->isProcessing = false;
+            unset($this->messages);
         }
     }
 
@@ -370,6 +374,8 @@ class AiCopilotDrawer extends Component
         $this->suspendedToolCall = null;
         $this->inputPrompt = '';
         $this->statusMessage = '';
+        unset($this->messages);
+        unset($this->sessions);
 
         $this->dispatch('chat-sessions-updated');
     }
@@ -389,6 +395,7 @@ class AiCopilotDrawer extends Component
         if ($session !== null) {
             $this->activeSessionId = $session->id;
             $this->suspendedToolCall = null;
+            unset($this->messages);
             $this->dispatch('chat-sessions-updated');
         }
     }

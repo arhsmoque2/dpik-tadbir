@@ -26,6 +26,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]"
+        style="z-index: 70;"
         @click="$wire.close()"
         aria-hidden="true"
     ></div>
@@ -41,6 +42,7 @@
         x-transition:leave-end="opacity-0 scale-95"
         data-chat-quick-switcher
         class="fixed inset-x-4 top-[15%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-xl z-[75] bg-[#18191E] border border-[#2C2F38] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-[#F3F4F6]"
+        style="z-index: 75;"
         role="dialog"
         aria-modal="true"
         aria-label="Conversation Quick Switcher"
